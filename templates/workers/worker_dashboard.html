@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Worker Dashboard</h2>
+    <p><strong>Status:</strong> {{ worker_profile.verification_status }} / {{ worker_profile.training_status }}</p>
+    <p><strong>Badge:</strong> {{ worker_profile.badge_label }}</p>
+    <p><strong>Hourly rate:</strong> ৳{{ worker_profile.hourly_rate|default:'0.00' }}</p>
+    <p><strong>Completion rate:</strong> {{ worker_profile.completion_rate }}%</p>
+    <p><strong>Response time:</strong> {{ worker_profile.response_time }}</p>
+    <p><strong>Total earnings:</strong> ৳{{ total_earnings|default:'0.00' }}</p>
+    <p><strong>Service offered:</strong> {{ worker_profile.service.name|default:worker_profile.service_category|default:'Not set' }}</p>
+</div>
+
+<div class="card">
+    <h3>Available services for customers</h3>
+    <ul>
+        {% for service in available_services %}
+            <li>{{ service.name }} - {{ service.category }}</li>
+        {% empty %}
+            <li>No services available.</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<div class="card">
+    <h3>Assigned Jobs</h3>
+    {% if assigned_bookings %}
+        <ul>
+            {% for booking in assigned_bookings %}
+                <li>
+                    <strong>{{ booking.service.name }}</strong><br>
+                    Customer: {{ booking.customer.username }}<br>
+                    Address: {{ booking.address }}<br>
+                    Date: {{ booking.booking_date }}<br>
+                    Status: {{ booking.status }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No assigned jobs yet.</p>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h3>Reviews</h3>
+    {% if reviews %}
+        <ul>
+            {% for review in reviews %}
+                <li>{{ review.rating }} stars - {{ review.comment|default:'No comment' }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No reviews yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

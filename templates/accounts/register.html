@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-shell">
+    <div class="auth-card">
+        <div class="auth-card__header">
+            <h2>Create your account</h2>
+            <p>Pick a role and get started in a few simple steps.</p>
+        </div>
+
+        {% include 'partials/messages.html' %}
+
+        <form method="POST" enctype="multipart/form-data" class="auth-form">
+            {% csrf_token %}
+
+            <div class="form-grid">
+                <div class="form-group form-group--full">
+                    {{ form.role.label_tag }}
+                    {{ form.role }}
+                    {{ form.role.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.first_name.label_tag }}
+                    {{ form.first_name }}
+                    {{ form.first_name.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.last_name.label_tag }}
+                    {{ form.last_name }}
+                    {{ form.last_name.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.username.label_tag }}
+                    {{ form.username }}
+                    {{ form.username.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.phone.label_tag }}
+                    {{ form.phone }}
+                    {{ form.phone.errors }}
+                </div>
+
+                <div class="form-group form-group--full">
+                    {{ form.address.label_tag }}
+                    {{ form.address }}
+                    {{ form.address.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.preferred_contact_method.label_tag }}
+                    {{ form.preferred_contact_method }}
+                    {{ form.preferred_contact_method.errors }}
+                </div>
+
+                <div class="form-group form-group--checkbox">
+                    {{ form.receive_notifications }}
+                    {{ form.receive_notifications.label_tag }}
+                    {{ form.receive_notifications.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.profile_picture.label_tag }}
+                    {{ form.profile_picture }}
+                    {{ form.profile_picture.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.password1.label_tag }}
+                    {{ form.password1 }}
+                    {{ form.password1.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.password2.label_tag }}
+                    {{ form.password2 }}
+                    {{ form.password2.errors }}
+                </div>
+
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_service.label_tag }}
+                    {{ form.worker_service }}
+                    {{ form.worker_service.errors }}
+                </div>
+
+                <div class="form-group form-group--full worker-field" data-worker-field>
+                    {{ form.worker_service_category.label_tag }}
+                    {{ form.worker_service_category }}
+                    {{ form.worker_service_category.errors }}
+                </div>
+
+                <div class="form-group form-group--full worker-field" data-worker-field>
+                    {{ form.worker_skills.label_tag }}
+                    {{ form.worker_skills }}
+                    {{ form.worker_skills.errors }}
+                </div>
+
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_experience.label_tag }}
+                    {{ form.worker_experience }}
+                    {{ form.worker_experience.errors }}
+                </div>
+
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_service_area.label_tag }}
+                    {{ form.worker_service_area }}
+                    {{ form.worker_service_area.errors }}
+                </div>
+
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_portfolio_link.label_tag }}
+                    {{ form.worker_portfolio_link }}
+                    {{ form.worker_portfolio_link.errors }}
+                </div>
+
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_hourly_rate.label_tag }}
+                    {{ form.worker_hourly_rate }}
+                    {{ form.worker_hourly_rate.errors }}
+                </div>
+
+                <div class="form-group form-group--full worker-field" data-worker-field>
+                    {{ form.worker_bio.label_tag }}
+                    {{ form.worker_bio }}
+                    {{ form.worker_bio.errors }}
+                </div>
+            </div>
+
+            <button type="submit">Create account</button>
+        </form>
+
+        <p class="auth-switch">
+            Already have an account?
+            <a href="{% url 'login' %}">Login</a>
+        </p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const toggleWorkerFields = function () {
+            const selectedRole = document.querySelector('select[name="role"]')?.value || 'customer';
+            document.querySelectorAll('.worker-field').forEach(function (field) {
+                field.style.display = selectedRole === 'worker' ? 'flex' : 'none';
+            });
+        };
+
+        const roleSelect = document.querySelector('select[name="role"]');
+        if (roleSelect) {
+            roleSelect.addEventListener('change', toggleWorkerFields);
+            toggleWorkerFields();
+        }
+    });
+</script>
+{% endblock %}

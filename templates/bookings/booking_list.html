@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Bookings</h2>
+
+{% if bookings %}
+    <ul>
+        {% for booking in bookings %}
+            <li>
+                <a href="{% url 'booking_detail' booking.pk %}">
+                    {{ booking.service.name }} - {{ booking.status }}
+                </a>
+                <br>
+                <small>{{ booking.booking_date }} at {{ booking.booking_time }}</small>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No bookings found.</p>
+{% endif %}
+
+<a href="{% url 'booking_history' %}">View Booking History</a>
+
+{% endblock %}

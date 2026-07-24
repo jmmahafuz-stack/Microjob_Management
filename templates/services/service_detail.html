@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>{{ service.name }}</h2>
+
+{% if service.image %}
+<img src="{{ service.image.url }}" width="350">
+{% endif %}
+
+<p><strong>Category:</strong> {{ service.category }}</p>
+
+<p>{{ service.description }}</p>
+
+<p><strong>Price:</strong> ৳{{ service.price }}</p>
+
+<p><strong>Duration:</strong> {{ service.duration }}</p>
+
+<p><strong>Location:</strong> {{ service.location|default:'Any' }}</p>
+
+<p><strong>Available:</strong> {% if service.is_available %}Yes{% else %}No{% endif %}</p>
+<p><strong>Rating:</strong> {{ service.average_rating|floatformat:1 }} / 5</p>
+
+{% if user.is_authenticated and user.role == 'customer' %}
+    <p>
+        {% if is_favorited %}
+            <a href="{% url 'toggle_favorite_service' service.id %}">Remove from favorites</a>
+        {% else %}
+            <a href="{% url 'toggle_favorite_service' service.id %}">Add to favorites</a>
+        {% endif %}
+    </p>
+{% endif %}
+
+{% if user.is_authenticated %}
+    <a href="{% url 'create_booking' %}?service={{ service.id }}">
+        Book This Service
+    </a>
+{% else %}
+    <p><a href="{% url 'login' %}?next={{ request.path }}">Login to book this service</a></p>
+{% endif %}
+
+<p><strong>Suggested time slots:</strong></p>
+<ul>
+    <li>10:00 AM</li>
+    <li>12:00 PM</li>
+    <li>02:00 PM</li>
+    <li>04:00 PM</li>
+</ul>
+
+{% if verified_workers %}
+    <div style="margin-top:30px;">
+        <h3>Recommended workers for this service</h3>
+        {% for worker_profile in verified_workers %}
+            <div style="border:1px solid #d9e2ec; padding:15px; margin-bottom:12px; border-radius:8px;">
+                <p><strong>{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</strong></p>
+                <p><strong>Skills:</strong> {{ worker_profile.skills }}</p>
+                <p><strong>Experience:</strong> {{ worker_profile.experience|default:'Not specified' }}</p>
+                <p><strong>Rating:</strong> {{ worker_profile.average_rating|floatformat:1 }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if user.is_authenticated and user.role == 'admin' %}
+<br><br>
+
+<a href="{% url 'edit_service' service.id %}">
+    Edit
+</a>
+
+<br><br>
+
+<a href="{% url 'delete_service' service.id %}">
+    Delete
+</a>
+{% endif %}
+
+<br><br>
+
+<a href="{% url 'service_list' %}">
+    Back
+</a>
+
+{% endblock %}

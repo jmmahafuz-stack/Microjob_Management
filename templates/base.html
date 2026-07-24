@@ -1,0 +1,28 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>MJMS</title>
+
+<link rel="stylesheet"
+href="{% static 'css/style.css' %}">
+
+</head>
+
+<body>
+    {% include 'navbar.html' %}
+
+    <main>
+        {% include 'partials/messages.html' %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {% include 'footer.html' %}
+</body>
+
+</html>

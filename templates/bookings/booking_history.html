@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Booking History</h2>
+
+{% if bookings %}
+    <table>
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Worker</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+                <tr>
+                    <td>{{ booking.service.name }}</td>
+                    <td>{{ booking.booking_date }}</td>
+                    <td>{{ booking.status }}</td>
+                    <td>{{ booking.worker.username|default:'Unassigned' }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No booking history available.</p>
+{% endif %}
+
+<a href="{% url 'booking_list' %}">Back to Bookings</a>
+
+{% endblock %}

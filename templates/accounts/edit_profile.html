@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Edit Profile</h2>
+
+{% include 'partials/messages.html' %}
+
+<form method="POST" enctype="multipart/form-data">
+
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button type="submit">
+        Save Changes
+    </button>
+
+</form>
+
+{% endblock %}

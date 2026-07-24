@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Booking Details</h2>
+
+<p><strong>Customer:</strong> {{ booking.customer.username }}</p>
+<p><strong>Service:</strong> {{ booking.service.name }}</p>
+<p><strong>Preferred worker:</strong> {{ booking.worker.username|default:'Not selected' }}</p>
+<p><strong>Date:</strong> {{ booking.booking_date }}</p>
+<p><strong>Time:</strong> {{ booking.booking_time }}</p>
+<p><strong>Address:</strong> {{ booking.address }}</p>
+<p><strong>Problem:</strong> {{ booking.problem_description }}</p>
+<p><strong>Status:</strong> {{ booking.status }}</p>
+{% if booking_payment %}
+    <p><strong>Payment Status:</strong> {{ booking_payment.payment_status }}</p>
+    <p><strong>Payment Method:</strong> {{ booking_payment.payment_method }}</p>
+    {% if booking_payment.receipt %}
+        <p><strong>Receipt:</strong> <a href="{{ booking_payment.receipt.url }}" target="_blank">Download</a></p>
+    {% endif %}
+{% endif %}
+
+{% if user.role == 'customer' and booking.customer == user and booking.status in 'Pending,Confirmed'.split(',') %}
+    <p>
+        <a href="{% url 'edit_booking' booking.pk %}">Reschedule / Edit</a>
+        |
+        <a href="{% url 'cancel_booking' booking.pk %}">Cancel Booking</a>
+    </p>
+{% endif %}
+
+{% if user.role == 'admin' %}
+    <form method="post" action="{% url 'assign_worker' booking.pk %}">
+        {% csrf_token %}
+        {{ assign_form.as_p }}
+        <button type="submit">Assign Worker</button>
+    </form>
+{% endif %}
+
+{% if user.role == 'admin' or user.role == 'worker' %}
+    <form method="post" action="{% url 'update_status' booking.pk %}">
+        {% csrf_token %}
+        {{ status_form.as_p }}
+        <button type="submit">Update Status</button>
+    </form>
+{% endif %}
+
+{% if user.role == 'worker' and booking.worker == user and booking.status == 'Pending' %}
+    <p>
+        <a href="{% url 'respond_to_booking' booking.pk 'accept' %}">Accept Booking</a>
+        |
+        <a href="{% url 'respond_to_booking' booking.pk 'decline' %}">Decline Booking</a>
+    </p>
+{% endif %}
+
+{% if user.role == 'customer' and booking.status == 'Completed' %}
+    <p><a href="{% url 'create_review' booking.pk %}">Leave a Review</a></p>
+{% endif %}
+
+{% if user.role == 'customer' and booking.status != 'Completed' and (not booking_payment or booking_payment.payment_status != 'Paid') %}
+    <p><a href="{% url 'make_payment' booking.pk %}">Make Payment</a></p>
+{% elif user.role == 'customer' and booking.status != 'Completed' and booking_payment.payment_status == 'Paid' %}
+    <p>Your payment is complete.</p>
+{% endif %}
+
+<h3>Messages</h3>
+{% if booking_messages %}
+    <ul>
+        {% for message in booking_messages %}
+            <li><strong>{{ message.sender.username }}:</strong> {{ message.message }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No messages yet.</p>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ message_form.as_p }}
+    <button type="submit">Send Message</button>
+</form>
+
+<p><a href="{% url 'invoice' booking.pk %}">View Invoice</a></p>
+<p><a href="{% url 'booking_list' %}">Back to Booking List</a></p>
+
+{% endblock %}

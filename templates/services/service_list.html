@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="services-page">
+    <div class="services-hero">
+        <div>
+            <h2>Find trusted services near you</h2>
+            <p>Discover verified providers for home repairs, beauty, cleaning, and more.</p>
+        </div>
+    </div>
+
+    <form method="get" class="services-filter">
+        <input type="text" name="q" placeholder="Search services" value="{{ search_query }}">
+        <select name="category">
+            <option value="">All categories</option>
+            {% for cat in categories %}
+                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>{{ cat }}</option>
+            {% endfor %}
+        </select>
+        <select name="location">
+            <option value="">Any location</option>
+            {% for loc in locations %}
+                <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+        </select>
+        <input type="number" name="min_price" placeholder="Min price" step="0.01" value="{{ min_price }}">
+        <input type="number" name="max_price" placeholder="Max price" step="0.01" value="{{ max_price }}">
+        <select name="min_rating">
+            <option value="">Any rating</option>
+            {% for rating in rating_options %}
+                <option value="{{ rating }}" {% if min_rating == rating|stringformat:'s' %}selected{% endif %}>{{ rating }}+ stars</option>
+            {% endfor %}
+        </select>
+        <select name="sort">
+            <option value="">Default</option>
+            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Price: low to high</option>
+            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Price: high to low</option>
+            <option value="rating_desc" {% if sort == 'rating_desc' %}selected{% endif %}>Rating</option>
+            <option value="popular" {% if sort == 'popular' %}selected{% endif %}>Popular</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+
+    {% if featured_services %}
+    <section class="services-section">
+        <div class="section-heading">
+            <h3>Featured services</h3>
+        </div>
+        <div class="service-grid">
+            {% for service in featured_services %}
+                <article class="service-card">
+                    {% if service.image %}
+                        <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                    {% endif %}
+                    <div class="service-card__body">
+                        <span class="service-badge">Featured</span>
+                        <h4>{{ service.name }}</h4>
+                        <p class="service-category">{{ service.category }}</p>
+                        <p class="service-meta">⭐ {{ service.average_rating|floatformat:1 }}</p>
+                        <div class="service-footer">
+                            <strong>৳{{ service.price }}</strong>
+                            <a href="{% url 'service_detail' service.id %}">View Details</a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    {% if popular_services %}
+    <section class="services-section">
+        <div class="section-heading">
+            <h3>Popular services</h3>
+        </div>
+        <div class="service-grid">
+            {% for service in popular_services %}
+                <article class="service-card">
+                    {% if service.image %}
+                        <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                    {% endif %}
+                    <div class="service-card__body">
+                        <span class="service-badge popular">Popular</span>
+                        <h4>{{ service.name }}</h4>
+                        <p class="service-category">{{ service.category }}</p>
+                        <p class="service-meta">Bookings: {{ service.bookings.count }}</p>
+                        <div class="service-footer">
+                            <strong>৳{{ service.price }}</strong>
+                            <a href="{% url 'service_detail' service.id %}">View Details</a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="services-section">
+        <div class="section-heading">
+            <h3>All services</h3>
+        </div>
+        <div class="service-list">
+            {% for service in services %}
+            <article class="service-list-item">
+                {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                {% endif %}
+                <div class="service-list-item__body">
+                    <h4>{{ service.name }}</h4>
+                    <p class="service-category">{{ service.category }}</p>
+                    <p>{{ service.description|truncatewords:20 }}</p>
+                    <div class="service-meta-row">
+                        <span>📍 {{ service.location|default:'Any' }}</span>
+                        <span>⭐ {{ service.average_rating|floatformat:1 }}</span>
+                    </div>
+                </div>
+                <div class="service-list-item__price">
+                    <strong>৳{{ service.price }}</strong>
+                    <a href="{% url 'service_detail' service.id %}">View Details</a>
+                </div>
+            </article>
+            {% empty %}
+            <p class="empty-state">No services available.</p>
+            {% endfor %}
+        </div>
+    </section>
+</div>
+{% endblock %}
