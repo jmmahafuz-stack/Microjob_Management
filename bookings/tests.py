@@ -1,3 +1,181 @@
 from django.test import TestCase
+from django.urls import reverse
 
-# Create your tests here.
+from accounts.models import CustomUser
+from bookings.models import Booking
+from services.models import Service
+from workers.models import WorkerProfile
+
+
+class BookingCreationTests(TestCase):
+    def setUp(self):
+        self.customer = CustomUser.objects.create_user(
+            username='customer1',
+            email='customer@example.com',
+            password='testpass123',
+            role='customer',
+        )
+
+    def test_preselected_service_can_be_used_to_create_booking(self):
+        service = Service.objects.create(
+            name='Test Service',
+            category='Electrical',
+            description='A test service.',
+            price='100.00',
+            image='service_images/test.png',
+            duration='1 hour',
+            location='Dhaka',
+            is_available=False,
+        )
+
+        self.client.force_login(self.customer)
+
+        response = self.client.post(
+            reverse('create_booking'),
+            {
+                'service': service.pk,
+                'booking_date': '2026-08-10',
+                'booking_time': '10:00:00',
+                'address': 'Test address',
+                'problem_description': 'Need help with the service.',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Booking.objects.filter(service=service, customer=self.customer).exists())
+
+    def test_service_and_booking_pages_show_related_worker_profiles(self):
+        service = Service.objects.create(
+            name='Electrical Service',
+            category='Electrical',
+            description='A test service.',
+            price='100.00',
+            image='service_images/test.png',
+            duration='1 hour',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            username='worker1',
+            email='worker@example.com',
+            password='testpass123',
+            role='worker',
+            is_verified_worker=True,
+        )
+        WorkerProfile.objects.create(
+            user=worker,
+            service=service,
+            skills='Electrical repairs',
+            experience='5 years',
+            verification_status='Approved',
+        )
+
+        self.client.force_login(self.customer)
+
+        detail_response = self.client.get(reverse('service_detail', args=[service.pk]))
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertContains(detail_response, 'Recommended workers for this service')
+        self.assertContains(detail_response, worker.username)
+
+        booking_response = self.client.get(reverse('create_booking'), {'service': service.pk})
+        self.assertEqual(booking_response.status_code, 200)
+        self.assertContains(booking_response, 'Recommended workers for this service')
+        self.assertContains(booking_response, worker.username)
+
+    def test_service_pages_show_workers_matched_by_category(self):
+        service = Service.objects.create(
+            name='Plumbing Service',
+            category='Plumbing',
+            description='A test service.',
+            price='120.00',
+            image='service_images/test.png',
+            duration='2 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            username='worker2',
+            email='worker2@example.com',
+            password='testpass123',
+            role='worker',
+            is_verified_worker=True,
+        )
+        WorkerProfile.objects.create(
+            user=worker,
+            service_category='Plumbing',
+            skills='Plumbing fixes',
+            experience='4 years',
+            verification_status='Approved',
+        )
+
+        self.client.force_login(self.customer)
+
+        response = self.client.get(reverse('service_detail', args=[service.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, worker.username)
+
+    def test_booking_page_uses_compact_worker_card_markup(self):
+        service = Service.objects.create(
+            name='Cleaning Service',
+            category='Cleaning',
+            description='A cleaning service.',
+            price='80.00',
+            image='service_images/test.png',
+            duration='30 mins',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            username='worker3',
+            email='worker3@example.com',
+            password='testpass123',
+            role='worker',
+            is_verified_worker=True,
+        )
+        WorkerProfile.objects.create(
+            user=worker,
+            service=service,
+            skills='Cleaning maintenance',
+            experience='3 years',
+            verification_status='Approved',
+        )
+
+        self.client.force_login(self.customer)
+
+        response = self.client.get(reverse('create_booking'), {'service': service.pk})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'worker-card')
+        self.assertContains(response, 'worker-card__image')
+
+    def test_service_list_page_uses_compact_worker_card_markup(self):
+        service = Service.objects.create(
+            name='Laundry Service',
+            category='Laundry',
+            description='A laundry service.',
+            price='70.00',
+            image='service_images/test.png',
+            duration='45 mins',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            username='worker4',
+            email='worker4@example.com',
+            password='testpass123',
+            role='worker',
+            is_verified_worker=True,
+        )
+        WorkerProfile.objects.create(
+            user=worker,
+            service=service,
+            skills='Laundry care',
+            experience='2 years',
+            verification_status='Approved',
+        )
+
+        self.client.force_login(self.customer)
+
+        response = self.client.get(reverse('service_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'worker-card')
+        self.assertContains(response, 'worker-card__image')

@@ -32,32 +32,45 @@
 {% endif %}
 
 {% if user.is_authenticated %}
-    <a href="{% url 'create_booking' %}?service={{ service.id }}">
-        Book This Service
-    </a>
+    <p style="margin:14px 0 8px;">
+        <a href="{% url 'create_booking' %}?service={{ service.id }}" style="display:inline-block; padding:10px 14px; background:#2563eb; color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">
+            Book This Service
+        </a>
+    </p>
 {% else %}
     <p><a href="{% url 'login' %}?next={{ request.path }}">Login to book this service</a></p>
 {% endif %}
 
-<p><strong>Suggested time slots:</strong></p>
-<ul>
-    <li>10:00 AM</li>
-    <li>12:00 PM</li>
-    <li>02:00 PM</li>
-    <li>04:00 PM</li>
-</ul>
+<div style="margin-top:18px; padding:16px 18px; border:1px solid #d9e2ec; border-radius:10px; background:#f8fbff;">
+    <h3 style="margin-top:0; margin-bottom:8px;">Suggested time slots</h3>
+    <ul style="margin:0; padding-left:18px;">
+        <li>10:00 AM</li>
+        <li>12:00 PM</li>
+        <li>02:00 PM</li>
+        <li>04:00 PM</li>
+    </ul>
+</div>
 
 {% if verified_workers %}
-    <div style="margin-top:30px;">
-        <h3>Recommended workers for this service</h3>
-        {% for worker_profile in verified_workers %}
-            <div style="border:1px solid #d9e2ec; padding:15px; margin-bottom:12px; border-radius:8px;">
-                <p><strong>{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</strong></p>
-                <p><strong>Skills:</strong> {{ worker_profile.skills }}</p>
-                <p><strong>Experience:</strong> {{ worker_profile.experience|default:'Not specified' }}</p>
-                <p><strong>Rating:</strong> {{ worker_profile.average_rating|floatformat:1 }}</p>
-            </div>
-        {% endfor %}
+    <div style="margin-top:20px; padding:16px; border:1px solid #d9e2ec; border-radius:10px; background:#f8fbff;">
+        <h3 style="margin-top:0; margin-bottom:8px; font-size:1rem;">Recommended workers for this service</h3>
+        <p style="margin-top:0; margin-bottom:10px; color:#4b5563; font-size:0.92rem;">These verified workers are available for this service and can help with your booking.</p>
+        <div class="worker-card-list">
+            {% for worker_profile in verified_workers %}
+                <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card">
+                    {% if worker_profile.user.profile_picture %}
+                        <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image">
+                    {% else %}
+                        <div class="worker-card__avatar worker-card__image">👷</div>
+                    {% endif %}
+                    <div class="worker-card__meta">
+                        <p class="worker-card__name">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
+                        <p class="worker-card__detail">Skills: {{ worker_profile.skills }}</p>
+                        <p class="worker-card__detail">Exp: {{ worker_profile.experience|default:'Not specified' }}</p>
+                    </div>
+                </a>
+            {% endfor %}
+        </div>
     </div>
 {% endif %}
 

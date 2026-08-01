@@ -10,6 +10,27 @@ from .models import FavoriteService, Service
 from .forms import ServiceForm
 
 
+def _get_related_workers(service):
+    category_matches = WorkerProfile.objects.filter(
+        user__role='worker',
+        user__is_verified_worker=True,
+        service_category__icontains=service.category,
+    )
+    skill_matches = WorkerProfile.objects.filter(
+        user__role='worker',
+        user__is_verified_worker=True,
+        skills__icontains=service.category,
+    )
+    direct_matches = WorkerProfile.objects.filter(
+        user__role='worker',
+        user__is_verified_worker=True,
+        service=service,
+    )
+
+    combined = (category_matches | skill_matches | direct_matches).distinct().select_related('user')[:4]
+    return combined
+
+
 def service_list(request):
     search_query = request.GET.get('q', '').strip()
     category = request.GET.get('category', '')
@@ -62,8 +83,12 @@ def service_list(request):
     locations = Service.objects.filter(location__isnull=False).values_list('location', flat=True).distinct()
     rating_options = [5, 4, 3, 2, 1]
 
-    featured_services = services.filter(featured=True)[:4]
-    popular_services = services.order_by('-booking_count')[:4]
+    services = list(services)
+    for service in services:
+        service.related_workers = _get_related_workers(service)
+
+    featured_services = [service for service in services if service.featured][:4]
+    popular_services = sorted(services, key=lambda service: service.booking_count, reverse=True)[:4]
 
     return render(
         request,
@@ -88,11 +113,8 @@ def service_list(request):
 
 def service_detail(request, pk):
     service = get_object_or_404(Service, pk=pk)
-    verified_workers = WorkerProfile.objects.filter(
-        user__role='worker',
-        user__is_verified_worker=True,
-        skills__icontains=service.category
-    ).select_related('user')[:4]
+    verified_workers = _get_related_workers(service)
+    service.related_workers = verified_workers
 
     is_favorited = False
     if request.user.is_authenticated and request.user.role == 'customer':

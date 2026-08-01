@@ -20,7 +20,7 @@
     {% endif %}
 {% endif %}
 
-{% if user.role == 'customer' and booking.customer == user and booking.status in 'Pending,Confirmed'.split(',') %}
+{% if user.role == 'customer' and booking.customer == user and booking.status in 'Pending,Confirmed' %}
     <p>
         <a href="{% url 'edit_booking' booking.pk %}">Reschedule / Edit</a>
         |
@@ -56,10 +56,12 @@
     <p><a href="{% url 'create_review' booking.pk %}">Leave a Review</a></p>
 {% endif %}
 
-{% if user.role == 'customer' and booking.status != 'Completed' and (not booking_payment or booking_payment.payment_status != 'Paid') %}
-    <p><a href="{% url 'make_payment' booking.pk %}">Make Payment</a></p>
-{% elif user.role == 'customer' and booking.status != 'Completed' and booking_payment.payment_status == 'Paid' %}
-    <p>Your payment is complete.</p>
+{% if user.role == 'customer' and booking.status != 'Completed' %}
+    {% if booking_payment and booking_payment.payment_status == 'Paid' %}
+        <p>Your payment is complete.</p>
+    {% else %}
+        <p><a href="{% url 'make_payment' booking.pk %}">Make Payment</a></p>
+    {% endif %}
 {% endif %}
 
 <h3>Messages</h3>

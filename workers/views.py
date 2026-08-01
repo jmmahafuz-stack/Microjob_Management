@@ -40,6 +40,20 @@ def worker_dashboard(request):
     )
 
 
+def worker_profile_detail(request, pk):
+    worker_profile = get_object_or_404(WorkerProfile, pk=pk)
+    reviews = Review.objects.filter(worker=worker_profile.user).select_related('customer')
+
+    return render(
+        request,
+        'workers/worker_profile_detail.html',
+        {
+            'worker_profile': worker_profile,
+            'reviews': reviews,
+        }
+    )
+
+
 @admin_required
 def worker_verification_list(request):
 

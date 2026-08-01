@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import admin_required, customer_required, worker_required
 from services.models import Service
+from workers.models import WorkerProfile
 
 from .forms import (
     BookingCreateForm,
@@ -17,14 +18,35 @@ from .forms import (
 from .models import Booking, BookingMessage
 
 
+def _get_related_workers(service):
+    category_matches = WorkerProfile.objects.filter(
+        user__role='worker',
+        user__is_verified_worker=True,
+        service_category__icontains=service.category,
+    )
+    skill_matches = WorkerProfile.objects.filter(
+        user__role='worker',
+        user__is_verified_worker=True,
+        skills__icontains=service.category,
+    )
+    direct_matches = WorkerProfile.objects.filter(
+        user__role='worker',
+        user__is_verified_worker=True,
+        service=service,
+    )
+
+    combined = (category_matches | skill_matches | direct_matches).distinct().select_related('user')[:4]
+    return combined
+
+
 @login_required
 def booking_list(request):
     if request.user.role == 'admin':
-        bookings = Booking.objects.all()
+        bookings = Booking.objects.all().order_by('-created_at')
     elif request.user.role == 'worker':
-        bookings = Booking.objects.filter(worker=request.user)
+        bookings = Booking.objects.filter(worker=request.user).order_by('-created_at')
     else:
-        bookings = Booking.objects.filter(customer=request.user)
+        bookings = Booking.objects.filter(customer=request.user).order_by('-created_at')
 
     return render(
         request,
@@ -86,13 +108,14 @@ def booking_detail(request, pk):
 
 @customer_required
 def create_booking(request):
-    initial_service = None
-    service_id = request.GET.get('service')
+    selected_service = None
+    service_id = request.GET.get('service') or request.POST.get('service')
     if service_id:
-        initial_service = get_object_or_404(Service, pk=service_id)
+        selected_service = get_object_or_404(Service, pk=service_id)
+        selected_service.related_workers = _get_related_workers(selected_service)
 
     if request.method == 'POST':
-        form = BookingCreateForm(request.POST)
+        form = BookingCreateForm(request.POST, selected_service=selected_service)
         if form.is_valid():
             booking = form.save(commit=False)
             if request.user.role == 'admin' and booking.customer_id:
@@ -104,23 +127,26 @@ def create_booking(request):
             messages.success(request, 'Booking request created successfully.')
             return redirect('booking_detail', pk=booking.pk)
     else:
-        form = BookingCreateForm(initial={'service': initial_service})
+        form = BookingCreateForm(initial={'service': selected_service}, selected_service=selected_service)
 
     return render(
         request,
         'bookings/create_booking.html',
-        {'form': form}
+        {
+            'form': form,
+            'selected_service': selected_service,
+        }
     )
 
 
 @login_required
 def booking_history(request):
     if request.user.role == 'admin':
-        bookings = Booking.objects.all()
+        bookings = Booking.objects.all().order_by('-created_at')
     elif request.user.role == 'worker':
-        bookings = Booking.objects.filter(worker=request.user)
+        bookings = Booking.objects.filter(worker=request.user).order_by('-created_at')
     else:
-        bookings = Booking.objects.filter(customer=request.user)
+        bookings = Booking.objects.filter(customer=request.user).order_by('-created_at')
 
     return render(
         request,

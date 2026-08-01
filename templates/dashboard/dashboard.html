@@ -38,6 +38,19 @@
     {% else %}
         <h3>Customer Dashboard</h3>
         <p>Your bookings: {{ bookings.count }}</p>
+        <p><a href="{% url 'booking_history' %}">View all bookings</a></p>
+
+        {% if bookings %}
+            <h4>Recent bookings</h4>
+            <ul>
+                {% for booking in bookings|slice:':3' %}
+                    <li>
+                        <a href="{% url 'booking_detail' booking.pk %}">{{ booking.service.name }} - {{ booking.status }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
         <p>Your complaints: {{ complaints.count }}</p>
         <p><a href="{% url 'complaint_history' %}">View Complaints</a></p>
         <p><a href="{% url 'review_history' %}">View Reviews</a></p>

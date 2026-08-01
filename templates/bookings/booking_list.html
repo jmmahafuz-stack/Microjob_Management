@@ -1,25 +1,32 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="card">
+    <h2>Bookings</h2>
 
-<h2>Bookings</h2>
+    {% if bookings %}
+        <div class="service-list">
+            {% for booking in bookings %}
+                <article class="service-list-item">
+                    <div class="service-list-item__body">
+                        <h4>{{ booking.service.name }}</h4>
+                        <p class="service-category">{{ booking.status }}</p>
+                        <p>{{ booking.booking_date }} at {{ booking.booking_time }}</p>
+                        <p class="service-meta">Worker: {% if booking.worker %}{{ booking.worker.get_full_name|default:booking.worker.username }}{% else %}Unassigned{% endif %}</p>
+                    </div>
+                    <div class="service-list-item__price">
+                        <strong>৳{{ booking.service.price }}</strong>
+                        <a href="{% url 'booking_detail' booking.pk %}">View Details</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-state">No bookings found.</p>
+    {% endif %}
 
-{% if bookings %}
-    <ul>
-        {% for booking in bookings %}
-            <li>
-                <a href="{% url 'booking_detail' booking.pk %}">
-                    {{ booking.service.name }} - {{ booking.status }}
-                </a>
-                <br>
-                <small>{{ booking.booking_date }} at {{ booking.booking_time }}</small>
-            </li>
-        {% endfor %}
-    </ul>
-{% else %}
-    <p>No bookings found.</p>
-{% endif %}
-
-<a href="{% url 'booking_history' %}">View Booking History</a>
-
+    <div class="dashboard-links" style="margin-top:16px;">
+        <a href="{% url 'booking_history' %}">View Booking History</a>
+    </div>
+</div>
 {% endblock %}

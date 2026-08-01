@@ -57,6 +57,26 @@
                         <h4>{{ service.name }}</h4>
                         <p class="service-category">{{ service.category }}</p>
                         <p class="service-meta">⭐ {{ service.average_rating|floatformat:1 }}</p>
+                        {% if service.related_workers %}
+                            <div style="margin:10px 0 0; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; font-size:0.9rem;">
+                                <strong>Available workers</strong>
+                                <div class="worker-card-list" style="margin-top:8px; grid-template-columns:1fr; gap:8px;">
+                                    {% for worker_profile in service.related_workers %}
+                                        <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card" style="min-height:auto; padding:8px 10px;">
+                                            {% if worker_profile.user.profile_picture %}
+                                                <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image" style="width:34px; height:34px;">
+                                            {% else %}
+                                                <div class="worker-card__avatar worker-card__image" style="width:34px; height:34px; font-size:0.8rem;">👷</div>
+                                            {% endif %}
+                                            <div class="worker-card__meta">
+                                                <p class="worker-card__name" style="font-size:0.84rem;">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
+                                                <p class="worker-card__detail" style="margin:0;">{{ worker_profile.skills }}</p>
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
                         <div class="service-footer">
                             <strong>৳{{ service.price }}</strong>
                             <a href="{% url 'service_detail' service.id %}">View Details</a>
@@ -84,6 +104,26 @@
                         <h4>{{ service.name }}</h4>
                         <p class="service-category">{{ service.category }}</p>
                         <p class="service-meta">Bookings: {{ service.bookings.count }}</p>
+                        {% if service.related_workers %}
+                            <div style="margin:10px 0 0; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; font-size:0.9rem;">
+                                <strong>Available workers</strong>
+                                <div class="worker-card-list" style="margin-top:8px; grid-template-columns:1fr; gap:8px;">
+                                    {% for worker_profile in service.related_workers %}
+                                        <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card" style="min-height:auto; padding:8px 10px;">
+                                            {% if worker_profile.user.profile_picture %}
+                                                <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image" style="width:34px; height:34px;">
+                                            {% else %}
+                                                <div class="worker-card__avatar worker-card__image" style="width:34px; height:34px; font-size:0.8rem;">👷</div>
+                                            {% endif %}
+                                            <div class="worker-card__meta">
+                                                <p class="worker-card__name" style="font-size:0.84rem;">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
+                                                <p class="worker-card__detail" style="margin:0;">{{ worker_profile.skills }}</p>
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
                         <div class="service-footer">
                             <strong>৳{{ service.price }}</strong>
                             <a href="{% url 'service_detail' service.id %}">View Details</a>
@@ -118,6 +158,26 @@
                     <strong>৳{{ service.price }}</strong>
                     <a href="{% url 'service_detail' service.id %}">View Details</a>
                 </div>
+                {% if service.related_workers %}
+                    <div style="margin-top:10px; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; font-size:0.9rem;">
+                        <strong>👷 Available workers</strong>
+                        <div class="worker-card-list" style="margin-top:8px; grid-template-columns:1fr; gap:8px;">
+                            {% for worker_profile in service.related_workers %}
+                                <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card" style="min-height:auto; padding:8px 10px;">
+                                    {% if worker_profile.user.profile_picture %}
+                                        <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image" style="width:34px; height:34px;">
+                                    {% else %}
+                                        <div class="worker-card__avatar worker-card__image" style="width:34px; height:34px; font-size:0.8rem;">👷</div>
+                                    {% endif %}
+                                    <div class="worker-card__meta">
+                                        <p class="worker-card__name" style="font-size:0.84rem;">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
+                                        <p class="worker-card__detail" style="margin:0;">{{ worker_profile.skills }}</p>
+                                    </div>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
             </article>
             {% empty %}
             <p class="empty-state">No services available.</p>

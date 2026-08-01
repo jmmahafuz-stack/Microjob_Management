@@ -25,7 +25,7 @@ class BookingCreateForm(forms.ModelForm):
         label='Customer'
     )
     service = forms.ModelChoiceField(
-        queryset=Service.objects.filter(is_available=True),
+        queryset=Service.objects.all(),
         label='Service'
     )
     worker = forms.ModelChoiceField(
@@ -33,6 +33,27 @@ class BookingCreateForm(forms.ModelForm):
         required=False,
         label='Preferred Worker (optional)'
     )
+    booking_date = forms.DateField(
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        label='Booking Date'
+    )
+    booking_time = forms.TimeField(
+        widget=forms.TimeInput(attrs={'type': 'time'}),
+        label='Booking Time'
+    )
+
+    def __init__(self, *args, **kwargs):
+        selected_service = kwargs.pop('selected_service', None)
+        super().__init__(*args, **kwargs)
+
+        if selected_service is not None:
+            queryset = Service.objects.all()
+            queryset = queryset | Service.objects.filter(pk=selected_service.pk)
+            self.fields['service'].queryset = queryset.order_by('name')
+            if not self.data.get('service'):
+                self.initial['service'] = selected_service
+        else:
+            self.fields['service'].queryset = Service.objects.all().order_by('name')
 
 
 class BookingUpdateForm(forms.ModelForm):

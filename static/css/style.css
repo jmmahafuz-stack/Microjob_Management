@@ -224,6 +224,70 @@ button:hover, input[type="submit"]:hover {
     }
 }
 
+.worker-card-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 10px;
+}
+
+.worker-card {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid #cfe0ff;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff;
+    min-height: 92px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.worker-card:hover {
+    border-color: #93c5fd;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+}
+
+.worker-card__image {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #dbeafe;
+    flex-shrink: 0;
+}
+
+.worker-card__avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    color: #64748b;
+    flex-shrink: 0;
+}
+
+.worker-card__meta {
+    min-width: 0;
+}
+
+.worker-card__name {
+    margin: 0 0 2px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: #0f172a;
+}
+
+.worker-card__detail {
+    margin: 0 0 2px;
+    font-size: 0.8rem;
+    color: #475569;
+}
+
 .auth-form button {
     width: 100%;
     margin-top: 8px;
