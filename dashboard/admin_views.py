@@ -138,7 +138,8 @@ def admin_users_list(request):
         users = users.filter(
             Q(first_name__icontains=search) |
             Q(last_name__icontains=search) |
-            Q(email__icontains=search)
+            Q(email__icontains=search) |
+            Q(username__icontains=search)
         )
     
     users = users.order_by('-date_joined')
@@ -150,6 +151,69 @@ def admin_users_list(request):
     }
     
     return render(request, 'dashboard/admin_users_list.html', context)
+
+
+@staff_member_required
+def admin_user_action(request, user_id):
+    """Approve, reject, block, or unblock users from the admin dashboard."""
+    user = CustomUser.objects.get(pk=user_id)
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        if action == 'approve_worker' and user.role == 'worker':
+            user.worker_status = 'APPROVED'
+            if hasattr(user, 'worker_profile'):
+                user.worker_profile.verification_status = 'Approved'
+                user.worker_profile.save(update_fields=['verification_status'])
+            user.save(update_fields=['worker_status'])
+            messages = request._messages if hasattr(request, '_messages') else None
+            if messages is not None:
+                messages.success(request, f'{user.username} approved as a worker.')
+
+        elif action == 'reject_worker' and user.role == 'worker':
+            user.worker_status = 'REJECTED'
+            if hasattr(user, 'worker_profile'):
+                user.worker_profile.verification_status = 'Rejected'
+                user.worker_profile.save(update_fields=['verification_status'])
+            user.save(update_fields=['worker_status'])
+            messages = request._messages if hasattr(request, '_messages') else None
+            if messages is not None:
+                messages.warning(request, f'{user.username} rejected as a worker.')
+
+        elif action == 'block_worker' and user.role == 'worker':
+            user.worker_status = 'BLOCKED'
+            user.is_blocked = True
+            user.save(update_fields=['worker_status', 'is_blocked'])
+            messages = request._messages if hasattr(request, '_messages') else None
+            if messages is not None:
+                messages.warning(request, f'{user.username} has been blocked as a worker.')
+
+        elif action == 'unblock_worker' and user.role == 'worker':
+            user.worker_status = 'APPROVED'
+            user.is_blocked = False
+            user.save(update_fields=['worker_status', 'is_blocked'])
+            messages = request._messages if hasattr(request, '_messages') else None
+            if messages is not None:
+                messages.success(request, f'{user.username} has been unblocked and restored.')
+
+        elif action == 'block_customer' and user.role == 'customer':
+            user.customer_status = 'BLOCKED'
+            user.is_blocked = True
+            user.save(update_fields=['customer_status', 'is_blocked'])
+            messages = request._messages if hasattr(request, '_messages') else None
+            if messages is not None:
+                messages.warning(request, f'{user.username} has been blocked as a customer.')
+
+        elif action == 'unblock_customer' and user.role == 'customer':
+            user.customer_status = 'ACTIVE'
+            user.is_blocked = False
+            user.save(update_fields=['customer_status', 'is_blocked'])
+            messages = request._messages if hasattr(request, '_messages') else None
+            if messages is not None:
+                messages.success(request, f'{user.username} has been unblocked as a customer.')
+
+    return redirect('admin_users_list')
 
 
 @staff_member_required

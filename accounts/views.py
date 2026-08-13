@@ -109,7 +109,10 @@ def login_view(request):
             messages.success(request, f'Welcome {user.first_name or user.username}!')
 
             if user.role == 'worker':
-                return redirect('worker_dashboard')
+                if user.worker_status == 'APPROVED':
+                    return redirect('worker_dashboard')
+                messages.warning(request, 'Your worker account is pending admin approval. You can still browse as a customer.')
+                return redirect('home')
             if user.role == 'admin':
                 return redirect('dashboard_home')
             return redirect('home')

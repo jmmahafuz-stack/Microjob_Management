@@ -26,12 +26,18 @@ def _get_or_create_worker_profile(user):
 
 
 def worker_required(view_func):
-    """Decorator to check if user is a worker."""
+    """Decorator to check if user is an approved worker."""
     def wrapper(request, *args, **kwargs):
-        if request.user.is_authenticated and request.user.role == 'worker':
-            return view_func(request, *args, **kwargs)
-        messages.error(request, 'Access denied. Worker profile required.')
-        return redirect('home')
+        if not request.user.is_authenticated:
+            messages.error(request, 'Please login to continue.')
+            return redirect('login')
+        if request.user.role != 'worker':
+            messages.error(request, 'Access denied. Worker profile required.')
+            return redirect('home')
+        if request.user.worker_status != 'APPROVED':
+            messages.warning(request, 'Your worker account is pending admin approval. You can browse as a customer, but cannot take jobs yet.')
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
     return wrapper
 
 
@@ -81,7 +87,7 @@ def worker_dashboard(request):
         'pending_payouts': pending_payouts,
     }
     
-    return render(request, 'workers/dashboard.html', context)
+    return render(request, 'workers/worker_dashboard.html', context)
 
 
 @login_required

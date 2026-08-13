@@ -26,8 +26,8 @@ def worker_required(view_func):
             messages.error(request, 'Only workers can access this page.')
             return redirect('home')
         if request.user.worker_status != 'APPROVED':
-            messages.error(request, 'Your worker account is not approved yet.')
-            return redirect('login')
+            messages.warning(request, 'Your worker account is pending admin approval. You can use customer features, but not take jobs yet.')
+            return redirect('home')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 

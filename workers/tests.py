@@ -77,3 +77,62 @@ class WorkerRegistrationTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertTrue(WorkerProfile.objects.filter(user=user).exists())
+
+    def test_unapproved_worker_cannot_access_worker_dashboard(self):
+        user = CustomUser.objects.create_user(
+            username='pendingworker',
+            email='pendingworker@example.com',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='PENDING',
+        )
+
+        self.client.login(username='pendingworker', password='StrongPassword123')
+        response = self.client.get(reverse('worker_dashboard'))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('home'))
+
+    def test_worker_dashboard_shows_only_matching_services(self):
+        service_a = Service.objects.create(
+            name='Electrical Service',
+            category='Electrical',
+            description='Electrical work',
+            price='1200.00',
+            image='service_images/default.jpg',
+            duration='2 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        service_b = Service.objects.create(
+            name='Plumbing Service',
+            category='Plumbing',
+            description='Plumbing work',
+            price='1100.00',
+            image='service_images/default.jpg',
+            duration='2 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+
+        user = CustomUser.objects.create_user(
+            username='specialistworker',
+            email='specialistworker@example.com',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        WorkerProfile.objects.create(
+            user=user,
+            service=service_a,
+            service_category='Electrical',
+            skills='Electrical repair',
+            verification_status='Approved',
+        )
+
+        self.client.login(username='specialistworker', password='StrongPassword123')
+        response = self.client.get(reverse('worker_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, service_a.name)
+        self.assertNotContains(response, service_b.name)
