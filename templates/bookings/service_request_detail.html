@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ service_request.title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px; margin-bottom: 50px;">
+    <div class="row">
+        <div class="col-md-8">
+            <h1 style="margin-bottom: 20px;">{{ service_request.title }}</h1>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Customer:</strong><br>
+                            <a href="#">{{ service_request.customer.get_full_name }}</a>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Status:</strong><br>
+                            <span class="badge bg-{% if service_request.status == 'OPEN' %}info{% elif service_request.status == 'ASSIGNED' %}success{% elif service_request.status == 'COMPLETED' %}secondary{% else %}warning{% endif %}">
+                                {{ service_request.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Service:</strong><br>
+                            {% if service_request.service %}
+                                {{ service_request.service.name }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Budget:</strong><br>
+                            {% if service_request.budget_min and service_request.budget_max %}
+                                Rs. {{ service_request.budget_min }} - {{ service_request.budget_max }}
+                            {% elif service_request.budget_max %}
+                                up to Rs. {{ service_request.budget_max }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Preferred Date:</strong><br>
+                            {{ service_request.preferred_date|date:"M d, Y" }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Preferred Time:</strong><br>
+                            {% if service_request.preferred_time_start %}
+                                {{ service_request.preferred_time_start|time:"g:i A" }}
+                                {% if service_request.preferred_time_end %}
+                                    - {{ service_request.preferred_time_end|time:"g:i A" }}
+                                {% endif %}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <strong>Location:</strong><br>
+                            {{ service_request.location }}<br>
+                            <small class="text-muted">{{ service_request.address }}</small>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div>
+                        <strong>Description:</strong><br>
+                        <p>{{ service_request.description }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-comments"></i> Applications ({{ applications.count }})
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if request.user.role == 'worker' and service_request.status == 'OPEN' %}
+                        <a href="{% url 'job_application_create' service_request.id %}" class="btn btn-primary btn-block w-100 mb-3">
+                            <i class="fas fa-paper-plane"></i> Apply Now
+                        </a>
+                    {% endif %}
+                    
+                    {% if applications %}
+                        <div class="list-group">
+                            {% for application in applications %}
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="mb-1">
+                                                {% if application.worker.worker_profile %}
+                                                    {{ application.worker.get_full_name }}
+                                                {% else %}
+                                                    {{ application.worker.username }}
+                                                {% endif %}
+                                            </h6>
+                                            <small class="text-muted">
+                                                Rs. {{ application.proposed_price }}
+                                            </small>
+                                        </div>
+                                        <span class="badge bg-{% if application.status == 'PENDING' %}warning{% elif application.status == 'ACCEPTED' %}success{% elif application.status == 'REJECTED' %}danger{% else %}secondary{% endif %}">
+                                            {{ application.get_status_display }}
+                                        </span>
+                                    </div>
+                                    
+                                    {% if request.user == service_request.customer and application.status == 'PENDING' %}
+                                        <div class="mt-2">
+                                            <a href="{% url 'job_application_review' application.id %}" class="btn btn-sm btn-success">
+                                                Review
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted text-center">No applications yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

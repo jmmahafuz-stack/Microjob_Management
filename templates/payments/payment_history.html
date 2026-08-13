@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Payment History</h2>
+
+{% if payments %}
+    <table>
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Method</th>
+                <th>Receipt</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for payment in payments %}
+                <tr>
+                    <td>{{ payment.booking.service.name }}</td>
+                    <td>৳{{ payment.amount }}</td>
+                    <td>{{ payment.payment_status }}</td>
+                    <td>{{ payment.payment_method }}</td>
+                    <td>
+                        {% if payment.receipt %}
+                            <a href="{{ payment.receipt.url }}" target="_blank">Download</a>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% else %}
+    <p>No payment history found.</p>
+{% endif %}
+
+{% endblock %}

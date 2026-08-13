@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Complaint History</h2>
+
+{% if complaints %}
+    <ul>
+        {% for complaint in complaints %}
+            <li>
+                {{ complaint.subject }} - {{ complaint.status }}<br>
+                {{ complaint.description }}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No complaints found.</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="facebook-login-container">
+    <!-- Left side: Branding -->
+    <div class="facebook-login-left">
+        <div class="facebook-branding">
+            <h1 class="facebook-logo">MJMS</h1>
+            <p class="facebook-tagline">Connect with trusted services</p>
+        </div>
+        <div class="facebook-features">
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <p>Find skilled workers nearby</p>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <p>Book services instantly</p>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <p>Secure & verified professionals</p>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <p>24/7 customer support</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right side: Login Form -->
+    <div class="facebook-login-right">
+        <div class="facebook-form-card">
+            {% include 'partials/messages.html' %}
+
+            <form method="POST" class="facebook-form">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    {{ form.username }}
+                    {{ form.username.errors }}
+                </div>
+
+                <div class="form-group">
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </div>
+
+                <button type="submit" class="facebook-login-btn">Log In</button>
+            </form>
+
+            <div class="facebook-divider">or</div>
+
+            <a href="{% url 'register' %}" class="facebook-signup-btn">Create New Account</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

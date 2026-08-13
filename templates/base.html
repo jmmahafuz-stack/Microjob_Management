@@ -1,0 +1,75 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<title>MJMS - Micro Job Management System</title>
+
+<link rel="stylesheet" href="{% static 'css/professional.css' %}">
+
+</head>
+
+<body>
+    {% if request.resolver_match.url_name != 'login' %}
+        {% include 'navbar.html' %}
+    {% endif %}
+
+    <main>
+        {% include 'partials/messages.html' %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {% if request.resolver_match.url_name != 'login' %}
+        {% include 'footer.html' %}
+    {% endif %}
+
+    <script>
+        // Password visibility toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const togglePasswordVisibility = function(input) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                } else {
+                    input.type = 'password';
+                }
+            };
+
+            // Add toggle buttons to all password inputs
+            const passwordInputs = document.querySelectorAll('input[type="password"]');
+            passwordInputs.forEach(function(input) {
+                // Wrap the input in a password-field-wrapper if not already wrapped
+                if (!input.parentElement.classList.contains('password-field-wrapper')) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'password-field-wrapper';
+                    input.parentNode.insertBefore(wrapper, input);
+                    wrapper.appendChild(input);
+                }
+
+                // Create and add toggle button
+                const toggleBtn = document.createElement('button');
+                toggleBtn.type = 'button';
+                toggleBtn.className = 'password-toggle-btn hide';
+                toggleBtn.setAttribute('aria-label', 'Toggle password visibility');
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    togglePasswordVisibility(input);
+                    // Toggle button class
+                    if (input.type === 'text') {
+                        toggleBtn.classList.remove('hide');
+                        toggleBtn.classList.add('show');
+                    } else {
+                        toggleBtn.classList.remove('show');
+                        toggleBtn.classList.add('hide');
+                    }
+                });
+                input.parentNode.appendChild(toggleBtn);
+            });
+        });
+    </script>
+</body>
+
+</html>

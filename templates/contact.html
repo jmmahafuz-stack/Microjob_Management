@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container">
+    <!-- Page Header -->
+    <section class="hero">
+        <h1>Contact Us</h1>
+        <p>We're here to help and answer any questions you might have</p>
+    </section>
+
+    <!-- Contact Information -->
+    <section class="section">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+            <div style="text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">📧</div>
+                <h3>Email</h3>
+                <p><a href="mailto:support@mjms.com">support@mjms.com</a></p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">📱</div>
+                <h3>Phone</h3>
+                <p><a href="tel:+8801700000000">+880 1700-000000</a></p>
+            </div>
+            <div style="text-align: center;">
+                <div style="font-size: 2.5rem; margin-bottom: 1rem;">📍</div>
+                <h3>Address</h3>
+                <p>Dhaka, Bangladesh</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Form -->
+    <section class="section" style="max-width: 700px; margin-left: auto; margin-right: auto;">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Send us a Message</h2>
+        <form method="POST" style="background: white; padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label>Subject</label>
+                <input type="text" name="subject" required>
+            </div>
+
+            <div class="form-group">
+                <label>Message</label>
+                <textarea name="message" required></textarea>
+            </div>
+
+            <button type="submit" class="btn" style="width: 100%; padding: 1rem;">Send Message</button>
+        </form>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="section" style="margin-top: 3rem;">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Frequently Asked Questions</h2>
+        <div style="max-width: 700px; margin: 0 auto;">
+            <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="margin-bottom: 0.5rem;">How do I book a service?</h3>
+                <p>Simply browse our services, select a professional, choose your preferred date and time, and make a secure payment.</p>
+            </div>
+            <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="margin-bottom: 0.5rem;">Are the workers verified?</h3>
+                <p>Yes, all professionals on our platform are thoroughly vetted and company-trained to ensure quality service.</p>
+            </div>
+            <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
+                <h3 style="margin-bottom: 0.5rem;">What if I'm not satisfied with the service?</h3>
+                <p>We have a complaint resolution system and customer support team available 24/7 to assist with any issues.</p>
+            </div>
+            <div>
+                <h3 style="margin-bottom: 0.5rem;">Do you offer warranty on services?</h3>
+                <p>Warranty terms vary by service. Please check the service details for specific information.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+{% endblock %}
