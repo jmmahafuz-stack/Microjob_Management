@@ -27,9 +27,19 @@
                     <i class="fas fa-search"></i> Browse Services
                 </a>
                 {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard_home' %}" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-tachometer-alt"></i> Go to Dashboard
-                    </a>
+                    {% if user.role == 'admin' %}
+                        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                        </a>
+                    {% elif user.role == 'worker' %}
+                        <a href="{% url 'worker_dashboard' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-briefcase"></i> Go to My Jobs
+                        </a>
+                    {% else %}
+                        <a href="{% url 'booking_list' %}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-calendar-check"></i> My Bookings
+                        </a>
+                    {% endif %}
                 {% else %}
                     <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg">
                         <i class="fas fa-rocket"></i> Get Started

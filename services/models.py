@@ -60,23 +60,3 @@ class Service(models.Model):
     def get_absolute_url(self):
         return reverse('service_detail', kwargs={'pk': self.pk})
 
-
-class FavoriteService(models.Model):
-    customer = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.CASCADE,
-        related_name='favorite_services'
-    )
-    service = models.ForeignKey(
-        Service,
-        on_delete=models.CASCADE,
-        related_name='favorites'
-    )
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('customer', 'service')
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"{self.customer.username} favorites {self.service.name}"

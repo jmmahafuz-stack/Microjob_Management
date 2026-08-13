@@ -71,7 +71,19 @@ def worker_dashboard(request):
     cancelled_bookings = assigned_bookings.filter(status='Cancelled')
     worker_profile, _ = WorkerProfile.objects.get_or_create(user=request.user)
     reviews = Review.objects.filter(worker=request.user)
-    total_earnings = sum(booking.service.price for booking in completed_bookings if booking.service.price)
+    
+    # Get Job-based earnings from Payment model
+    from payments.models import Payment
+    from bookings.models import Job
+    
+    active_jobs = Job.objects.filter(worker=request.user).exclude(status='CANCELLED').order_by('-created_at')[:5]
+    
+    # Calculate earnings from new payment system
+    pending_earnings = worker_profile.pending_earnings
+    available_earnings = worker_profile.available_earnings
+    withdrawn_earnings = worker_profile.withdrawn_earnings
+    total_earnings = (pending_earnings + available_earnings + withdrawn_earnings)
+    
     available_services = Service.objects.filter(is_available=True)
 
     report_daily = _get_worker_earnings_data(request.user, 'daily')
@@ -90,7 +102,11 @@ def worker_dashboard(request):
             'worker_profile': worker_profile,
             'reviews': reviews,
             'total_earnings': total_earnings,
+            'pending_earnings': pending_earnings,
+            'available_earnings': available_earnings,
+            'withdrawn_earnings': withdrawn_earnings,
             'available_services': available_services,
+            'active_jobs': active_jobs,
             'report_daily': report_daily,
             'report_monthly': report_monthly,
             'report_yearly': report_yearly,

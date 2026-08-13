@@ -2,26 +2,82 @@
 
 {% block content %}
 <div class="card">
-    <h2>Dashboard</h2>
+    <h2>Platform Dashboard</h2>
 
     {% if user.role == 'admin' %}
-        <p>Welcome admin. Manage the website from one place.</p>
+        <p>Welcome admin. You are the main controller of the MJMS marketplace, overseeing workers, customers, jobs, payments, complaints, and platform performance.</p>
 
-        <div class="dashboard-grid">
+        <div class="dashboard-grid admin-grid">
+            <div class="dashboard-card">
+                <h3>Customers</h3>
+                <p class="dashboard-number">{{ total_customers }}</p>
+                <a href="{% url 'admin:index' %}">Manage customers</a>
+            </div>
             <div class="dashboard-card">
                 <h3>Workers</h3>
+                <p class="dashboard-number">{{ total_workers }}</p>
+                <a href="{% url 'worker_verification_list' %}">Review workers</a>
+            </div>
+            <div class="dashboard-card">
+                <h3>Pending Workers</h3>
                 <p class="dashboard-number">{{ pending_workers }}</p>
-                <a href="{% url 'worker_verification_list' %}">Open</a>
+                <a href="{% url 'worker_verification_list' %}">Approve / reject</a>
             </div>
             <div class="dashboard-card">
-                <h3>Bookings</h3>
-                <p class="dashboard-number">{{ pending_bookings }}</p>
-                <a href="{% url 'booking_list' %}">Open</a>
+                <h3>Service Requests</h3>
+                <p class="dashboard-number">{{ service_requests }}</p>
+                <a href="{% url 'service_request_list' %}">Monitor requests</a>
             </div>
             <div class="dashboard-card">
-                <h3>Complaints</h3>
-                <p class="dashboard-number">{{ pending_complaints }}</p>
-                <a href="{% url 'complaint_history' %}">Open</a>
+                <h3>Completed Jobs</h3>
+                <p class="dashboard-number">{{ completed_jobs }}</p>
+                <a href="{% url 'booking_list' %}">Review outcomes</a>
+            </div>
+            <div class="dashboard-card">
+                <h3>Cancelled Jobs</h3>
+                <p class="dashboard-number">{{ cancelled_jobs }}</p>
+                <a href="{% url 'booking_list' %}">Check issues</a>
+            </div>
+            <div class="dashboard-card">
+                <h3>Paid Transactions</h3>
+                <p class="dashboard-number">{{ paid_transactions }}</p>
+                <a href="{% url 'payment_history' %}">View payments</a>
+            </div>
+            <div class="dashboard-card">
+                <h3>Platform Revenue</h3>
+                <p class="dashboard-number">৳{{ platform_revenue|default:'0.00' }}</p>
+                <a href="{% url 'payment_history' %}">Commission overview</a>
+            </div>
+            <div class="dashboard-card">
+                <h3>Worker Earnings</h3>
+                <p class="dashboard-number">৳{{ worker_earnings|default:'0.00' }}</p>
+                <a href="{% url 'worker_dashboard' %}">Worker reports</a>
+            </div>
+            <div class="dashboard-card">
+                <h3>Avg Rating</h3>
+                <p class="dashboard-number">{{ avg_rating|floatformat:1 }}</p>
+                <a href="{% url 'review_history' %}">Review quality</a>
+            </div>
+        </div>
+
+        <div class="report-section">
+            <h3>Admin analytics</h3>
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h4>Daily report</h4>
+                    <p>Revenue: ৳{{ report_daily.revenue|default:'0.00' }}</p>
+                    <p>Jobs: {{ report_daily.jobs }}</p>
+                </div>
+                <div class="analytics-card">
+                    <h4>Monthly report</h4>
+                    <p>Revenue: ৳{{ report_monthly.revenue|default:'0.00' }}</p>
+                    <p>Jobs: {{ report_monthly.jobs }}</p>
+                </div>
+                <div class="analytics-card">
+                    <h4>Yearly report</h4>
+                    <p>Revenue: ৳{{ report_yearly.revenue|default:'0.00' }}</p>
+                    <p>Jobs: {{ report_yearly.jobs }}</p>
+                </div>
             </div>
         </div>
 
@@ -29,6 +85,8 @@
             <a href="{% url 'admin:index' %}">Admin Panel</a>
             <a href="{% url 'service_list' %}">Services</a>
             <a href="{% url 'booking_list' %}">Bookings</a>
+            <a href="{% url 'worker_verification_list' %}">Worker Approval</a>
+            <a href="{% url 'complaint_history' %}">Complaints</a>
         </div>
     {% elif user.role == 'worker' %}
         <h3>Worker Dashboard</h3>

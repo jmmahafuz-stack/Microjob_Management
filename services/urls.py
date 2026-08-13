@@ -11,12 +11,6 @@ urlpatterns = [
         name='service_detail'
     ),
     path(
-        '<int:pk>/favorite/',
-        views.toggle_favorite_service,
-        name='toggle_favorite_service'
-    ),
-
-    path(
         'create/',
         views.create_service,
         name='create_service'

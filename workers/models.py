@@ -84,6 +84,37 @@ class WorkerProfile(models.Model):
     average_rating_cached = models.DecimalField(max_digits=3, decimal_places=2, default=0)
     total_earnings = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     
+    # Earnings tracking
+    pending_earnings = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0,
+        help_text="Earnings from completed but unpaid jobs"
+    )
+    available_earnings = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0,
+        help_text="Earnings available for withdrawal after payment is confirmed"
+    )
+    withdrawn_earnings = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0,
+        help_text="Total amount withdrawn by worker"
+    )
+    
+    # Payout preferences
+    payout_method = models.CharField(
+        max_length=50,
+        choices=[
+            ('Bank Account', 'Bank Account'),
+            ('BKash', 'BKash'),
+            ('Nagad', 'Nagad'),
+            ('Rocket', 'Rocket'),
+        ],
+        default='Bank Account',
+        blank=True
+    )
+    payout_account_holder = models.CharField(max_length=255, blank=True)
+    payout_account_number = models.CharField(max_length=255, blank=True)
+    payout_bank_name = models.CharField(max_length=255, blank=True)
+    payout_branch = models.CharField(max_length=255, blank=True)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -116,3 +147,27 @@ class WorkerProfile(models.Model):
         if self.is_verified:
             return 'Verified Worker'
         return 'Pending Review'
+
+    def get_earnings_breakdown(self):
+        """Return breakdown of earnings by status"""
+        return {
+            'pending': self.pending_earnings,
+            'available': self.available_earnings,
+            'withdrawn': self.withdrawn_earnings,
+            'total_earned': self.pending_earnings + self.available_earnings + self.withdrawn_earnings,
+        }
+
+    def update_earnings_from_payment(self, amount, is_confirmed=False):
+        """Update worker earnings when payment is processed"""
+        if is_confirmed:
+            self.available_earnings = models.F('available_earnings') + amount
+        else:
+            self.pending_earnings = models.F('pending_earnings') + amount
+        self.total_earnings = models.F('total_earnings') + amount
+        self.save(update_fields=['pending_earnings', 'available_earnings', 'total_earnings'])
+
+    def confirm_pending_earnings(self, amount):
+        """Move earnings from pending to available after payment confirmation"""
+        self.pending_earnings = models.F('pending_earnings') - amount
+        self.available_earnings = models.F('available_earnings') + amount
+        self.save(update_fields=['pending_earnings', 'available_earnings'])

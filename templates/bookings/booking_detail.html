@@ -23,10 +23,13 @@
     {% endif %}
 
     {% if user.role == 'customer' and booking.customer == user %}
-        {% if booking.status in 'Pending,Confirmed' %}
+        {% if booking.status == 'Pending' or booking.status == 'Confirmed' %}
             <p>
                 <a href="{% url 'edit_booking' booking.pk %}" class="btn btn-primary">Reschedule / Edit</a>
-                <a href="{% url 'cancel_booking' booking.pk %}" class="btn btn-outline-primary">Cancel Booking</a>
+                <form method="post" action="{% url 'cancel_booking' booking.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-primary">Cancel Booking</button>
+                </form>
             </p>
         {% elif booking.status == 'Completed' %}
             {% if booking_payment and booking_payment.payment_status == 'Paid' %}

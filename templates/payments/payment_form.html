@@ -1,16 +1,54 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Payment for {{ booking.service.name }}</h2>
-<p><strong>Amount due:</strong> ৳{{ booking.service.price }}</p>
-<p><strong>Booking date:</strong> {{ booking.booking_date }}</p>
-<p><strong>Booking time:</strong> {{ booking.booking_time }}</p>
+<div class="payment-shell">
+    <div class="payment-card">
+        <div class="payment-card__header">
+            <div>
+                <p class="section-kicker">Secure payment</p>
+                <h2>Pay for {{ booking.service.name }}</h2>
+            </div>
+            <span class="payment-total">৳{{ booking.service.price }}</span>
+        </div>
 
-<form method="post" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit Payment</button>
-</form>
+        <div class="payment-summary">
+            <div>
+                <span>Service</span>
+                <strong>{{ booking.service.name }}</strong>
+            </div>
+            <div>
+                <span>Booking date</span>
+                <strong>{{ booking.booking_date }}</strong>
+            </div>
+            <div>
+                <span>Booking time</span>
+                <strong>{{ booking.booking_time }}</strong>
+            </div>
+        </div>
 
-<p><a href="{% url 'booking_detail' booking.pk %}">Back to booking</a></p>
+        <div class="payment-method-note">
+            <strong>Available payment methods:</strong> BKash, Nagad, Mobile Banking, Card, and cashless wallet.
+        </div>
+
+        <form method="post" enctype="multipart/form-data" class="payment-form">
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+            {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}
+                        <small>{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="field-error">{{ field.errors }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary btn-block">Submit Payment</button>
+        </form>
+
+        <p class="inline-link"><a href="{% url 'booking_detail' booking.pk %}">← Back to booking</a></p>
+    </div>
+</div>
 {% endblock %}
