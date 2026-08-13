@@ -14,8 +14,9 @@
             <table class="payment-table">
                 <thead>
                     <tr>
-                        <th>Service</th>
-                        <th>Amount</th>
+                        <th>Job Title</th>
+                        <th>Amount Paid</th>
+                        <th>Commission</th>
                         <th>Method</th>
                         <th>Status</th>
                         <th>Receipt</th>
@@ -24,8 +25,9 @@
                 <tbody>
                     {% for payment in payments %}
                         <tr>
-                            <td>{{ payment.booking.service.name }}</td>
-                            <td>৳{{ payment.amount }}</td>
+                            <td>{{ payment.job.title }}</td>
+                            <td>৳{{ payment.customer_amount }}</td>
+                            <td>৳{{ payment.platform_commission }}</td>
                             <td>{{ payment.payment_method }}</td>
                             <td>
                                 <span class="payment-status payment-status--{{ payment.payment_status|lower }}">{{ payment.payment_status }}</span>

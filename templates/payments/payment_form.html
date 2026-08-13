@@ -6,23 +6,23 @@
         <div class="payment-card__header">
             <div>
                 <p class="section-kicker">Secure payment</p>
-                <h2>Pay for {{ booking.service.name }}</h2>
+                <h2>Pay for {{ job.title }}</h2>
             </div>
-            <span class="payment-total">৳{{ booking.service.price }}</span>
+            <span class="payment-total">৳{{ job.final_price }}</span>
         </div>
 
         <div class="payment-summary">
             <div>
                 <span>Service</span>
-                <strong>{{ booking.service.name }}</strong>
+                <strong>{{ job.title }}</strong>
             </div>
             <div>
-                <span>Booking date</span>
-                <strong>{{ booking.booking_date }}</strong>
+                <span>Scheduled date</span>
+                <strong>{{ job.scheduled_date }}</strong>
             </div>
             <div>
-                <span>Booking time</span>
-                <strong>{{ booking.booking_time }}</strong>
+                <span>Scheduled time</span>
+                <strong>{{ job.scheduled_time_start }}</strong>
             </div>
         </div>
 
