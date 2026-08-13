@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'complaints',
     'dashboard',
     'core',
+    'notifications',
 ]
 
 MIDDLEWARE = [

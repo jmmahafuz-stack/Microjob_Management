@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from decimal import Decimal
+from django.utils import timezone
 
 
 class Payment(models.Model):
@@ -19,6 +20,12 @@ class Payment(models.Model):
         ('Verified', 'Verified - Payment Confirmed'),
         ('Failed', 'Failed'),
         ('Refunded', 'Refunded'),
+    ]
+
+    VERIFICATION_METHOD_CHOICES = [
+        ('Manual', 'Manual Verification by Admin'),
+        ('Gateway', 'Automatic Gateway Verification'),
+        ('Receipt', 'Receipt/Screenshot Verification'),
     ]
 
     # Link to Job
@@ -42,7 +49,7 @@ class Payment(models.Model):
     # Payment amounts - AUTOMATICALLY CALCULATED
     # These three fields form the complete payment breakdown
     customer_amount = models.DecimalField(
-        max_digits=10, decimal_places=2,
+        max_digits=10, decimal_places=2, default=0,
         help_text="Total amount customer pays (e.g., 1500)"
     )
     platform_commission = models.DecimalField(
@@ -98,6 +105,22 @@ class Payment(models.Model):
         default='Pending'
     )
     
+    # Gateway verification fields
+    verification_method = models.CharField(
+        max_length=20,
+        choices=VERIFICATION_METHOD_CHOICES,
+        default='Manual',
+        help_text="How this payment was verified"
+    )
+    gateway_response = models.JSONField(
+        null=True, blank=True,
+        help_text="Raw response from payment gateway API"
+    )
+    gateway_status = models.CharField(
+        max_length=50, blank=True, null=True,
+        help_text="Status returned by payment gateway"
+    )
+    
     # Refund tracking
     refund_reason = models.CharField(max_length=255, blank=True)
     refunded_at = models.DateTimeField(null=True, blank=True)
@@ -140,6 +163,20 @@ class Payment(models.Model):
                 self.job.worker.worker_profile.confirm_pending_earnings(self.worker_amount)
             
             self.save()
+            
+            # Send notification to worker
+            from notifications.models import Notification
+            if self.job and self.job.worker:
+                Notification.create_notification(
+                    user=self.job.worker,
+                    title=f"Payment Received for {self.job.title}",
+                    message=f"Your payment of ৳{self.worker_amount} has been verified and is now available for withdrawal.",
+                    notification_type='PAYMENT_VERIFIED',
+                    payment=self,
+                    job=self.job,
+                    related_user=self.job.customer,
+                )
+            
             return True
         return False
 

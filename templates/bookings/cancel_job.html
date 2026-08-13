@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Cancel Job{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px; margin-bottom: 50px;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <a href="{% url 'job_detail' job.id %}" class="btn btn-sm btn-secondary mb-3">
+                ← Back to Job
+            </a>
+            
+            <div class="card shadow-sm border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-exclamation-triangle"></i> Cancel Job
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        <strong>Warning:</strong> Are you sure you want to cancel this job? This action cannot be undone.
+                    </div>
+                    
+                    <div class="card mb-4 bg-light">
+                        <div class="card-header bg-light">
+                            <h6 class="mb-0">Job Details</h6>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Title:</strong> {{ job.title }}</p>
+                            <p><strong>Price:</strong> ৳{{ job.final_price }}</p>
+                            <p><strong>Worker:</strong> {{ job.worker.first_name }}</p>
+                            <p><strong>Status:</strong> <span class="badge bg-info">{{ job.get_status_display }}</span></p>
+                        </div>
+                    </div>
+                    
+                    <form method="post" class="needs-validation">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="cancel_reason" class="form-label">
+                                <strong>Reason for Cancellation (Optional)</strong>
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="cancel_reason" 
+                                name="cancel_reason" 
+                                rows="4" 
+                                placeholder="Tell the worker why you're cancelling this job...">
+                            </textarea>
+                            <small class="form-text text-muted">
+                                This will be shared with the worker via notification.
+                            </small>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <strong>Note:</strong> The worker will be notified about this cancellation.
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex gap-md-2">
+                            <a href="{% url 'job_detail' job.id %}" class="btn btn-secondary">
+                                ← Keep Job
+                            </a>
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-times-circle"></i> Yes, Cancel Job
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-control {
+        border-radius: 0.375rem;
+        border: 1px solid #dee2e6;
+        padding: 0.75rem;
+    }
+    
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }
+</style>
+{% endblock %}

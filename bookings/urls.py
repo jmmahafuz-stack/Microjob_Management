@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path('', views.booking_list, name='booking_list'),
+    path('my-bookings/', views.my_bookings, name='my_bookings'),
     path('history/', views.booking_history, name='booking_history'),
     path('create/', views.create_booking, name='create_booking'),
     path('my-jobs/', views.my_jobs, name='my_jobs'),
@@ -23,4 +24,5 @@ urlpatterns = [
     path('applications/<int:pk>/review/', views.job_application_review, name='job_application_review'),
     path('jobs/<int:pk>/', views.job_detail, name='job_detail'),
     path('jobs/<int:pk>/complete/', views.job_complete, name='job_complete'),
+    path('jobs/<int:pk>/cancel/', views.cancel_job, name='cancel_job'),
 ]

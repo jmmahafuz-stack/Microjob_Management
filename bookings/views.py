@@ -9,6 +9,7 @@ import django.utils.timezone
 from accounts.decorators import admin_required, customer_required, worker_required
 from services.models import Service
 from workers.models import WorkerProfile
+from notifications.models import Notification
 
 from .forms import (
     BookingCreateForm,
@@ -58,6 +59,19 @@ def booking_list(request):
     return render(
         request,
         'bookings/booking_list.html',
+        {'bookings': bookings}
+    )
+
+
+@login_required
+@customer_required
+def my_bookings(request):
+    """Show customer's all bookings"""
+    bookings = Booking.objects.filter(customer=request.user).select_related('worker', 'service').order_by('-created_at')
+    
+    return render(
+        request,
+        'bookings/my_bookings.html',
         {'bookings': bookings}
     )
 
@@ -535,6 +549,17 @@ def job_complete(request, pk):
             job.status = 'COMPLETED'
             job.actual_end_time = django.utils.timezone.now()
             job.save()
+            
+            # Send notification to customer
+            Notification.create_notification(
+                user=job.customer,
+                title=f"Job Completed - {job.title}",
+                message=f"The worker has marked the job '{job.title}' as completed. Please review and make payment.",
+                notification_type='JOB_COMPLETED',
+                job=job,
+                related_user=job.worker,
+            )
+            
             messages.success(request, 'Job marked as completed!')
             return redirect('job_detail', pk=job.pk)
     else:
@@ -545,3 +570,41 @@ def job_complete(request, pk):
         'form': form,
     }
     return render(request, 'bookings/job_completion_form.html', context)
+
+
+@login_required
+@customer_required
+def cancel_job(request, pk):
+    """Customer cancels a job"""
+    job = get_object_or_404(Job, pk=pk)
+    
+    # Permission check - only customer can cancel
+    if job.customer != request.user:
+        messages.error(request, 'You can only cancel your own jobs.')
+        return redirect('job_detail', pk=job.pk)
+    
+    # Can only cancel jobs that haven't been completed
+    if job.status in ['COMPLETED', 'CANCELLED']:
+        messages.error(request, 'This job cannot be cancelled.')
+        return redirect('job_detail', pk=job.pk)
+    
+    if request.method == 'POST':
+        cancel_reason = request.POST.get('cancel_reason', 'No reason provided')
+        job.status = 'CANCELLED'
+        job.save(update_fields=['status', 'updated_at'])
+        
+        # Send notification to worker
+        Notification.create_notification(
+            user=job.worker,
+            title=f"Job Cancelled - {job.title}",
+            message=f"The customer has cancelled the job '{job.title}'. Reason: {cancel_reason}",
+            notification_type='JOB_CANCELLED',
+            job=job,
+            related_user=job.customer,
+        )
+        
+        messages.success(request, 'Job cancelled successfully.')
+        return redirect('job_detail', pk=job.pk)
+    
+    context = {'job': job}
+    return render(request, 'bookings/cancel_job.html', context)

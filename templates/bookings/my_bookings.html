@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card booking-page">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">My Bookings</p>
+            <h2>Booking List</h2>
+        </div>
+        <a href="{% url 'create_booking' %}" class="btn btn-primary">Create New Booking</a>
+    </div>
+
+    {% if bookings %}
+        <div class="booking-list">
+            {% for booking in bookings %}
+                <article class="booking-card">
+                    <div class="booking-card__header">
+                        <div>
+                            <p class="booking-card__label">Service</p>
+                            <h4>{{ booking.service.name }}</h4>
+                        </div>
+                        <span class="booking-status-pill booking-status-pill--{{ booking.status|slugify }}">{{ booking.status }}</span>
+                    </div>
+
+                    <div class="booking-card__meta">
+                        <div>
+                            <span class="meta-label">Date</span>
+                            <p>{{ booking.booking_date }}{% if booking.booking_time %} at {{ booking.booking_time }}{% endif %}</p>
+                        </div>
+                        <div>
+                            <span class="meta-label">Worker</span>
+                            <p>
+                                {% if booking.worker %}
+                                    {{ booking.worker.get_full_name|default:booking.worker.username }}
+                                {% else %}
+                                    <em>Unassigned</em>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="meta-label">Amount</span>
+                            <p>৳{{ booking.service.price }}</p>
+                        </div>
+                    </div>
+
+                    <div class="booking-card__description">
+                        <p>{{ booking.description|truncatewords:20|default:"No description" }}</p>
+                    </div>
+
+                    <div class="booking-card__footer">
+                        <strong>৳{{ booking.service.price }}</strong>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-primary">View Details</a>
+                            {% if booking.status not in 'Completed|Cancelled' %}
+                                <a href="{% url 'cancel_booking' booking.pk %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this booking?');">Cancel</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3>No bookings yet</h3>
+            <p>You haven't created any bookings yet. Browse services and create your first booking!</p>
+            <a href="{% url 'service_list' %}" class="btn btn-primary">Browse Services</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from accounts.decorators import customer_required, worker_required
 from bookings.models import Job
+from notifications.models import Notification
 from .forms import CustomerPaymentForm, PaymentForm
 from .models import Payment, PayoutRequest
 
@@ -62,6 +63,16 @@ def make_payment(request, job_id):
                 worker_profile.pending_earnings += payment.worker_amount
                 worker_profile.total_earnings += payment.worker_amount
                 worker_profile.save(update_fields=['pending_earnings', 'total_earnings'])
+                
+                # Send notification to customer about payment submission
+                Notification.create_notification(
+                    user=request.user,
+                    title=f"Payment Submitted for {job.title}",
+                    message=f"Your payment of ৳{payment.customer_amount} has been submitted and is awaiting admin verification.",
+                    notification_type='JOB_PAYMENT_SUBMITTED',
+                    payment=payment,
+                    job=job,
+                )
                 
                 messages.success(
                     request,

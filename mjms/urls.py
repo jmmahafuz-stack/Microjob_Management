@@ -32,6 +32,7 @@ urlpatterns=[
     path('reviews/',include('reviews.urls')),
     path('complaints/',include('complaints.urls')),
     path('dashboard/',include('dashboard.urls')),
+    path('notifications/',include('notifications.urls')),
 ]
 
 if settings.DEBUG:

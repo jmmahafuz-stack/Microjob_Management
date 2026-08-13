@@ -52,6 +52,9 @@
                             {% if job.status == 'COMPLETED' %}
                                 <a href="{% url 'make_payment' job.pk %}" class="btn btn-success">Pay Now</a>
                             {% endif %}
+                            {% if job.status != 'COMPLETED' and job.status != 'CANCELLED' %}
+                                <a href="{% url 'cancel_job' job.pk %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to cancel this job?');">Cancel</a>
+                            {% endif %}
                         </div>
                     </div>
                 </article>

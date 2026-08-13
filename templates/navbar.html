@@ -10,10 +10,10 @@
             <a href="{% url 'dashboard_home' %}">Dashboard</a>
             <a href="{% url 'admin:index' %}">Admin</a>
         {% elif user.role == 'worker' %}
-            <a href="{% url 'worker_dashboard' %}">My Jobs</a>
+            <a href="{% url 'worker_dashboard' %}">MY Jobs</a>
             <a href="{% url 'service_request_list' %}">Open Requests</a>
         {% else %}
-            <a href="{% url 'my_jobs' %}">My Jobs</a>
+            <a href="{% url 'my_bookings' %}">MY Bookings</a>
         {% endif %}
 
         <a href="{% url 'profile' %}">Profile</a>

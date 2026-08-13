@@ -132,6 +132,14 @@
                     </a>
                 </div>
             {% endif %}
+
+            {% if request.user == job.customer and job.status != 'COMPLETED' and job.status != 'CANCELLED' %}
+                <div class="mb-4">
+                    <a href="{% url 'cancel_job' job.id %}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-times-circle"></i> Cancel Job
+                    </a>
+                </div>
+            {% endif %}
         </div>
         
         <div class="col-md-4">
@@ -142,16 +150,26 @@
                 <div class="card-body">
                     <div class="mb-4">
                         <strong>Customer</strong><br>
-                        {{ job.customer.get_full_name }}<br>
-                        <small class="text-muted">{{ job.customer.email }}</small>
+                        {% if request.user == job.customer or request.user.role == 'admin' %}
+                            {{ job.customer.get_full_name }}<br>
+                            <small class="text-muted">{{ job.customer.email }}</small>
+                        {% else %}
+                            {{ job.customer.first_name }}<br>
+                            <small class="text-muted">Contact via job messaging</small>
+                        {% endif %}
                     </div>
                     
                     <hr>
                     
                     <div>
                         <strong>Worker</strong><br>
-                        {{ job.worker.get_full_name }}<br>
-                        <small class="text-muted">{{ job.worker.email }}</small>
+                        {% if request.user == job.worker or request.user.role == 'admin' %}
+                            {{ job.worker.get_full_name }}<br>
+                            <small class="text-muted">{{ job.worker.email }}</small>
+                        {% else %}
+                            {{ job.worker.first_name }}<br>
+                            <small class="text-muted">Contact via job messaging</small>
+                        {% endif %}
                     </div>
                 </div>
             </div>
