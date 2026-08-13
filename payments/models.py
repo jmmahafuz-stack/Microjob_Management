@@ -87,6 +87,26 @@ class Payment(models.Model):
         help_text="Commission percentage (e.g., 10 for 10%)"
     )
     
+    # Payment verification (Gateway integration)
+    verification_method = models.CharField(
+        max_length=20,
+        choices=[
+            ('Manual', 'Manual - Admin Verified'),
+            ('Gateway', 'Gateway - API Verified'),
+            ('Receipt', 'Receipt - Uploaded Proof'),
+        ],
+        default='Manual',
+        help_text="How the payment was verified"
+    )
+    gateway_response = models.JSONField(
+        default=dict, blank=True,
+        help_text="Raw response from payment gateway"
+    )
+    gateway_status = models.CharField(
+        max_length=50, blank=True, default='',
+        help_text="Status returned by payment gateway"
+    )
+    
     # Worker payout status
     worker_payout_status = models.CharField(
         max_length=20,

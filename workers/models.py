@@ -115,6 +115,20 @@ class WorkerProfile(models.Model):
     payout_bank_name = models.CharField(max_length=255, blank=True)
     payout_branch = models.CharField(max_length=255, blank=True)
     
+    # Payment method phone numbers (for bKash/Nagad/Rocket)
+    bkash_number = models.CharField(
+        max_length=20, blank=True, default='',
+        help_text="bKash phone number for receiving payments (e.g., 01XXXXXXXXX)"
+    )
+    nagad_number = models.CharField(
+        max_length=20, blank=True, default='',
+        help_text="Nagad phone number for receiving payments (e.g., 01XXXXXXXXX)"
+    )
+    rocket_number = models.CharField(
+        max_length=20, blank=True, default='',
+        help_text="Rocket phone number for receiving payments (e.g., 01XXXXXXXXX)"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
