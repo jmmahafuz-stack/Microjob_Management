@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 from decimal import Decimal
-from django.utils import timezone
 
 
 class Payment(models.Model):
@@ -20,12 +19,6 @@ class Payment(models.Model):
         ('Verified', 'Verified - Payment Confirmed'),
         ('Failed', 'Failed'),
         ('Refunded', 'Refunded'),
-    ]
-
-    VERIFICATION_METHOD_CHOICES = [
-        ('Manual', 'Manual Verification by Admin'),
-        ('Gateway', 'Automatic Gateway Verification'),
-        ('Receipt', 'Receipt/Screenshot Verification'),
     ]
 
     # Link to Job
@@ -103,22 +96,6 @@ class Payment(models.Model):
             ('Withdrawn', 'Withdrawn'),
         ],
         default='Pending'
-    )
-    
-    # Gateway verification fields
-    verification_method = models.CharField(
-        max_length=20,
-        choices=VERIFICATION_METHOD_CHOICES,
-        default='Manual',
-        help_text="How this payment was verified"
-    )
-    gateway_response = models.JSONField(
-        null=True, blank=True,
-        help_text="Raw response from payment gateway API"
-    )
-    gateway_status = models.CharField(
-        max_length=50, blank=True, null=True,
-        help_text="Status returned by payment gateway"
     )
     
     # Refund tracking
