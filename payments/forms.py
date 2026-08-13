@@ -23,6 +23,32 @@ class CustomerPaymentForm(forms.ModelForm):
             'transaction_id',
             'receipt',
         ]
+
         widgets = {
-            'transaction_id': forms.TextInput(attrs={'placeholder': 'Enter transaction ID when payment is complete'}),
+            'payment_method': forms.Select(
+                attrs={'class': 'form-select'}
+            ),
+            'transaction_id': forms.TextInput(
+                attrs={
+                    'placeholder': 'Enter transaction ID when payment is complete',
+                    'class': 'form-control'
+                }
+            ),
+            'receipt': forms.ClearableFileInput(
+                attrs={'class': 'form-control'}
+            ),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        transaction_id = cleaned_data.get('transaction_id')
+        receipt = cleaned_data.get('receipt')
+
+        if not transaction_id and not receipt:
+            raise forms.ValidationError(
+                'Please enter a transaction ID or upload a payment receipt '
+                'to confirm the payment.'
+            )
+
+        return cleaned_data

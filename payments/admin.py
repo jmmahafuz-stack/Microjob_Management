@@ -16,10 +16,19 @@ class PaymentAdmin(admin.ModelAdmin):
         'payment_date'
     )
 
-    list_filter = ('payment_status', 'payment_method', 'payment_date')
+    list_filter = (
+        'payment_status',
+        'payment_method',
+        'payment_date'
+    )
 
-    search_fields = ('transaction_id', 'booking__id', 'job__id')
+    search_fields = (
+        'transaction_id',
+        'booking__id',
+        'job__id'
+    )
 
+    # created_at and updated_at are not fields in the Payment model
     readonly_fields = (
         'platform_commission',
         'worker_amount',
@@ -27,7 +36,12 @@ class PaymentAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Payment Information', {
-            'fields': ('booking', 'job', 'amount', 'customer_amount')
+            'fields': (
+                'booking',
+                'job',
+                'amount',
+                'customer_amount'
+            )
         }),
 
         ('Commission & Worker Amount', {
