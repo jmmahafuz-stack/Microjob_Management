@@ -13,4 +13,13 @@ urlpatterns = [
     path('<int:pk>/status/', views.update_status, name='update_status'),
     path('<int:pk>/respond/<str:action>/', views.respond_to_booking, name='respond_to_booking'),
     path('<int:pk>/invoice/', views.invoice, name='invoice'),
+    
+    # ===== PHASE 2: Service Request Workflow =====
+    path('requests/', views.service_request_list, name='service_request_list'),
+    path('requests/create/', views.service_request_create, name='service_request_create'),
+    path('requests/<int:pk>/', views.service_request_detail, name='service_request_detail'),
+    path('requests/<int:service_request_id>/apply/', views.job_application_create, name='job_application_create'),
+    path('applications/<int:pk>/review/', views.job_application_review, name='job_application_review'),
+    path('jobs/<int:pk>/', views.job_detail, name='job_detail'),
+    path('jobs/<int:pk>/complete/', views.job_complete, name='job_complete'),
 ]

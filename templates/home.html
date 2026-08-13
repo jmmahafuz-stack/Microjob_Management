@@ -3,24 +3,29 @@
 {% block content %}
 
 <div class="container">
-    <!-- Hero Section -->
-    <section class="hero">
+    <!-- Hero Section with Search -->
+    <section class="hero-section">
         <div class="hero-content">
             <h1>Welcome to MJMS</h1>
             <p>Connect with trusted, verified professionals for all your home maintenance needs</p>
-            {% if not user.is_authenticated %}
-                <a href="{% url 'service_list' %}" class="btn btn-secondary">Browse Services</a>
-                <a href="{% url 'register' %}" class="btn" style="margin-left: 1rem;">Get Started</a>
-            {% else %}
-                <a href="{% url 'service_list' %}" class="btn">Find Services</a>
-                <a href="{% url 'dashboard_home' %}" class="btn" style="margin-left: 1rem;">Dashboard</a>
-            {% endif %}
+            
+            <!-- Quick Category Tags -->
+            <div class="quick-categories">
+                <span class="category-label">Popular Categories:</span>
+                <div class="category-tags">
+                    <a href="{% url 'service_list' %}?q=Plumbing" class="category-tag">🔧 Plumbing</a>
+                    <a href="{% url 'service_list' %}?q=Electrical" class="category-tag">⚡ Electrical</a>
+                    <a href="{% url 'service_list' %}?q=Carpentry" class="category-tag">🪵 Carpentry</a>
+                    <a href="{% url 'service_list' %}?q=Painting" class="category-tag">🎨 Painting</a>
+                    <a href="{% url 'service_list' %}?q=Cleaning" class="category-tag">🧹 Cleaning</a>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Features Section -->
-    <section class="section">
-        <div class="section-title">
+    <section class="features-section">
+        <div class="section-header">
             <h2>Why Choose MJMS?</h2>
             <p>Your trusted platform for home services</p>
         </div>
@@ -49,13 +54,45 @@
     </section>
 
     <!-- Services Preview -->
-    <section class="section">
-        <div class="section-title">
+    <section class="services-preview">
+        <div class="section-header">
             <h2>Our Services</h2>
             <p>Find skilled professionals for various home maintenance tasks</p>
         </div>
-        <div style="text-align: center;">
-            <a href="{% url 'service_list' %}" class="btn">View All Services</a>
+        <div class="services-preview-grid">
+            <a href="{% url 'service_list' %}?q=Plumbing" class="service-preview-card">
+                <div class="service-preview-icon">🔧</div>
+                <h4>Plumbing</h4>
+                <p>Repairs & installations</p>
+            </a>
+            <a href="{% url 'service_list' %}?q=Electrical" class="service-preview-card">
+                <div class="service-preview-icon">⚡</div>
+                <h4>Electrical</h4>
+                <p>Wiring & maintenance</p>
+            </a>
+            <a href="{% url 'service_list' %}?q=Carpentry" class="service-preview-card">
+                <div class="service-preview-icon">🪵</div>
+                <h4>Carpentry</h4>
+                <p>Furniture & doors</p>
+            </a>
+            <a href="{% url 'service_list' %}?q=Painting" class="service-preview-card">
+                <div class="service-preview-icon">🎨</div>
+                <h4>Painting</h4>
+                <p>Interior & exterior</p>
+            </a>
+            <a href="{% url 'service_list' %}?q=Cleaning" class="service-preview-card">
+                <div class="service-preview-icon">🧹</div>
+                <h4>Cleaning</h4>
+                <p>House & deep cleaning</p>
+            </a>
+            <a href="{% url 'service_list' %}?q=HVAC" class="service-preview-card">
+                <div class="service-preview-icon">❄️</div>
+                <h4>HVAC</h4>
+                <p>AC & heating systems</p>
+            </a>
+        </div>
+        <div class="services-preview-footer">
+            <a href="{% url 'service_list' %}" class="btn btn-primary">View All Services</a>
         </div>
     </section>
 </div>
