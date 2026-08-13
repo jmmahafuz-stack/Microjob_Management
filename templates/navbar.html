@@ -29,3 +29,58 @@
         <a href="{% url 'register' %}">Register</a>
     {% endif %}
 </nav>
+
+<!-- Pagination Navigation -->
+<div class="pagination-nav" style="display: flex; justify-content: space-between; padding: 10px 20px; background-color: #f8f9fa; border-top: 1px solid #ddd;">
+    <!-- Previous Button (Bottom Left) -->
+    <div>
+        {% if page_obj.has_previous %}
+            <a href="?page=1" class="btn-nav">« First</a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="btn-nav">‹ Previous</a>
+        {% else %}
+            <span class="btn-nav disabled">« First</span>
+            <span class="btn-nav disabled">‹ Previous</span>
+        {% endif %}
+    </div>
+
+    <!-- Page Info (Center) -->
+    {% if page_obj %}
+        <div style="align-self: center; color: #666;">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </div>
+    {% endif %}
+
+    <!-- Next Button (Bottom Right) -->
+    <div>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="btn-nav">Next ›</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="btn-nav">Last »</a>
+        {% else %}
+            <span class="btn-nav disabled">Next ›</span>
+            <span class="btn-nav disabled">Last »</span>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+    .btn-nav {
+        padding: 8px 12px;
+        margin: 0 4px;
+        background-color: #007bff;
+        color: white;
+        text-decoration: none;
+        border-radius: 4px;
+        display: inline-block;
+        transition: background-color 0.3s;
+    }
+    
+    .btn-nav:hover {
+        background-color: #0056b3;
+    }
+    
+    .btn-nav.disabled {
+        background-color: #ccc;
+        cursor: not-allowed;
+        color: #999;
+    }
+</style>
