@@ -124,6 +124,14 @@
                     </a>
                 </div>
             {% endif %}
+
+            {% if request.user == job.customer and job.status == 'COMPLETED' %}
+                <div class="mb-4">
+                    <a href="{% url 'make_payment' job.id %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-credit-card"></i> Pay Now (৳{{ job.final_price }})
+                    </a>
+                </div>
+            {% endif %}
         </div>
         
         <div class="col-md-4">

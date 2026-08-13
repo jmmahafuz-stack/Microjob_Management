@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card booking-page">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Active Jobs</p>
+            <h2>My Jobs</h2>
+        </div>
+        <a href="{% url 'service_request_list' %}" class="btn btn-outline-primary">Browse New Services</a>
+    </div>
+
+    {% if jobs %}
+        <div class="booking-list">
+            {% for job in jobs %}
+                <article class="booking-card">
+                    <div class="booking-card__header">
+                        <div>
+                            <p class="booking-card__label">Job</p>
+                            <h4>{{ job.title }}</h4>
+                        </div>
+                        <span class="booking-status-pill booking-status-pill--{{ job.status|slugify }}">{{ job.status }}</span>
+                    </div>
+
+                    <div class="booking-card__meta">
+                        <div>
+                            <span class="meta-label">Scheduled Date</span>
+                            <p>{{ job.scheduled_date }} 
+                                {% if job.scheduled_time_start %}
+                                    at {{ job.scheduled_time_start }}
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div>
+                            <span class="meta-label">Worker</span>
+                            <p>{{ job.worker.get_full_name|default:job.worker.username }}</p>
+                        </div>
+                        <div>
+                            <span class="meta-label">Proposed Price</span>
+                            <p>৳{{ job.proposed_price }}</p>
+                        </div>
+                    </div>
+
+                    <div class="booking-card__description">
+                        <p>{{ job.description|truncatewords:20 }}</p>
+                    </div>
+
+                    <div class="booking-card__footer">
+                        <strong>৳{{ job.proposed_price }}</strong>
+                        <div>
+                            <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Details</a>
+                            {% if job.status == 'COMPLETED' %}
+                                <a href="{% url 'make_payment' job.pk %}" class="btn btn-success">Pay Now</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h3>No active jobs yet</h3>
+            <p>Your jobs will appear here once you request a service and accept a worker's application.</p>
+            <a href="{% url 'service_request_list' %}" class="btn btn-primary">Request a Service</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -63,6 +63,19 @@ def booking_list(request):
 
 
 @login_required
+@customer_required
+def my_jobs(request):
+    """Show customer's active jobs from Phase 2 workflow (ServiceRequest → Job)"""
+    jobs = Job.objects.filter(customer=request.user).select_related('worker', 'service_request').order_by('-created_at')
+    
+    return render(
+        request,
+        'bookings/my_jobs.html',
+        {'jobs': jobs}
+    )
+
+
+@login_required
 def booking_detail(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
 
