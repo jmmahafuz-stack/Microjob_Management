@@ -62,3 +62,18 @@ class WorkerRegistrationTests(TestCase):
         user = CustomUser.objects.get(username='newworker2')
         profile = WorkerProfile.objects.get(user=user)
         self.assertEqual(profile.service, service)
+
+    def test_worker_dashboard_creates_missing_profile(self):
+        user = CustomUser.objects.create_user(
+            username='profilelessworker',
+            email='profilelessworker@example.com',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+
+        self.client.login(username='profilelessworker', password='StrongPassword123')
+        response = self.client.get(reverse('worker_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(WorkerProfile.objects.filter(user=user).exists())

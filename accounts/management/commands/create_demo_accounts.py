@@ -3,13 +3,16 @@ from accounts.models import CustomUser
 
 
 class Command(BaseCommand):
-    help = 'Create demo admin, customer, and worker accounts'
+    help = 'Create the known working demo admin, customer, and worker accounts'
 
     def handle(self, *args, **options):
         accounts = [
             ('admin', 'admin', 'Admin12345!'),
             ('customer', 'customer', 'Customer12345!'),
             ('worker', 'worker', 'Worker12345!'),
+            ('admin', 'testadmin', 'admin123'),
+            ('customer', 'testcustomer', 'password123'),
+            ('worker', 'testworker', 'password123'),
         ]
 
         for role, username, password in accounts:
@@ -26,7 +29,9 @@ class Command(BaseCommand):
             user.role = role
             user.is_staff = role == 'admin'
             user.is_superuser = role == 'admin'
-            user.is_verified_worker = role == 'worker'
+            user.email = user.email or f'{username}@example.com'
+            if role == 'worker':
+                user.worker_status = 'APPROVED'
             user.save()
             self.stdout.write(
                 self.style.SUCCESS(

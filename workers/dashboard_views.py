@@ -20,6 +20,11 @@ from bookings.models import Job
 from reviews.models import Review
 
 
+def _get_or_create_worker_profile(user):
+    """Ensure a worker always has a profile record for dashboard access."""
+    return WorkerProfile.objects.get_or_create(user=user)[0]
+
+
 def worker_required(view_func):
     """Decorator to check if user is a worker."""
     def wrapper(request, *args, **kwargs):
@@ -36,7 +41,7 @@ def worker_dashboard(request):
     """Main worker dashboard with earnings overview."""
     
     worker = request.user
-    profile = worker.worker_profile
+    profile = _get_or_create_worker_profile(worker)
     
     # Job statistics
     job_stats = Job.objects.filter(worker=worker).aggregate(
@@ -85,7 +90,7 @@ def worker_earnings_detail(request):
     """Detailed earnings breakdown and monthly history."""
     
     worker = request.user
-    profile = worker.worker_profile
+    profile = _get_or_create_worker_profile(worker)
     
     # Get all verified payments
     payments = Payment.objects.filter(
@@ -185,6 +190,7 @@ def worker_payout_requests(request):
     """View and manage payout requests."""
     
     worker = request.user
+    profile = _get_or_create_worker_profile(worker)
     
     payouts = PayoutRequest.objects.filter(worker=worker).order_by('-created_at')
     
@@ -199,7 +205,7 @@ def worker_payout_requests(request):
     context = {
         'payouts': payouts,
         'payout_stats': payout_stats,
-        'available_balance': worker.worker_profile.available_earnings,
+        'available_balance': profile.available_earnings,
     }
     
     return render(request, 'workers/payout_requests.html', context)
@@ -211,7 +217,7 @@ def create_payout_request(request):
     """Create a new payout request."""
     
     worker = request.user
-    profile = worker.worker_profile
+    profile = _get_or_create_worker_profile(worker)
     
     if request.method == 'POST':
         requested_amount = Decimal(request.POST.get('requested_amount', 0))
@@ -273,7 +279,7 @@ def worker_profile_edit(request):
     """Edit worker profile."""
     
     worker = request.user
-    profile = worker.worker_profile
+    profile = _get_or_create_worker_profile(worker)
     
     if request.method == 'POST':
         # Update basic info
@@ -307,7 +313,7 @@ def worker_payment_methods(request):
     """Set payment method phone numbers."""
     
     worker = request.user
-    profile = worker.worker_profile
+    profile = _get_or_create_worker_profile(worker)
     
     if request.method == 'POST':
         bkash_number = request.POST.get('bkash_number', '').strip()

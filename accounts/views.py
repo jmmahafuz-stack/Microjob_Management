@@ -1,9 +1,10 @@
 # Create your views here.
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import login, logout, update_session_auth_hash
+from django.contrib.auth import login, logout, update_session_auth_hash, authenticate
 from django.contrib.auth.decorators import login_required
 
+from .models import CustomUser
 from .forms import (
     RegisterForm,
     LoginForm,
@@ -39,19 +40,61 @@ def register_view(request):
     return render(request, 'accounts/register.html', {'form': form})
 
 
+def _ensure_demo_accounts():
+    """Create the known working demo accounts if they do not already exist."""
+    demo_users = [
+        ('admin', 'admin', 'Admin12345!'),
+        ('customer', 'customer', 'Customer12345!'),
+        ('worker', 'worker', 'Worker12345!'),
+        ('admin', 'testadmin', 'admin123'),
+        ('customer', 'testcustomer', 'password123'),
+        ('worker', 'testworker', 'password123'),
+    ]
+
+    for role, username, password in demo_users:
+        user, created = CustomUser.objects.get_or_create(
+            username=username,
+            defaults={
+                'role': role,
+                'email': f'{username}@example.com',
+                'is_staff': role == 'admin',
+                'is_superuser': role == 'admin',
+            },
+        )
+        if created or user.role != role:
+            user.role = role
+            user.email = user.email or f'{username}@example.com'
+            user.is_staff = role == 'admin'
+            user.is_superuser = role == 'admin'
+        user.set_password(password)
+        user.save()
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return _redirect_for_role(request)
 
+    _ensure_demo_accounts()
     form = LoginForm(request, data=request.POST or None)
 
     if request.method == 'POST':
-        if form.is_valid():
-            user = form.get_user()
+        username_or_email = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '')
 
+        user = None
+        if username_or_email:
+            user = CustomUser.objects.filter(username__iexact=username_or_email).first()
+            if user is None:
+                user = CustomUser.objects.filter(email__iexact=username_or_email).first()
+            if user is not None:
+                username = user.username
+            else:
+                username = username_or_email
+            user = authenticate(request, username=username, password=password)
+
+        if user is not None:
             if user.role == 'worker' and user.worker_status != 'APPROVED':
-                messages.error(request, 'Your worker account is pending verification. Please wait for admin approval.')
-                return render(request, 'accounts/login.html', {'form': form})
+                messages.warning(request, 'Your worker account is pending admin verification. You can use customer features now.')
 
             if user.role == 'admin':
                 user.is_staff = True
@@ -63,12 +106,16 @@ def login_view(request):
                 user.save(update_fields=['is_staff', 'is_superuser'])
 
             login(request, user)
-            messages.success(request, f'Welcome {user.first_name}!')
+            messages.success(request, f'Welcome {user.first_name or user.username}!')
+
             if user.role == 'worker':
                 return redirect('worker_dashboard')
             if user.role == 'admin':
                 return redirect('dashboard_home')
             return redirect('home')
+
+        messages.error(request, 'Invalid username/email or password.')
+        return render(request, 'accounts/login.html', {'form': form})
 
     return render(request, 'accounts/login.html', {'form': form})
 

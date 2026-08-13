@@ -18,12 +18,16 @@ from django.contrib import admin
 from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
+from accounts import views as accounts_views
 
 urlpatterns=[
 
     path('admin/',admin.site.urls),
 
     path('',include('core.urls')),
+    path('login/', accounts_views.login_view, name='login'),
+    path('logout/', accounts_views.logout_view, name='logout'),
+    path('register/', accounts_views.register_view, name='register'),
     path('accounts/',include('accounts.urls')),
     path('services/',include('services.urls')),
     path('bookings/',include('bookings.urls')),

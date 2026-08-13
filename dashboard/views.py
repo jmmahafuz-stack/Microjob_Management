@@ -22,8 +22,8 @@ def dashboard_home(request):
         pending_bookings = bookings.filter(status='Pending').count()
         pending_complaints = complaints.filter(status='Pending').count()
 
-        paid_payments = Payment.objects.filter(payment_status='Paid')
-        total_revenue = paid_payments.aggregate(total=Sum('amount'))['total'] or 0
+        paid_payments = Payment.objects.filter(payment_status='Verified')
+        total_revenue = paid_payments.aggregate(total=Sum('customer_amount'))['total'] or 0
         platform_revenue = paid_payments.aggregate(total=Sum('platform_commission'))['total'] or 0
         worker_earnings = paid_payments.aggregate(total=Sum('worker_amount'))['total'] or 0
 
@@ -41,15 +41,15 @@ def dashboard_home(request):
         yearly_start = today.replace(month=1, day=1)
 
         report_daily = {
-            'revenue': paid_payments.filter(payment_date__date__gte=daily_start).aggregate(total=Sum('amount'))['total'] or 0,
+            'revenue': paid_payments.filter(payment_date__date__gte=daily_start).aggregate(total=Sum('customer_amount'))['total'] or 0,
             'jobs': Job.objects.filter(created_at__date__gte=daily_start).count(),
         }
         report_monthly = {
-            'revenue': paid_payments.filter(payment_date__date__gte=monthly_start).aggregate(total=Sum('amount'))['total'] or 0,
+            'revenue': paid_payments.filter(payment_date__date__gte=monthly_start).aggregate(total=Sum('customer_amount'))['total'] or 0,
             'jobs': Job.objects.filter(created_at__date__gte=monthly_start).count(),
         }
         report_yearly = {
-            'revenue': paid_payments.filter(payment_date__date__gte=yearly_start).aggregate(total=Sum('amount'))['total'] or 0,
+            'revenue': paid_payments.filter(payment_date__date__gte=yearly_start).aggregate(total=Sum('customer_amount'))['total'] or 0,
             'jobs': Job.objects.filter(created_at__date__gte=yearly_start).count(),
         }
 

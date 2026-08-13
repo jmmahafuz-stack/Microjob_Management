@@ -43,3 +43,17 @@ def admin_required(view_func):
             return redirect('home')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
+
+def staff_member_required(view_func):
+    """Decorator to check if user is staff/admin"""
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            messages.error(request, 'Please login to continue.')
+            return redirect('login')
+        if not request.user.is_staff or request.user.role != 'admin':
+            messages.error(request, 'Only staff members can access this page.')
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
