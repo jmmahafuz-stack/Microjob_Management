@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from accounts.decorators import admin_required
 from workers.models import WorkerProfile
 
-from .models import FavoriteService, Service
+from .models import Service
 from .forms import ServiceForm
 
 
@@ -116,42 +116,14 @@ def service_detail(request, pk):
     verified_workers = _get_related_workers(service)
     service.related_workers = verified_workers
 
-    is_favorited = False
-    if request.user.is_authenticated and request.user.role == 'customer':
-        is_favorited = FavoriteService.objects.filter(
-            customer=request.user,
-            service=service
-        ).exists()
-
     return render(
         request,
         'services/service_detail.html',
         {
             'service': service,
             'verified_workers': verified_workers,
-            'is_favorited': is_favorited,
         }
     )
-
-
-@login_required
-def toggle_favorite_service(request, pk):
-    if request.user.role != 'customer':
-        messages.error(request, 'Only customers can favorite services.')
-        return redirect('service_detail', pk=pk)
-
-    service = get_object_or_404(Service, pk=pk)
-    favorite, created = FavoriteService.objects.get_or_create(
-        customer=request.user,
-        service=service
-    )
-    if not created:
-        favorite.delete()
-        messages.success(request, 'Service removed from favorites.')
-    else:
-        messages.success(request, 'Service added to favorites.')
-
-    return redirect('service_detail', pk=pk)
 
 
 @admin_required

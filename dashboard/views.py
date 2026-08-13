@@ -1,8 +1,12 @@
+from datetime import timedelta
+
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Sum
 from django.shortcuts import render
+from django.utils import timezone
 
-from bookings.models import Booking
+from accounts.models import CustomUser
+from bookings.models import Booking, Job, ServiceRequest
 from complaints.models import Complaint
 from payments.models import Payment
 from reviews.models import Review
@@ -17,10 +21,37 @@ def dashboard_home(request):
         pending_workers = WorkerProfile.objects.filter(verification_status='Pending').count()
         pending_bookings = bookings.filter(status='Pending').count()
         pending_complaints = complaints.filter(status='Pending').count()
-        total_revenue = Payment.objects.filter(payment_status='Paid').aggregate(
-            total=Sum('amount')
-        )['total'] or 0
+
+        paid_payments = Payment.objects.filter(payment_status='Paid')
+        total_revenue = paid_payments.aggregate(total=Sum('amount'))['total'] or 0
+        platform_revenue = paid_payments.aggregate(total=Sum('platform_commission'))['total'] or 0
+        worker_earnings = paid_payments.aggregate(total=Sum('worker_amount'))['total'] or 0
+
+        total_customers = CustomUser.objects.filter(role='customer').count()
+        total_workers = CustomUser.objects.filter(role='worker').count()
+        service_requests = ServiceRequest.objects.count()
+        completed_jobs = Job.objects.filter(status='COMPLETED').count()
+        cancelled_jobs = Job.objects.filter(status='CANCELLED').count()
+        paid_transactions = paid_payments.count()
         avg_rating = Review.objects.aggregate(avg=Avg('rating'))['avg'] or 0
+
+        today = timezone.now().date()
+        daily_start = today - timedelta(days=1)
+        monthly_start = today.replace(day=1)
+        yearly_start = today.replace(month=1, day=1)
+
+        report_daily = {
+            'revenue': paid_payments.filter(payment_date__date__gte=daily_start).aggregate(total=Sum('amount'))['total'] or 0,
+            'jobs': Job.objects.filter(created_at__date__gte=daily_start).count(),
+        }
+        report_monthly = {
+            'revenue': paid_payments.filter(payment_date__date__gte=monthly_start).aggregate(total=Sum('amount'))['total'] or 0,
+            'jobs': Job.objects.filter(created_at__date__gte=monthly_start).count(),
+        }
+        report_yearly = {
+            'revenue': paid_payments.filter(payment_date__date__gte=yearly_start).aggregate(total=Sum('amount'))['total'] or 0,
+            'jobs': Job.objects.filter(created_at__date__gte=yearly_start).count(),
+        }
 
         context = {
             'bookings': bookings,
@@ -29,7 +60,18 @@ def dashboard_home(request):
             'pending_bookings': pending_bookings,
             'pending_complaints': pending_complaints,
             'total_revenue': total_revenue,
+            'platform_revenue': platform_revenue,
+            'worker_earnings': worker_earnings,
+            'total_customers': total_customers,
+            'total_workers': total_workers,
+            'service_requests': service_requests,
+            'completed_jobs': completed_jobs,
+            'cancelled_jobs': cancelled_jobs,
+            'paid_transactions': paid_transactions,
             'avg_rating': avg_rating,
+            'report_daily': report_daily,
+            'report_monthly': report_monthly,
+            'report_yearly': report_yearly,
         }
         return render(request, 'dashboard/dashboard.html', context)
 

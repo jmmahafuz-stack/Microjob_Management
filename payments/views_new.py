@@ -1,26 +1,25 @@
 from decimal import Decimal
-
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from accounts.decorators import customer_required, worker_required
 from bookings.models import Job
-from .forms import CustomerPaymentForm
+from .forms import CustomerPaymentForm, PaymentForm
 from .models import Payment, PayoutRequest
 
 
 @customer_required
 def make_payment(request, job_id):
-    """Customer payment for a completed job.
-
+    """Customer payment for completed job.
     Flow:
-    1. Job must be completed.
-    2. Customer pays the final job price.
-    3. System calculates platform commission.
-    4. Worker earnings are calculated automatically.
-    5. Payment remains pending until verified by admin.
+    1. Job must be COMPLETED
+    2. Customer pays the service price
+    3. System automatically calculates 10% commission
+    4. Worker earnings = customer_amount - commission
+    5. Worker sees pending earnings until payment is verified
     """
-
     job = get_object_or_404(Job, pk=job_id)
 
     if job.customer != request.user:
@@ -28,12 +27,10 @@ def make_payment(request, job_id):
         return redirect('booking_list')
 
     if job.status != 'COMPLETED':
-        messages.error(
-            request,
-            'Payment is only allowed after the job is completed.'
-        )
+        messages.error(request, 'Payment is only allowed after the job is completed.')
         return redirect('job_detail', pk=job.pk)
 
+    # Get or create payment record
     payment, created = Payment.objects.get_or_create(
         job=job,
         defaults={
@@ -43,104 +40,61 @@ def make_payment(request, job_id):
         }
     )
 
-    if created or not payment.platform_commission:
-        payment.customer_amount = Decimal(str(job.final_price))
+    # Auto-calculate commission on first save
+    if created and not payment.platform_commission:
         payment.calculate_commission()
         payment.save()
 
     if request.method == 'POST':
-        form = CustomerPaymentForm(
-            request.POST,
-            request.FILES,
-            instance=payment
-        )
-
+        form = CustomerPaymentForm(request.POST, request.FILES, instance=payment)
         if form.is_valid():
             payment = form.save(commit=False)
-
             payment.job = job
             payment.customer_amount = Decimal(str(job.final_price))
             payment.payment_method = form.cleaned_data.get('payment_method')
 
+            # When customer provides transaction ID or receipt, mark as pending verification
             if payment.transaction_id or payment.receipt:
-                payment.payment_status = 'Pending'
-
-                payment.calculate_commission()
-                payment.save()
-
-                # Add worker earnings to pending earnings.
-                if job.worker:
-                    worker_profile = job.worker.worker_profile
-
-                    # Avoid adding the same payment repeatedly.
-                    if created:
-                        worker_profile.pending_earnings += payment.worker_amount
-                        worker_profile.total_earnings += payment.worker_amount
-                        worker_profile.save(
-                            update_fields=[
-                                'pending_earnings',
-                                'total_earnings'
-                            ]
-                        )
-
+                payment.payment_status = 'Pending'  # Awaiting admin verification
+                
+                # Add pending earnings to worker (not yet available for withdrawal)
+                worker_profile = job.worker.worker_profile
+                worker_profile.pending_earnings += payment.worker_amount
+                worker_profile.total_earnings += payment.worker_amount
+                worker_profile.save(update_fields=['pending_earnings', 'total_earnings'])
+                
                 messages.success(
                     request,
-                    f'Payment submitted! Your transaction ID is '
-                    f'{payment.transaction_id or "pending verification"}. '
-                    f'Once verified, the worker will receive '
-                    f'৳{payment.worker_amount:.2f}.'
+                    f'Payment submitted! Your transaction ID is {payment.transaction_id}. '
+                    f'Once verified, the worker will receive ৳{payment.worker_amount:.2f}.'
                 )
-
+                payment.save()
                 return redirect('payment_history')
+            else:
+                messages.error(request, 'Please provide transaction ID or receipt to proceed.')
 
-            messages.error(
-                request,
-                'Please provide a transaction ID or receipt to proceed.'
-            )
+        return render(request, 'payments/payment_form.html', {'form': form, 'job': job, 'payment': payment})
     else:
         form = CustomerPaymentForm(instance=payment)
 
-    return render(
-        request,
-        'payments/payment_form.html',
-        {
-            'form': form,
-            'job': job,
-            'payment': payment,
-        }
-    )
+    return render(request, 'payments/payment_form.html', {'form': form, 'job': job, 'payment': payment})
 
 
 @customer_required
 def payment_history(request):
     """Show customer's payment history."""
-
-    payments = (
-        Payment.objects
-        .filter(job__customer=request.user)
-        .select_related('job', 'job__worker')
-    )
-
-    return render(
-        request,
-        'payments/payment_history.html',
-        {'payments': payments}
-    )
+    # Get payments from Job-based workflow
+    payments = Payment.objects.filter(job__customer=request.user).select_related('job', 'job__worker')
+    return render(request, 'payments/payment_history.html', {'payments': payments})
 
 
 @worker_required
 def payout_request_list(request):
     """Show worker's payout requests and earnings breakdown."""
-
-    payout_requests = (
-        PayoutRequest.objects
-        .filter(worker=request.user)
-        .order_by('-created_at')
-    )
-
+    payout_requests = PayoutRequest.objects.filter(worker=request.user).order_by('-created_at')
     worker_profile = request.user.worker_profile
     earnings_breakdown = worker_profile.get_earnings_breakdown()
-
+    
     context = {
         'payout_requests': payout_requests,
         'pending_earnings': earnings_breakdown['pending'],
@@ -148,26 +102,17 @@ def payout_request_list(request):
         'withdrawn_earnings': earnings_breakdown['withdrawn'],
         'total_earned': earnings_breakdown['total_earned'],
     }
-
-    return render(
-        request,
-        'payments/payout_request_list.html',
-        context
-    )
+    return render(request, 'payments/payout_request_list.html', context)
 
 
 @worker_required
 def create_payout_request(request):
     """Worker requests a payout from available earnings."""
-
     worker_profile = request.user.worker_profile
     available_amount = worker_profile.available_earnings
 
     if available_amount <= 0:
-        messages.error(
-            request,
-            'You have no available earnings to withdraw.'
-        )
+        messages.error(request, 'You have no available earnings to withdraw.')
         return redirect('payout_request_list')
 
     if request.method == 'POST':
@@ -180,23 +125,14 @@ def create_payout_request(request):
 
         try:
             amount = Decimal(str(amount))
-
             if amount <= 0:
-                messages.error(
-                    request,
-                    'Amount must be greater than 0.'
-                )
+                messages.error(request, 'Amount must be greater than 0.')
                 return redirect('create_payout_request')
-
             if amount > available_amount:
-                messages.error(
-                    request,
-                    f'Cannot withdraw more than available '
-                    f'(৳{available_amount:.2f})'
-                )
+                messages.error(request, f'Cannot withdraw more than available (৳{available_amount:.2f})')
                 return redirect('create_payout_request')
 
-            PayoutRequest.objects.create(
+            payout_request = PayoutRequest.objects.create(
                 worker=request.user,
                 requested_amount=amount,
                 payout_method=payout_method,
@@ -209,11 +145,8 @@ def create_payout_request(request):
 
             messages.success(
                 request,
-                f'Payout request submitted for ৳{amount:.2f}. '
-                f'Admin will review and process it within 2-3 '
-                f'business days.'
+                f'Payout request submitted for ৳{amount:.2f}. Admin will review and process it within 2-3 business days.'
             )
-
             return redirect('payout_request_list')
 
         except (ValueError, TypeError):
@@ -222,16 +155,6 @@ def create_payout_request(request):
 
     context = {
         'available_earnings': available_amount,
-        'payout_methods': (
-            PayoutRequest
-            ._meta
-            .get_field('payout_method')
-            .choices
-        ),
+        'payout_methods': PayoutRequest._meta.get_field('payout_method').choices,
     }
-
-    return render(
-        request,
-        'payments/create_payout_request.html',
-        context
-    )
+    return render(request, 'payments/create_payout_request.html', context)

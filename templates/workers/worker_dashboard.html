@@ -2,124 +2,166 @@
 
 {% block content %}
 <div class="card">
-    <h2>Worker Dashboard</h2>
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Worker Dashboard</p>
+            <h2>My Profile & Performance</h2>
+        </div>
+    </div>
 
-    <p>
-        <strong>Status:</strong>
-        {{ worker_profile.verification_status }} /
-        {{ worker_profile.training_status }}
-    </p>
-
-    <p>
-        <strong>Badge:</strong>
-        {{ worker_profile.badge_label }}
-    </p>
-
-    <p>
-        <strong>Hourly rate:</strong>
-        ৳{{ worker_profile.hourly_rate|default:'0.00' }}
-    </p>
-
-    <p>
-        <strong>Completion rate:</strong>
-        {{ worker_profile.completion_rate }}%
-    </p>
-
-    <p>
-        <strong>Response time:</strong>
-        {{ worker_profile.response_time }}
-    </p>
-
-    <p>
-        <strong>Total earnings:</strong>
-        ৳{{ total_earnings|default:'0.00' }}
-    </p>
-
-    <p>
-        <strong>Service offered:</strong>
-        {{ worker_profile.service.name|default:worker_profile.service_category|default:'Not set' }}
-    </p>
-</div>
-
-<div class="card">
-    <h3>Earnings Summary</h3>
-
-    <p>
-        <strong>Daily:</strong>
-        ৳{{ report_daily.total_earnings|default:'0.00' }}
-    </p>
-
-    <p>
-        <strong>Monthly:</strong>
-        ৳{{ report_monthly.total_earnings|default:'0.00' }}
-    </p>
-
-    <p>
-        <strong>Yearly:</strong>
-        ৳{{ report_yearly.total_earnings|default:'0.00' }}
-    </p>
-
-    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
-        <a href="{% url 'worker_earnings_report' %}?period=daily" class="btn btn-primary">
-            Daily Report
-        </a>
-
-        <a href="{% url 'worker_earnings_report' %}?period=monthly" class="btn btn-primary">
-            Monthly Report
-        </a>
-
-        <a href="{% url 'worker_earnings_report' %}?period=yearly" class="btn btn-primary">
-            Yearly Report
-        </a>
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <h3>Verification</h3>
+            <span class="badge" style="background: #e0f2fe; color: #0c63e4; padding: 4px 8px; border-radius: 999px; font-size: 0.85rem;">{{ worker_profile.verification_status }}</span>
+            <p style="margin: 8px 0 0;"><small>{{ worker_profile.badge_label }}</small></p>
+        </div>
+        <div class="dashboard-card">
+            <h3>Completion Rate</h3>
+            <p class="dashboard-number">{{ worker_profile.completion_rate }}%</p>
+            <p style="margin: 0;"><small>{{ worker_profile.completed_jobs }} jobs completed</small></p>
+        </div>
+        <div class="dashboard-card">
+            <h3>Average Rating</h3>
+            <p class="dashboard-number">{{ worker_profile.average_rating|floatformat:1 }} / 5</p>
+            <p style="margin: 0;"><small>⭐ Highly rated</small></p>
+        </div>
+        <div class="dashboard-card">
+            <h3>Hourly Rate</h3>
+            <p class="dashboard-number">৳{{ worker_profile.hourly_rate|default:'0.00' }}</p>
+            <p style="margin: 0;"><small>Your standard rate</small></p>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <h3>Available services for customers</h3>
+<!-- Earnings & Payout Section -->
+<div class="card" style="border-left: 4px solid #0c63e4;">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Earnings</p>
+            <h2>My Income & Payouts</h2>
+        </div>
+        <a href="{% url 'payout_request_list' %}" class="btn btn-primary">Manage Earnings</a>
+    </div>
 
-    <ul>
-        {% for service in available_services %}
-            <li>{{ service.name }} - {{ service.category }}</li>
-        {% empty %}
-            <li>No services available.</li>
-        {% endfor %}
-    </ul>
-</div>
+    <div class="earnings-breakdown" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+        <div class="earnings-card" style="background: #fffbeb; border: 1px solid #fed7aa; padding: 14px; border-radius: 10px;">
+            <p style="margin: 0 0 6px; font-size: 0.75rem; color: #92400e; text-transform: uppercase; letter-spacing: 0.04em;">⏳ Pending</p>
+            <p style="margin: 0; font-size: 1.3rem; font-weight: 700; color: #0f172a;">৳{{ pending_earnings|default:'0.00'|floatformat:2 }}</p>
+            <small style="display: block; color: #64748b; margin-top: 4px;">Awaiting verification</small>
+        </div>
+        <div class="earnings-card" style="background: #f0fdf4; border: 1px solid #86efac; padding: 14px; border-radius: 10px;">
+            <p style="margin: 0 0 6px; font-size: 0.75rem; color: #166534; text-transform: uppercase; letter-spacing: 0.04em;">💰 Available</p>
+            <p style="margin: 0; font-size: 1.3rem; font-weight: 700; color: #0f172a;">৳{{ available_earnings|default:'0.00'|floatformat:2 }}</p>
+            <small style="display: block; color: #64748b; margin-top: 4px;">Ready to withdraw</small>
+        </div>
+        <div class="earnings-card" style="background: #eff6ff; border: 1px solid #93c5fd; padding: 14px; border-radius: 10px;">
+            <p style="margin: 0 0 6px; font-size: 0.75rem; color: #0c63e4; text-transform: uppercase; letter-spacing: 0.04em;">✓ Withdrawn</p>
+            <p style="margin: 0; font-size: 1.3rem; font-weight: 700; color: #0f172a;">৳{{ withdrawn_earnings|default:'0.00'|floatformat:2 }}</p>
+            <small style="display: block; color: #64748b; margin-top: 4px;">Already received</small>
+        </div>
+        <div class="earnings-card" style="background: #f0fdf4; border: 1px solid #86efac; padding: 14px; border-radius: 10px;">
+            <p style="margin: 0 0 6px; font-size: 0.75rem; color: #166534; text-transform: uppercase; letter-spacing: 0.04em;">📊 Total</p>
+            <p style="margin: 0; font-size: 1.3rem; font-weight: 700; color: #0f172a;">৳{{ total_earnings|default:'0.00'|floatformat:2 }}</p>
+            <small style="display: block; color: #64748b; margin-top: 4px;">All time earnings</small>
+        </div>
+    </div>
 
-<div class="card">
-    <h3>Assigned Jobs</h3>
-
-    {% if assigned_bookings %}
-        <ul>
-            {% for booking in assigned_bookings %}
-                <li>
-                    <strong>{{ booking.service.name }}</strong><br>
-                    Customer: {{ booking.customer.username }}<br>
-                    Address: {{ booking.address }}<br>
-                    Date: {{ booking.booking_date }}<br>
-                    Status: {{ booking.status }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No assigned jobs yet.</p>
+    {% if available_earnings > 0 %}
+        <div style="text-align: center;">
+            <a href="{% url 'create_payout_request' %}" class="btn btn-primary" style="background: #16a34a; border-color: #16a34a;">
+                Request Payout (৳{{ available_earnings|floatformat:2 }})
+            </a>
+        </div>
     {% endif %}
 </div>
 
+<!-- Earnings Period Summary -->
 <div class="card">
-    <h3>Reviews</h3>
+    <h3>Earnings by Period</h3>
+    <div class="dashboard-grid">
+        <div class="dashboard-card">
+            <h4>Today</h4>
+            <p class="dashboard-number">৳{{ report_daily.total_earnings|default:'0.00'|floatformat:2 }}</p>
+            <small>{{ report_daily.count|default:'0' }} jobs</small>
+        </div>
+        <div class="dashboard-card">
+            <h4>This Month</h4>
+            <p class="dashboard-number">৳{{ report_monthly.total_earnings|default:'0.00'|floatformat:2 }}</p>
+            <small>{{ report_monthly.count|default:'0' }} jobs</small>
+        </div>
+        <div class="dashboard-card">
+            <h4>This Year</h4>
+            <p class="dashboard-number">৳{{ report_yearly.total_earnings|default:'0.00'|floatformat:2 }}</p>
+            <small>{{ report_yearly.count|default:'0' }} jobs</small>
+        </div>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+        <a href="{% url 'worker_earnings_report' %}?period=daily" class="btn btn-outline-secondary">Daily Report</a>
+        <a href="{% url 'worker_earnings_report' %}?period=monthly" class="btn btn-outline-secondary">Monthly Report</a>
+        <a href="{% url 'worker_earnings_report' %}?period=yearly" class="btn btn-outline-secondary">Yearly Report</a>
+    </div>
+</div>
 
-    {% if reviews %}
-        <ul>
-            {% for review in reviews %}
-                <li>
-                    {{ review.rating }} stars -
-                    {{ review.comment|default:'No comment' }}
+<!-- Active Jobs -->
+<div class="card">
+    <h3>Active Jobs</h3>
+    {% if active_jobs %}
+        <div class="service-list">
+            {% for job in active_jobs %}
+                <article class="service-list-item">
+                    <div class="service-list-item__body">
+                        <h4>{{ job.title }}</h4>
+                        <p class="service-category">Customer: {{ job.customer.get_full_name|default:job.customer.username }}</p>
+                        <p><strong>Status:</strong> {{ job.status }}</p>
+                        <p><strong>Scheduled:</strong> {{ job.scheduled_date }} at {{ job.scheduled_time_start }}</p>
+                    </div>
+                    <div class="service-list-item__price">
+                        <strong>৳{{ job.final_price }}</strong>
+                        <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Job</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-state">No active jobs. Check open requests!</p>
+    {% endif %}
+</div>
+
+<!-- Available Services -->
+<div class="card">
+    <h3>Your Services</h3>
+    {% if available_services %}
+        <ul style="list-style: none; padding: 0;">
+            {% for service in available_services %}
+                <li style="padding: 10px 0; border-bottom: 1px solid #e2e8f0;">
+                    <strong>{{ service.name }}</strong> <span style="background: #e0f2fe; color: #0c63e4; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem;">{{ service.category }}</span>
                 </li>
             {% endfor %}
         </ul>
     {% else %}
-        <p>No reviews yet.</p>
+        <p class="empty-state">No services listed. Complete your profile to offer services.</p>
+    {% endif %}
+</div>
+
+<!-- Recent Reviews -->
+<div class="card">
+    <h3>Recent Reviews</h3>
+    {% if reviews %}
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for review in reviews %}
+                <div style="padding: 12px; background: #f8fbff; border-radius: 8px; border-left: 3px solid #0c63e4;">
+                    <p style="margin: 0 0 4px;">
+                        {% for i in "12345" %}
+                            {% if i|add:'0' <= review.rating %}⭐{% else %}☆{% endif %}
+                        {% endfor %}
+                    </p>
+                    <p style="margin: 0; color: #334155; font-size: 0.95rem;">{{ review.comment|default:'No comment' }}</p>
+                    <small style="color: #64748b; margin-top: 4px; display: block;">{{ review.created_at|date:"M d, Y" }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="empty-state">No reviews yet. Complete jobs to receive reviews!</p>
     {% endif %}
 </div>
 {% endblock %}
