@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="card">
-    <h2>Bookings</h2>
+    <h2>My Bookings</h2>
 
     {% if bookings %}
         <div class="service-list">
@@ -10,19 +10,29 @@
                 <article class="service-list-item">
                     <div class="service-list-item__body">
                         <h4>{{ booking.service.name }}</h4>
-                        <p class="service-category">{{ booking.status }}</p>
-                        <p>{{ booking.booking_date }} at {{ booking.booking_time }}</p>
-                        <p class="service-meta">Worker: {% if booking.worker %}{{ booking.worker.get_full_name|default:booking.worker.username }}{% else %}Unassigned{% endif %}</p>
+                        <p class="service-category">
+                            <strong>Status:</strong> {{ booking.status }}
+                        </p>
+                        <p><strong>Date:</strong> {{ booking.booking_date }} at {{ booking.booking_time }}</p>
+                        <p class="service-meta">
+                            <strong>Worker:</strong>
+                            {% if booking.worker %}
+                                {{ booking.worker.get_full_name|default:booking.worker.username }}
+                            {% else %}
+                                Unassigned
+                            {% endif %}
+                        </p>
+                        <p class="service-meta"><strong>Amount:</strong> ৳{{ booking.service.price }}</p>
                     </div>
                     <div class="service-list-item__price">
                         <strong>৳{{ booking.service.price }}</strong>
-                        <a href="{% url 'booking_detail' booking.pk %}">View Details</a>
+                        <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-primary">View Details</a>
                     </div>
                 </article>
             {% endfor %}
         </div>
     {% else %}
-        <p class="empty-state">No bookings found.</p>
+        <p class="empty-state">No bookings found yet.</p>
     {% endif %}
 
     <div class="dashboard-links" style="margin-top:16px;">

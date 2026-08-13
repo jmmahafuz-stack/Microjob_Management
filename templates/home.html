@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="container">
-    <!-- Hero Section with Search -->
+    <!-- Hero Section -->
     <section class="hero-section">
         <div class="hero-content">
             <h1>Welcome to MJMS</h1>
@@ -19,6 +19,22 @@
                     <a href="{% url 'service_list' %}?q=Painting" class="category-tag">🎨 Painting</a>
                     <a href="{% url 'service_list' %}?q=Cleaning" class="category-tag">🧹 Cleaning</a>
                 </div>
+            </div>
+            
+            <!-- CTA Buttons -->
+            <div class="hero-cta">
+                <a href="{% url 'service_list' %}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-search"></i> Browse Services
+                </a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard_home' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                    </a>
+                {% else %}
+                    <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-rocket"></i> Get Started
+                    </a>
+                {% endif %}
             </div>
         </div>
     </section>

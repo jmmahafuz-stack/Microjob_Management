@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
@@ -16,10 +18,15 @@ def make_payment(request, pk):
         messages.error(request, 'You can only pay for your own booking.')
         return redirect('booking_list')
 
+    if booking.status != 'Completed':
+        messages.error(request, 'Payment is allowed only after the service is completed.')
+        return redirect('booking_detail', pk=booking.pk)
+
     payment, created = Payment.objects.get_or_create(
         booking=booking,
         defaults={
             'amount': booking.service.price,
+            'customer_amount': booking.service.price,
             'payment_status': 'Pending',
         }
     )
@@ -29,16 +36,24 @@ def make_payment(request, pk):
         if form.is_valid():
             payment = form.save(commit=False)
             payment.booking = booking
-            payment.amount = booking.service.price
+            payment.amount = Decimal(str(booking.service.price))
+            payment.customer_amount = Decimal(str(booking.service.price))
+            payment.payment_method = form.cleaned_data.get('payment_method')
+
             if payment.transaction_id or payment.receipt:
                 payment.payment_status = 'Paid'
+                if payment.customer_amount and not payment.platform_commission:
+                    payment.calculate_commission()
             else:
                 payment.payment_status = 'Pending'
+
             payment.save()
+
             if payment.payment_status == 'Paid':
-                messages.success(request, 'Payment completed successfully.')
-            else:
-                messages.success(request, 'Payment information saved. Complete the payment to confirm.')
+                messages.success(request, 'Payment completed successfully. The worker can now receive their share.')
+                return redirect('payment_history')
+
+            messages.success(request, 'Payment information saved. Complete the payment to confirm.')
             return redirect('payment_history')
     else:
         form = CustomerPaymentForm(instance=payment)

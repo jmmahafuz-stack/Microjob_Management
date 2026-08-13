@@ -9,6 +9,8 @@ class Payment(models.Model):
     """
     PAYMENT_METHOD_CHOICES = [
         ('Cash', 'Cash'),
+        ('BKash', 'BKash'),
+        ('Nagad', 'Nagad'),
         ('Mobile Banking', 'Mobile Banking'),
         ('Card', 'Card'),
         ('Digital Wallet', 'Digital Wallet'),

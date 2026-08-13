@@ -13,6 +13,19 @@
 </div>
 
 <div class="card">
+    <h3>Earnings Summary</h3>
+    <p><strong>Daily:</strong> ৳{{ report_daily.total_earnings|default:'0.00' }}</p>
+    <p><strong>Monthly:</strong> ৳{{ report_monthly.total_earnings|default:'0.00' }}</p>
+    <p><strong>Yearly:</strong> ৳{{ report_yearly.total_earnings|default:'0.00' }}</p>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+        <a href="{% url 'worker_earnings_report' %}?period=daily" class="btn btn-primary">Daily Report</a>
+        <a href="{% url 'worker_earnings_report' %}?period=monthly" class="btn btn-primary">Monthly Report</a>
+        <a href="{% url 'worker_earnings_report' %}?period=yearly" class="btn btn-primary">Yearly Report</a>
+    </div>
+</div>
+
+<div class="card">
     <h3>Available services for customers</h3>
     <ul>
         {% for service in available_services %}

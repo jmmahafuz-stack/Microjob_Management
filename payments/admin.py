@@ -17,7 +17,7 @@ class PaymentAdmin(admin.ModelAdmin):
     )
     list_filter = ('payment_status', 'payment_method', 'payment_date')
     search_fields = ('transaction_id', 'booking__id', 'job__id')
-    readonly_fields = ('created_at', 'updated_at', 'platform_commission', 'worker_amount')
+    readonly_fields = ('payment_date', 'platform_commission', 'worker_amount')
     fieldsets = (
         ('Payment Information', {
             'fields': ('booking', 'job', 'amount', 'customer_amount')
@@ -33,7 +33,7 @@ class PaymentAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         }),
         ('Timestamps', {
-            'fields': ('payment_date', 'created_at', 'updated_at')
+            'fields': ('payment_date',)
         }),
     )
     

@@ -1,13 +1,64 @@
+from datetime import timedelta
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 
 from accounts.decorators import admin_required, worker_required
-from bookings.models import Booking
+from bookings.models import Booking, Job
 from reviews.models import Review
 from .forms import WorkerProfileForm, WorkerVerificationForm
 from .models import WorkerProfile
 from services.models import Service
+
+
+def _get_worker_earnings_data(user, period='monthly'):
+    now = timezone.now()
+
+    if period == 'daily':
+        start_date = now.date() - timedelta(days=1)
+        label = 'Daily earnings'
+    elif period == 'yearly':
+        start_date = now.date().replace(month=1, day=1)
+        label = 'Yearly earnings'
+    else:
+        start_date = now.date().replace(day=1)
+        label = 'Monthly earnings'
+
+    jobs = Job.objects.filter(worker=user, status='COMPLETED').select_related('customer', 'service_request')
+    if start_date:
+        jobs = jobs.filter(created_at__date__gte=start_date)
+
+    job_entries = []
+    total_earnings = Decimal('0.00')
+
+    for job in jobs.order_by('-created_at'):
+        payment = getattr(job, 'payment', None)
+        amount = Decimal('0.00')
+        if payment and payment.worker_amount is not None:
+            amount = Decimal(str(payment.worker_amount))
+        elif job.actual_price is not None:
+            amount = Decimal(str(job.actual_price))
+        elif job.proposed_price is not None:
+            amount = Decimal(str(job.proposed_price))
+
+        total_earnings += amount
+        job_entries.append({
+            'job': job,
+            'date': job.created_at.date(),
+            'customer': job.customer.get_full_name() or job.customer.username,
+            'service_title': job.title,
+            'amount': amount,
+        })
+
+    return {
+        'label': label,
+        'start_date': start_date,
+        'jobs': job_entries,
+        'total_earnings': total_earnings,
+    }
 
 
 @worker_required
@@ -23,6 +74,10 @@ def worker_dashboard(request):
     total_earnings = sum(booking.service.price for booking in completed_bookings if booking.service.price)
     available_services = Service.objects.filter(is_available=True)
 
+    report_daily = _get_worker_earnings_data(request.user, 'daily')
+    report_monthly = _get_worker_earnings_data(request.user, 'monthly')
+    report_yearly = _get_worker_earnings_data(request.user, 'yearly')
+
     return render(
         request,
         'workers/worker_dashboard.html',
@@ -36,6 +91,27 @@ def worker_dashboard(request):
             'reviews': reviews,
             'total_earnings': total_earnings,
             'available_services': available_services,
+            'report_daily': report_daily,
+            'report_monthly': report_monthly,
+            'report_yearly': report_yearly,
+        }
+    )
+
+
+@worker_required
+def worker_earnings_report(request):
+    period = request.GET.get('period', 'monthly')
+    data = _get_worker_earnings_data(request.user, period)
+
+    return render(
+        request,
+        'workers/worker_earnings_report.html',
+        {
+            'period': period,
+            'report_label': data['label'],
+            'total_earnings': data['total_earnings'],
+            'job_entries': data['jobs'],
+            'start_date': data['start_date'],
         }
     )
 
