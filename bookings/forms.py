@@ -29,7 +29,7 @@ class BookingCreateForm(forms.ModelForm):
         label='Service'
     )
     worker = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(role='worker', is_verified_worker=True),
+        queryset=CustomUser.objects.filter(role='worker', worker_status='APPROVED'),
         required=False,
         label='Preferred Worker (optional)'
     )
@@ -68,7 +68,7 @@ class BookingUpdateForm(forms.ModelForm):
         ]
 
     worker = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(role='worker', is_verified_worker=True),
+        queryset=CustomUser.objects.filter(role='worker', worker_status='APPROVED'),
         required=False,
         label='Preferred Worker (optional)'
     )
@@ -80,7 +80,7 @@ class BookingAssignForm(forms.ModelForm):
         fields = ['worker']
 
     worker = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(role='worker', is_verified_worker=True),
+        queryset=CustomUser.objects.filter(role='worker', worker_status='APPROVED'),
         required=False,
         label='Assign Verified Worker'
     )

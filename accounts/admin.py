@@ -17,8 +17,10 @@ class CustomUserCreationForm(UserCreationForm):
             'role',
             'phone',
             'address',
+            'city',
             'profile_picture',
-            'is_verified_worker',
+            'worker_status',
+            'customer_status',
         )
 
 
@@ -45,21 +47,25 @@ class CustomUserAdmin(UserAdmin):
         if obj.role == 'admin' and not request.user.is_superuser:
             raise ValidationError('Only superusers can create admin accounts.')
 
-        if obj.role == 'worker':
-            obj.is_verified_worker = False
+        if obj.role == 'worker' and not change:
+            obj.worker_status = 'PENDING'
 
         super().save_model(request, obj, form, change)
     list_display = (
         'username',
         'email',
         'role',
-        'is_verified_worker',
+        'worker_status',
+        'customer_status',
+        'is_blocked',
         'is_staff',
     )
 
     list_filter = (
         'role',
-        'is_verified_worker',
+        'worker_status',
+        'customer_status',
+        'is_blocked',
         'is_staff',
     )
 
@@ -71,8 +77,13 @@ class CustomUserAdmin(UserAdmin):
                     'role',
                     'phone',
                     'address',
+                    'city',
                     'profile_picture',
-                    'is_verified_worker',
+                    'worker_status',
+                    'customer_status',
+                    'is_blocked',
+                    'preferred_contact_method',
+                    'receive_notifications',
                 )
             },
         ),
@@ -86,8 +97,13 @@ class CustomUserAdmin(UserAdmin):
                     'role',
                     'phone',
                     'address',
+                    'city',
                     'profile_picture',
-                    'is_verified_worker',
+                    'worker_status',
+                    'customer_status',
+                    'is_blocked',
+                    'preferred_contact_method',
+                    'receive_notifications',
                 )
             },
         ),

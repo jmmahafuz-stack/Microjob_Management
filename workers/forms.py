@@ -1,6 +1,6 @@
 from django import forms
 
-from services.models import Service
+from services.models import Service, Category
 from .models import WorkerProfile
 
 
@@ -10,14 +10,21 @@ class WorkerProfileForm(forms.ModelForm):
         required=False,
         label='Service offered'
     )
+    categories = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.filter(is_active=True),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label='Categories you work in'
+    )
 
     class Meta:
         model = WorkerProfile
         fields = [
+            'categories',
             'service',
             'service_category',
             'skills',
-            'experience',
+            'experience_years',
             'service_area',
             'languages',
             'bio',
@@ -37,14 +44,21 @@ class WorkerVerificationForm(forms.ModelForm):
         required=False,
         label='Service offered'
     )
+    categories = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.filter(is_active=True),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label='Categories you work in'
+    )
 
     class Meta:
         model = WorkerProfile
         fields = [
+            'categories',
             'service',
             'service_category',
             'skills',
-            'experience',
+            'experience_years',
             'service_area',
             'languages',
             'bio',

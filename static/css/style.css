@@ -630,3 +630,282 @@ button:hover, input[type="submit"]:hover {
 .auth-switch a:hover {
     text-decoration: underline;
 }
+
+/* Password Toggle Styles */
+.password-field-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-field-wrapper input[type="password"],
+.password-field-wrapper input[type="text"] {
+    width: 100%;
+    padding-right: 38px;
+    box-sizing: border-box;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    background: #e8f2fb;
+    border: 1px solid #cbd5e1;
+    cursor: pointer;
+    font-size: 0.8rem;
+    color: #5b6b7a;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+}
+
+.password-toggle-btn:hover {
+    background: #dceaf8;
+    border-color: #2d6ea8;
+    color: #1f4e79;
+}
+
+.password-toggle-btn.show::after {
+    content: '👁';
+}
+
+.password-toggle-btn.hide::after {
+    content: '👁';
+}
+
+.form-group .password-field-wrapper {
+    flex-direction: row;
+}
+
+/* Facebook-style Login Page */
+.facebook-login-container {
+    display: flex;
+    min-height: 100vh;
+    background: #f0f2f5;
+}
+
+.facebook-login-left {
+    flex: 1;
+    background: linear-gradient(135deg, #1f4e79 0%, #2d6ea8 100%);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 40px 60px;
+}
+
+.facebook-branding {
+    margin-bottom: 50px;
+}
+
+.facebook-logo {
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 0 0 10px;
+    color: white;
+    letter-spacing: -2px;
+}
+
+.facebook-tagline {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: #e8f2fb;
+    margin: 0;
+}
+
+.facebook-features {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+}
+
+.feature-icon {
+    font-size: 1.8rem;
+    color: #4ecca3;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+.feature p {
+    font-size: 1rem;
+    margin: 0;
+    color: #e8f2fb;
+    line-height: 1.4;
+}
+
+.facebook-login-right {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.facebook-form-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    padding: 40px 30px;
+    width: 100%;
+    max-width: 380px;
+}
+
+.facebook-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.facebook-form .form-group {
+    position: relative;
+    margin-bottom: 10px;
+}
+
+.facebook-form input[type="text"],
+.facebook-form input[type="password"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background: #f5f7fa;
+    box-sizing: border-box;
+}
+
+.facebook-form input.facebook-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    background: #f5f7fa;
+    box-sizing: border-box;
+}
+
+.facebook-form input[type="text"]:focus,
+.facebook-form input[type="password"]:focus {
+    outline: none;
+    border-color: #2d6ea8;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(45, 110, 168, 0.1);
+}
+
+.facebook-login-btn {
+    background: #1f4e79;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: background 0.2s ease;
+}
+
+.facebook-login-btn:hover {
+    background: #163a56;
+}
+
+.facebook-divider {
+    text-align: center;
+    color: #999;
+    font-size: 0.9rem;
+    margin: 18px 0;
+    position: relative;
+}
+
+.facebook-divider::before,
+.facebook-divider::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 35%;
+    height: 1px;
+    background: #ddd;
+}
+
+.facebook-divider::before {
+    left: 0;
+}
+
+.facebook-divider::after {
+    right: 0;
+}
+
+.facebook-signup-btn {
+    display: block;
+    background: #31a24c;
+    color: white;
+    text-decoration: none;
+    padding: 12px 14px;
+    border-radius: 6px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background 0.2s ease;
+    border: none;
+    cursor: pointer;
+}
+
+.facebook-signup-btn:hover {
+    background: #229a3e;
+}
+
+@media (max-width: 1024px) {
+    .facebook-login-container {
+        flex-direction: column;
+        min-height: auto;
+    }
+
+    .facebook-login-left {
+        padding: 40px 20px;
+        text-align: center;
+    }
+
+    .facebook-logo {
+        font-size: 2rem;
+    }
+
+    .facebook-tagline {
+        font-size: 1.1rem;
+    }
+
+    .facebook-features {
+        display: none;
+    }
+
+    .facebook-login-right {
+        padding: 20px;
+    }
+
+    .facebook-form-card {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 600px) {
+    .facebook-login-container {
+        min-height: 100vh;
+    }
+
+    .facebook-form-card {
+        padding: 30px 16px;
+    }
+
+    .facebook-logo {
+        font-size: 1.5rem;
+    }
+}

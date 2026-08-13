@@ -6,6 +6,26 @@ from django.db.models import Avg
 from django.urls import reverse
 
 
+class Category(models.Model):
+    """Service categories like Plumbing, Electrical, etc."""
+    
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=50, blank=True, help_text="Emoji or icon class")
+    image = models.ImageField(upload_to='categories/', blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name_plural = "Categories"
+        ordering = ['name']
+    
+    def __str__(self):
+        return self.name
+
+
 class Service(models.Model):
     SERVICE_CHOICES = [
         ('Electrical', 'Electrical'),

@@ -58,8 +58,8 @@ class Booking(models.Model):
         if self.worker_id:
             if self.worker.role != 'worker':
                 raise ValidationError('Assigned worker must be a worker role account.')
-            if not self.worker.is_verified_worker:
-                raise ValidationError('Only verified workers can be assigned to bookings.')
+            if self.worker.worker_status != 'APPROVED':
+                raise ValidationError('Only approved workers can be assigned to bookings.')
 
     def save(self, *args, **kwargs):
         self.full_clean()

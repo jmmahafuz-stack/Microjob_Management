@@ -3,7 +3,7 @@ from django.db import models
 from django.db.models import Avg
 
 from reviews.models import Review
-from services.models import Service
+from services.models import Service, Category
 
 
 class WorkerProfile(models.Model):
@@ -30,6 +30,11 @@ class WorkerProfile(models.Model):
         on_delete=models.CASCADE,
         related_name='worker_profile'
     )
+    
+    # Categories this worker can work in (ManyToMany)
+    categories = models.ManyToManyField(Category, related_name='workers', blank=True)
+    
+    # Keep old fields for backward compatibility
     service_category = models.CharField(max_length=50, blank=True, null=True)
     service = models.ForeignKey(
         Service,
@@ -38,15 +43,26 @@ class WorkerProfile(models.Model):
         null=True,
         related_name='workers'
     )
-    skills = models.CharField(max_length=200)
-    experience = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Professional information
+    bio = models.TextField(blank=True, null=True)
+    skills = models.TextField(blank=True, help_text="Comma-separated skills")
+    experience_years = models.PositiveIntegerField(default=0)
     service_area = models.CharField(max_length=150, blank=True, null=True)
     languages = models.CharField(max_length=150, blank=True, null=True)
-    bio = models.TextField(blank=True, null=True)
     portfolio_link = models.URLField(blank=True, null=True)
     id_verification_document = models.FileField(upload_to='worker_documents/', blank=True, null=True)
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
+    
+    # Preferences
     response_time = models.CharField(max_length=50, default='Within 24 hours')
+    default_preferred_contact = models.CharField(
+        max_length=20,
+        choices=[('Email', 'Email'), ('Phone', 'Phone'), ('SMS', 'SMS')],
+        default='Email'
+    )
+    
+    # Status fields
     payout_status = models.CharField(
         max_length=20,
         choices=PAYOUT_STATUS_CHOICES,
@@ -62,6 +78,12 @@ class WorkerProfile(models.Model):
         choices=VERIFICATION_STATUS_CHOICES,
         default='Pending'
     )
+    
+    # Cached statistics
+    completed_jobs = models.PositiveIntegerField(default=0)
+    average_rating_cached = models.DecimalField(max_digits=3, decimal_places=2, default=0)
+    total_earnings = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

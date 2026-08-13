@@ -49,7 +49,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
 
-            if user.role == 'worker' and not user.is_verified_worker:
+            if user.role == 'worker' and user.worker_status != 'APPROVED':
                 messages.error(request, 'Your worker account is pending verification. Please wait for admin approval.')
                 return render(request, 'accounts/login.html', {'form': form})
 

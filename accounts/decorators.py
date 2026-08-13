@@ -25,8 +25,8 @@ def worker_required(view_func):
         if request.user.role != 'worker':
             messages.error(request, 'Only workers can access this page.')
             return redirect('home')
-        if not request.user.is_verified_worker:
-            messages.error(request, 'Your worker account is not verified yet.')
+        if request.user.worker_status != 'APPROVED':
+            messages.error(request, 'Your worker account is not approved yet.')
             return redirect('login')
         return view_func(request, *args, **kwargs)
     return _wrapped_view

@@ -1,27 +1,58 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="auth-shell">
-    <div class="auth-card">
-        <div class="auth-card__header">
-            <h2>Welcome back</h2>
-            <p>Sign in to continue booking trusted services.</p>
+<div class="facebook-login-container">
+    <!-- Left side: Branding -->
+    <div class="facebook-login-left">
+        <div class="facebook-branding">
+            <h1 class="facebook-logo">MJMS</h1>
+            <p class="facebook-tagline">Connect with trusted services</p>
         </div>
+        <div class="facebook-features">
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <p>Find skilled workers nearby</p>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <p>Book services instantly</p>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <p>Secure & verified professionals</p>
+            </div>
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <p>24/7 customer support</p>
+            </div>
+        </div>
+    </div>
 
-        {% include 'partials/messages.html' %}
+    <!-- Right side: Login Form -->
+    <div class="facebook-login-right">
+        <div class="facebook-form-card">
+            {% include 'partials/messages.html' %}
 
-        <form method="POST" class="auth-form">
-            {% csrf_token %}
+            <form method="POST" class="facebook-form">
+                {% csrf_token %}
 
-            {{ form.as_p }}
+                <div class="form-group">
+                    {{ form.username }}
+                    {{ form.username.errors }}
+                </div>
 
-            <button type="submit">Login</button>
-        </form>
+                <div class="form-group">
+                    {{ form.password }}
+                    {{ form.password.errors }}
+                </div>
 
-        <p class="auth-switch">
-            Don't have an account?
-            <a href="{% url 'register' %}">Register</a>
-        </p>
+                <button type="submit" class="facebook-login-btn">Log In</button>
+            </form>
+
+            <div class="facebook-divider">or</div>
+
+            <a href="{% url 'register' %}" class="facebook-signup-btn">Create New Account</a>
+        </div>
     </div>
 </div>
 {% endblock %}

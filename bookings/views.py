@@ -21,17 +21,17 @@ from .models import Booking, BookingMessage
 def _get_related_workers(service):
     category_matches = WorkerProfile.objects.filter(
         user__role='worker',
-        user__is_verified_worker=True,
+        user__worker_status='APPROVED',
         service_category__icontains=service.category,
     )
     skill_matches = WorkerProfile.objects.filter(
         user__role='worker',
-        user__is_verified_worker=True,
+        user__worker_status='APPROVED',
         skills__icontains=service.category,
     )
     direct_matches = WorkerProfile.objects.filter(
         user__role='worker',
-        user__is_verified_worker=True,
+        user__worker_status='APPROVED',
         service=service,
     )
 

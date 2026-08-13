@@ -74,10 +74,11 @@ def verify_worker(request, pk):
         form = WorkerVerificationForm(request.POST, instance=worker_profile)
         if form.is_valid():
             form.save()
-            worker_profile.user.is_verified_worker = (
-                worker_profile.verification_status == 'Approved'
-            )
-            worker_profile.user.save(update_fields=['is_verified_worker'])
+            if worker_profile.verification_status == 'Approved':
+                worker_profile.user.worker_status = 'APPROVED'
+            elif worker_profile.verification_status == 'Rejected':
+                worker_profile.user.worker_status = 'REJECTED'
+            worker_profile.user.save(update_fields=['worker_status'])
             messages.success(request, 'Worker verification updated.')
             return redirect('worker_verification_list')
     else:

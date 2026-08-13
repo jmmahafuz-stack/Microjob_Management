@@ -70,9 +70,10 @@ class RegisterForm(UserCreationForm):
         user.role = selected_role
         user.preferred_contact_method = self.cleaned_data.get('preferred_contact_method') or 'Email'
         user.receive_notifications = self.cleaned_data.get('receive_notifications', True)
-        user.is_verified_worker = False
         user.is_staff = False
         user.is_superuser = False
+        if user.role == 'worker':
+            user.worker_status = 'PENDING'
         if commit:
             user.save()
 
@@ -98,8 +99,19 @@ class RegisterForm(UserCreationForm):
 
 
 class LoginForm(AuthenticationForm):
-    username = forms.CharField(max_length=150)
-    password = forms.CharField(widget=forms.PasswordInput)
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'facebook-input',
+            'placeholder': 'Email or username'
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'facebook-input',
+            'placeholder': 'Password'
+        })
+    )
 
 
 class ProfileUpdateForm(forms.ModelForm):
