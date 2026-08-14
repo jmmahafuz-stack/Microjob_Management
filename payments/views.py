@@ -5,12 +5,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import customer_required, worker_required
 from bookings.models import Job
-<<<<<<< HEAD
 from notifications.models import Notification
 from .forms import CustomerPaymentForm, PaymentForm
-=======
-from .forms import CustomerPaymentForm
->>>>>>> 2b9a4033767b5c34cf65e854d204910fc6e11b08
 from .models import Payment, PayoutRequest
 
 
@@ -68,14 +64,18 @@ def make_payment(request, job_id):
             payment.payment_method = form.cleaned_data.get('payment_method')
 
             if payment.transaction_id or payment.receipt:
-<<<<<<< HEAD
                 payment.payment_status = 'Pending'  # Awaiting admin verification
                 
+                # Calculate commission
+                payment.calculate_commission()
+                payment.save()
+                
                 # Add pending earnings to worker (not yet available for withdrawal)
-                worker_profile = job.worker.worker_profile
-                worker_profile.pending_earnings += payment.worker_amount
-                worker_profile.total_earnings += payment.worker_amount
-                worker_profile.save(update_fields=['pending_earnings', 'total_earnings'])
+                if job.worker:
+                    worker_profile = job.worker.worker_profile
+                    worker_profile.pending_earnings += payment.worker_amount
+                    worker_profile.total_earnings += payment.worker_amount
+                    worker_profile.save(update_fields=['pending_earnings', 'total_earnings'])
                 
                 # Send notification to customer about payment submission
                 Notification.create_notification(
@@ -87,28 +87,6 @@ def make_payment(request, job_id):
                     job=job,
                 )
                 
-=======
-                payment.payment_status = 'Pending'
-
-                payment.calculate_commission()
-                payment.save()
-
-                # Add worker earnings to pending earnings.
-                if job.worker:
-                    worker_profile = job.worker.worker_profile
-
-                    # Avoid adding the same payment repeatedly.
-                    if created:
-                        worker_profile.pending_earnings += payment.worker_amount
-                        worker_profile.total_earnings += payment.worker_amount
-                        worker_profile.save(
-                            update_fields=[
-                                'pending_earnings',
-                                'total_earnings'
-                            ]
-                        )
-
->>>>>>> 2b9a4033767b5c34cf65e854d204910fc6e11b08
                 messages.success(
                     request,
                     f'Payment submitted! Your transaction ID is '

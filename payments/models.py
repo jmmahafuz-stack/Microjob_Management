@@ -42,14 +42,8 @@ class Payment(models.Model):
 
     # Payment amounts
     customer_amount = models.DecimalField(
-<<<<<<< HEAD
         max_digits=10, decimal_places=2, default=0,
         help_text="Total amount customer pays (e.g., 1500)"
-=======
-        max_digits=10,
-        decimal_places=2,
-        help_text="Total amount customer pays"
->>>>>>> 2b9a4033767b5c34cf65e854d204910fc6e11b08
     )
 
     # Legacy single amount field
@@ -118,7 +112,6 @@ class Payment(models.Model):
         default=10,
         help_text="Commission percentage (e.g., 10 for 10%)"
     )
-<<<<<<< HEAD
     
     # Payment verification (Gateway integration)
     verification_method = models.CharField(
@@ -140,14 +133,11 @@ class Payment(models.Model):
         help_text="Status returned by payment gateway"
     )
     
-=======
-
     commission_calculated_at = models.DateTimeField(
         null=True,
         blank=True
     )
-
->>>>>>> 2b9a4033767b5c34cf65e854d204910fc6e11b08
+    
     # Worker payout status
     worker_payout_status = models.CharField(
         max_length=20,

@@ -14,15 +14,10 @@
             <a href="{% url 'admin:index' %}">Admin</a>
 
         {% elif user.role == 'worker' %}
-<<<<<<< HEAD
             <!-- Worker Navigation -->
             <a href="{% url 'worker_dashboard' %}">Dashboard</a>
             <a href="{% url 'worker_my_jobs' %}">My Jobs</a>
-=======
-            <a href="{% url 'worker_dashboard' %}">My Jobs</a>
             <a href="{% url 'service_request_list' %}">Open Requests</a>
-
->>>>>>> 2b9a4033767b5c34cf65e854d204910fc6e11b08
         {% else %}
             <!-- Customer Navigation -->
             <a href="{% url 'my_bookings' %}">My Bookings</a>
