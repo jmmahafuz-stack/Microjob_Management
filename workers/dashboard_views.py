@@ -27,7 +27,7 @@ def _get_or_create_worker_profile(user):
 
 
 def worker_required(view_func):
-    """Decorator to check if user is an approved worker."""
+    """Decorator to check if user is an eligible worker."""
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             messages.error(request, 'Please login to continue.')
@@ -35,8 +35,8 @@ def worker_required(view_func):
         if request.user.role != 'worker':
             messages.error(request, 'Access denied. Worker profile required.')
             return redirect('home')
-        if request.user.worker_status != 'APPROVED':
-            messages.warning(request, 'Your worker account is pending admin approval. You can browse as a customer, but cannot take jobs yet.')
+        if getattr(request.user, 'is_blocked', False):
+            messages.error(request, 'Your worker account is blocked. Please contact support.')
             return redirect('home')
         return view_func(request, *args, **kwargs)
     return wrapper

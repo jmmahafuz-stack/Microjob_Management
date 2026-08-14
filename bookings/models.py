@@ -58,8 +58,8 @@ class Booking(models.Model):
         if self.worker_id:
             if self.worker.role != 'worker':
                 raise ValidationError('Assigned worker must be a worker role account.')
-            if self.worker.worker_status != 'APPROVED':
-                raise ValidationError('Only approved workers can be assigned to bookings.')
+            if self.worker.is_blocked:
+                raise ValidationError('Blocked workers cannot be assigned to bookings.')
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -232,8 +232,8 @@ class JobApplication(models.Model):
     def clean(self):
         if self.worker_id and self.worker.role != 'worker':
             raise ValidationError('Only workers can apply for jobs.')
-        if self.worker_id and self.worker.worker_status != 'APPROVED':
-            raise ValidationError('Only approved workers can apply for jobs.')
+        if self.worker_id and self.worker.is_blocked:
+            raise ValidationError('Blocked workers cannot apply for jobs.')
         if self.proposed_price <= 0:
             raise ValidationError('Proposed price must be greater than 0.')
 

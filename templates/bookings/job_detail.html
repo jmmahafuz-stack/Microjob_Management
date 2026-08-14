@@ -117,7 +117,13 @@
                 </div>
             {% endif %}
             
-            {% if request.user == job.worker and job.status != 'COMPLETED' %}
+            {% if request.user == job.worker and job.status == 'CONFIRMED' %}
+                <div class="mb-4">
+                    <a href="{% url 'job_accept' job.id %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-check-circle"></i> Accept Job
+                    </a>
+                </div>
+            {% elif request.user == job.worker and job.status == 'IN_PROGRESS' %}
                 <div class="mb-4">
                     <a href="{% url 'job_complete' job.id %}" class="btn btn-success btn-lg">
                         <i class="fas fa-check-circle"></i> Mark as Complete

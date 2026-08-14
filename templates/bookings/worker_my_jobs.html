@@ -83,9 +83,9 @@
                         💬 Message Customer
                     </a>
                     {% if job.status == 'CONFIRMED' %}
-                    <a href="{% url 'job_detail' job.pk %}" 
+                    <a href="{% url 'job_accept' job.pk %}" 
                        style="padding: 0.75rem 1rem; background: #059669; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
-                        Start Job
+                        Accept Job
                     </a>
                     {% elif job.status == 'IN_PROGRESS' %}
                     <a href="{% url 'job_complete' job.pk %}" 

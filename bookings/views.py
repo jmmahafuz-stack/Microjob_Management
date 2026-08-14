@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
-from django.db.models import Q, Count
+from django.db.models import Q
 import django.utils.timezone
 
 from accounts.decorators import admin_required, customer_required, worker_required
@@ -390,9 +390,7 @@ def service_request_list(request):
     else:
         service_requests = ServiceRequest.objects.none()
 
-    service_requests = service_requests.annotate(
-        application_count=Count('job_applications')
-    ).order_by('-created_at')
+    service_requests = service_requests.order_by('-created_at')
 
     context = {'service_requests': service_requests}
     return render(request, 'bookings/service_request_list.html', context)
@@ -501,6 +499,15 @@ def job_application_review(request, pk):
                 # Update service request status
                 application.service_request.status = 'ASSIGNED'
                 application.service_request.save()
+
+                Notification.create_notification(
+                    user=application.worker,
+                    title=f"Job Assigned - {job.title}",
+                    message=f"The customer selected you for '{job.title}'. Please review the details and accept the job.",
+                    notification_type='APPLICATION_ACCEPTED',
+                    job=job,
+                    related_user=request.user,
+                )
                 
                 # Reject other applications
                 JobApplication.objects.filter(
@@ -633,30 +640,26 @@ def worker_my_jobs(request):
     - Completed jobs
     Includes status and messaging capability
     """
-    # Get all pending applications by this worker
     pending_applications = JobApplication.objects.filter(
         worker=request.user,
         status='PENDING'
     ).select_related('service_request', 'service_request__customer').order_by('-created_at')
-    
-    # Get all accepted applications (but not yet jobs)
+
     accepted_applications = JobApplication.objects.filter(
         worker=request.user,
         status='ACCEPTED'
     ).select_related('service_request', 'service_request__customer').order_by('-created_at')
-    
-    # Get all active jobs (confirmed and in progress)
+
     active_jobs = Job.objects.filter(
         worker=request.user,
         status__in=['CONFIRMED', 'IN_PROGRESS']
     ).select_related('customer', 'service_request').order_by('-created_at')
-    
-    # Get all completed jobs
+
     completed_jobs = Job.objects.filter(
         worker=request.user,
         status='COMPLETED'
     ).select_related('customer', 'service_request').order_by('-created_at')
-    
+
     context = {
         'pending_applications': pending_applications,
         'accepted_applications': accepted_applications,
@@ -665,8 +668,39 @@ def worker_my_jobs(request):
         'total_jobs': len(active_jobs),
         'total_completed': len(completed_jobs),
     }
-    
+
     return render(request, 'bookings/worker_my_jobs.html', context)
+
+
+@login_required
+@worker_required
+def job_accept(request, pk):
+    """Worker accepts an assigned job and can begin the work."""
+    job = get_object_or_404(Job, pk=pk)
+
+    if job.worker != request.user:
+        messages.error(request, 'You can only accept jobs assigned to you.')
+        return redirect('worker_my_jobs')
+
+    if job.status in ['COMPLETED', 'CANCELLED']:
+        messages.error(request, 'This job is no longer active.')
+        return redirect('job_detail', pk=job.pk)
+
+    job.status = 'IN_PROGRESS'
+    job.actual_start_time = django.utils.timezone.now()
+    job.save(update_fields=['status', 'actual_start_time', 'updated_at'])
+
+    Notification.create_notification(
+        user=job.customer,
+        title=f"Job Started - {job.title}",
+        message=f"The worker has accepted and started the job '{job.title}'.",
+        notification_type='JOB_STARTED',
+        job=job,
+        related_user=job.worker,
+    )
+
+    messages.success(request, 'You accepted the job and it is now in progress.')
+    return redirect('job_detail', pk=job.pk)
 
 
 @login_required
@@ -676,8 +710,8 @@ def worker_available_jobs(request):
     Show all jobs assigned to this worker.
     Worker can only see jobs where they are the assigned worker.
     """
-    if request.user.worker_status != 'APPROVED':
-        messages.error(request, 'You must be approved by admin before viewing available jobs.')
+    if getattr(request.user, 'is_blocked', False):
+        messages.error(request, 'Your worker account is blocked. Please contact support.')
         return redirect('home')
     
     # Get all jobs assigned to this worker

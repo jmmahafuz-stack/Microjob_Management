@@ -25,6 +25,7 @@ urlpatterns = [
     path('worker-jobs/', views.worker_my_jobs, name='worker_my_jobs'),
     path('jobs/', views.worker_available_jobs, name='worker_available_jobs'),
     path('jobs/<int:pk>/', views.job_detail, name='job_detail'),
+    path('jobs/<int:pk>/accept/', views.job_accept, name='job_accept'),
     path('jobs/<int:pk>/messages/', views.job_messages, name='job_messages'),
     path('jobs/<int:pk>/complete/', views.job_complete, name='job_complete'),
     path('jobs/<int:pk>/cancel/', views.cancel_job, name='cancel_job'),

@@ -25,8 +25,8 @@ def worker_required(view_func):
         if request.user.role != 'worker':
             messages.error(request, 'Only workers can access this page.')
             return redirect('home')
-        if request.user.worker_status != 'APPROVED':
-            messages.warning(request, 'Your worker account is pending admin approval. You can use customer features, but not take jobs yet.')
+        if getattr(request.user, 'is_blocked', False):
+            messages.error(request, 'Your worker account is blocked. Please contact support.')
             return redirect('home')
         return view_func(request, *args, **kwargs)
     return _wrapped_view

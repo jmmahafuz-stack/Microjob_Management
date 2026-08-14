@@ -3,7 +3,7 @@ from django import forms
 from accounts.models import CustomUser
 from services.models import Service
 
-from .models import Booking, BookingMessage
+from .models import Booking, BookingMessage, ServiceRequest, JobApplication, Job
 
 
 class BookingCreateForm(forms.ModelForm):
@@ -226,7 +226,7 @@ class JobApplicationForm(forms.ModelForm):
 class JobApplicationReviewForm(forms.ModelForm):
     """Form for customers to accept/reject job applications"""
     class Meta:
-        model_name = 'JobApplication'  # Placeholder
+        model = JobApplication
         fields = ['status']
         widgets = {
             'status': forms.RadioSelect(choices=[
@@ -239,7 +239,7 @@ class JobApplicationReviewForm(forms.ModelForm):
 class JobForm(forms.ModelForm):
     """Form for viewing/updating job details"""
     class Meta:
-        model_name = 'Job'  # Placeholder
+        model = Job
         fields = [
             'status',
             'scheduled_date',
@@ -273,8 +273,8 @@ class JobForm(forms.ModelForm):
 class JobCompletionForm(forms.ModelForm):
     """Form for workers to mark job as completed"""
     class Meta:
-        model_name = 'Job'  # Placeholder
-        fields = ['actual_price', 'completion_notes', 'status']
+        model = Job
+        fields = ['actual_price', 'completion_notes']
         widgets = {
             'actual_price': forms.NumberInput(attrs={
                 'class': 'form-input',
@@ -287,11 +287,8 @@ class JobCompletionForm(forms.ModelForm):
                 'rows': 4,
                 'placeholder': 'What was completed? Any notes for the customer?'
             }),
-            'status': forms.HiddenInput(),  # Auto-set to COMPLETED
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Status is auto-filled by view
-        if self.instance:
-            self.fields['status'].initial = 'COMPLETED'
+        # Status is auto-set by view, not included in form

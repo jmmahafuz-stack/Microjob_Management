@@ -101,10 +101,6 @@ def login_view(request):
             user = authenticate(request, username=username, password=password)
 
         if user is not None:
-            if user.role == 'worker' and user.worker_status != 'APPROVED':
-                messages.warning(request, 'Your worker account is pending verification. You can use customer features now.')
-                return render(request, 'accounts/login.html', {'form': form})
-
             if user.role == 'admin':
                 user.is_staff = True
                 user.is_superuser = True
