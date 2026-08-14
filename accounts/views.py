@@ -110,6 +110,16 @@ def login_view(request):
                 user.is_superuser = False
                 user.save(update_fields=['is_staff', 'is_superuser'])
 
+            if user.role == 'worker' and user.worker_status != 'APPROVED':
+                login(request, user)
+                messages.error(request, 'Your worker account is pending admin approval. You will be able to take service requests after approval.')
+                return redirect('home')
+
+            if getattr(user, 'is_blocked', False):
+                login(request, user)
+                messages.error(request, 'Your worker account is blocked. Please contact support.')
+                return redirect('home')
+
             login(request, user)
             messages.success(request, f'Welcome {user.first_name or user.username}!')
 

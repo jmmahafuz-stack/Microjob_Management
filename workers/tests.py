@@ -82,7 +82,7 @@ class WorkerRegistrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(WorkerProfile.objects.filter(user=user).exists())
 
-    def test_pending_worker_can_access_worker_dashboard(self):
+    def test_pending_worker_cannot_access_worker_dashboard_until_approved(self):
         user = CustomUser.objects.create_user(
             username='pendingworker',
             email='pendingworker@example.com',
@@ -94,8 +94,8 @@ class WorkerRegistrationTests(TestCase):
         self.client.login(username='pendingworker', password='StrongPassword123')
         response = self.client.get(reverse('worker_dashboard'))
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'Dashboard')
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('home'))
 
     def test_worker_dashboard_shows_only_matching_services(self):
         service_a = Service.objects.create(
@@ -162,6 +162,26 @@ class WorkerRegistrationTests(TestCase):
         self.assertNotContains(response, 'Active Jobs')
         self.assertNotContains(response, 'Your Services')
         self.assertNotContains(response, 'Recent Reviews')
+
+    def test_worker_dashboard_shows_required_business_flow(self):
+        user = CustomUser.objects.create_user(
+            username='workerworkflow',
+            email='workerworkflow@example.com',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        WorkerProfile.objects.create(
+            user=user,
+            verification_status='Approved',
+            training_status='Approved',
+        )
+
+        self.client.login(username='workerworkflow', password='StrongPassword123')
+        response = self.client.get(reverse('worker_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'See Request → Accept → Start Work → Complete → Receive/Track Earnings')
 
     def test_worker_can_accept_an_assigned_job_from_my_jobs(self):
         customer = CustomUser.objects.create_user(

@@ -16,6 +16,7 @@
 
         <div class="admin-intro">
             <p>Welcome admin. You oversee the marketplace, worker approvals, customer trust, service quality, and payment performance from one central dashboard.</p>
+            <p><strong>Admin workflow:</strong> Manage Users → Manage Services → Monitor Jobs → Manage Commission → Monitor Payments → Generate Reports</p>
         </div>
 
         <section class="stats-grid">
@@ -47,11 +48,25 @@
                     <strong>{{ service_requests }}</strong>
                 </div>
             </article>
+            <article class="stat-card accent-indigo">
+                <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div>
+                    <span>Bookings</span>
+                    <strong>{{ bookings.count }}</strong>
+                </div>
+            </article>
             <article class="stat-card accent-red">
                 <div class="stat-icon"><i class="fa-solid fa-xmark-circle"></i></div>
                 <div>
                     <span>Cancelled Jobs</span>
                     <strong>{{ cancelled_jobs }}</strong>
+                </div>
+            </article>
+            <article class="stat-card accent-pink">
+                <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div>
+                    <span>Complaints</span>
+                    <strong>{{ complaints.count }}</strong>
                 </div>
             </article>
             <article class="stat-card accent-cyan">
@@ -124,14 +139,15 @@
             <aside class="panel-card quick-actions">
                 <div class="panel-header">
                     <h3>Quick actions</h3>
-                    <span>Most used tools</span>
+                    <span>Priority workflow</span>
                 </div>
                 <div class="dashboard-links">
-                    <a href="{% url 'admin:index' %}"><i class="fa-solid fa-shield-halved"></i> Admin panel</a>
-                    <a href="{% url 'admin_users_list' %}"><i class="fa-solid fa-user-gear"></i> User management</a>
-                    <a href="{% url 'worker_verification_list' %}"><i class="fa-solid fa-user-check"></i> Worker approvals</a>
-                    <a href="{% url 'service_request_list' %}"><i class="fa-solid fa-clipboard-list"></i> Service requests</a>
-                    <a href="{% url 'payment_history' %}"><i class="fa-solid fa-sack-dollar"></i> Payment overview</a>
+                    <span><i class="fa-solid fa-user-gear"></i> Manage Users</span>
+                    <span><i class="fa-solid fa-list"></i> Manage Services</span>
+                    <span><i class="fa-solid fa-clipboard-list"></i> Monitor Jobs</span>
+                    <span><i class="fa-solid fa-percent"></i> Manage Commission</span>
+                    <span><i class="fa-solid fa-sack-dollar"></i> Monitor Payments</span>
+                    <span><i class="fa-solid fa-file-lines"></i> Generate Reports</span>
                 </div>
             </aside>
         </section>
@@ -145,6 +161,7 @@
     {% else %}
         <div class="card dashboard-shell-card">
             <h3>Customer Dashboard</h3>
+            <p><strong>Process:</strong> Select Service → Select Worker → Request Work → Wait → Pay</p>
             <p>Your bookings: {{ bookings.count }}</p>
             <p><a href="{% url 'booking_history' %}">View all bookings</a></p>
 

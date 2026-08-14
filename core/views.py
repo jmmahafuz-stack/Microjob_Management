@@ -1,8 +1,10 @@
 from django.shortcuts import render
 
-# Create your views here.
+from services.views import ensure_sample_services
+
 
 def home(request):
+    ensure_sample_services()
     return render(request,'home.html')
 
 def about(request):

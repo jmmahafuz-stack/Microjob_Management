@@ -10,6 +10,54 @@ from .models import Service
 from .forms import ServiceForm
 
 
+def ensure_sample_services():
+    """Populate the service catalog with a few realistic examples when the database is empty."""
+    if Service.objects.exists():
+        return
+
+    sample_services = [
+        {
+            'name': 'Plumbing Repair',
+            'category': 'Plumbing',
+            'description': 'Fast repair for leaks, pipe replacement, and faucet installation.',
+            'price': '1200.00',
+            'image': 'service_images/images_1.jpg',
+            'duration': '2 hours',
+            'location': 'Dhaka',
+            'featured': True,
+            'is_available': True,
+        },
+        {
+            'name': 'Electrical Wiring',
+            'category': 'Electrical',
+            'description': 'Safe electrical diagnostics, rewiring, and installation work.',
+            'price': '1500.00',
+            'image': 'service_images/images_2.jpg',
+            'duration': '3 hours',
+            'location': 'Dhaka',
+            'featured': True,
+            'is_available': True,
+        },
+        {
+            'name': 'Home Cleaning',
+            'category': 'Electrical',
+            'description': 'Routine house cleaning and deep-clean services for busy households.',
+            'price': '900.00',
+            'image': 'service_images/images_3.jpg',
+            'duration': '2 hours',
+            'location': 'Chattogram',
+            'featured': False,
+            'is_available': True,
+        },
+    ]
+
+    for payload in sample_services:
+        Service.objects.get_or_create(
+            name=payload['name'],
+            defaults=payload,
+        )
+
+
 def _get_related_workers(service):
     category_matches = WorkerProfile.objects.filter(
         user__role='worker',
@@ -32,6 +80,7 @@ def _get_related_workers(service):
 
 
 def service_list(request):
+    ensure_sample_services()
     search_query = request.GET.get('q', '').strip()
     category = request.GET.get('category', '')
     location = request.GET.get('location', '')

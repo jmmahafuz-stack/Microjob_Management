@@ -28,6 +28,9 @@ def worker_required(view_func):
         if getattr(request.user, 'is_blocked', False):
             messages.error(request, 'Your worker account is blocked. Please contact support.')
             return redirect('home')
+        if getattr(request.user, 'worker_status', None) != 'APPROVED':
+            messages.error(request, 'Your worker account is waiting for admin approval before you can take services.')
+            return redirect('home')
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 

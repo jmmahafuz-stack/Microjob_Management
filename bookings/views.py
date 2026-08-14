@@ -80,13 +80,23 @@ def my_bookings(request):
 @login_required
 @customer_required
 def my_jobs(request):
-    """Show customer's active jobs from Phase 2 workflow (ServiceRequest → Job)"""
-    jobs = Job.objects.filter(customer=request.user).select_related('worker', 'service_request').order_by('-created_at')
-    
+    """Show the customer's side of the request → accept → work → complete → pay lifecycle."""
+    confirmed_jobs = Job.objects.filter(customer=request.user, status='CONFIRMED').select_related('worker', 'service_request').order_by('-created_at')
+    active_jobs = Job.objects.filter(customer=request.user, status='IN_PROGRESS').select_related('worker', 'service_request').order_by('-created_at')
+    completed_jobs = Job.objects.filter(customer=request.user, status='COMPLETED').select_related('worker', 'service_request').order_by('-created_at')
+
+    context = {
+        'confirmed_jobs': confirmed_jobs,
+        'active_jobs': active_jobs,
+        'completed_jobs': completed_jobs,
+        'total_jobs': len(confirmed_jobs) + len(active_jobs),
+        'total_completed': len(completed_jobs),
+    }
+
     return render(
         request,
         'bookings/my_jobs.html',
-        {'jobs': jobs}
+        context
     )
 
 
@@ -381,12 +391,24 @@ def service_request_list(request):
     if request.user.role == 'admin':
         messages.warning(request, 'Admins can view reports and manage users, but they cannot access the customer/worker request workflow.')
         return redirect('dashboard_home')
+    # Only hide clearly fake demo/test requests. Real work requests from valid customer
+    # accounts must remain visible so workers can accept them and complete the workflow.
+    demo_test_user_prefixes = ('test', 'demo')
+    demo_test_titles = ('test job', 'test request', 'demo', 'house cleaning test', 'sample request')
+
     if request.user.role == 'customer':
         service_requests = ServiceRequest.objects.filter(customer=request.user)
     elif request.user.role == 'worker':
         service_requests = ServiceRequest.objects.filter(
-            status__in=['OPEN', 'REVIEWING']
+            status__in=['OPEN', 'REVIEWING', 'ASSIGNED']
+        ).exclude(
+            customer__username__istartswith=demo_test_user_prefixes[0]
+        ).exclude(
+            customer__username__istartswith=demo_test_user_prefixes[1]
         )
+
+        for fake_title in demo_test_titles:
+            service_requests = service_requests.exclude(title__icontains=fake_title)
     else:
         service_requests = ServiceRequest.objects.none()
 
@@ -400,15 +422,18 @@ def service_request_list(request):
 def service_request_detail(request, pk):
     """View service request details and applications"""
     service_request = get_object_or_404(ServiceRequest, pk=pk)
-    
+
+    if request.user.role == 'admin':
+        messages.warning(request, 'Admins cannot access the customer/worker request workflow.')
+        return redirect('dashboard_home')
+
     # Permission check
     if request.user.role == 'customer' and service_request.customer != request.user:
-        if request.user.role != 'admin':
-            messages.error(request, 'You do not have permission to view this request.')
-            return redirect('service_request_list')
-    
+        messages.error(request, 'You do not have permission to view this request.')
+        return redirect('service_request_list')
+
     # Get applications
-    if request.user.role == 'customer' or request.user.role == 'admin':
+    if request.user.role == 'customer':
         applications = service_request.job_applications.all()
     else:
         # Worker can see their own application
@@ -534,19 +559,22 @@ def job_application_review(request, pk):
 def job_detail(request, pk):
     """View job details"""
     from django.core.exceptions import ObjectDoesNotExist
-    
+
     try:
         job = Job.objects.get(pk=pk)
     except Job.DoesNotExist:
         messages.error(request, f'Job #{pk} not found. It may have been deleted or the link is invalid.')
         return redirect('my_jobs')
-    
+
+    if request.user.role == 'admin':
+        messages.warning(request, 'Admins cannot access the customer/worker job workflow.')
+        return redirect('dashboard_home')
+
     # Permission check
     if request.user != job.customer and request.user != job.worker:
-        if request.user.role != 'admin':
-            messages.error(request, 'You do not have permission to view this job.')
-            return redirect('service_request_list')
-    
+        messages.error(request, 'You do not have permission to view this job.')
+        return redirect('service_request_list')
+
     context = {'job': job}
     return render(request, 'bookings/job_detail.html', context)
 
@@ -632,14 +660,7 @@ def cancel_job(request, pk):
 @login_required
 @worker_required
 def worker_my_jobs(request):
-    """
-    Show worker's all jobs including:
-    - Pending applications (customer requests they applied to)
-    - Accepted applications (customer requests where they were chosen)
-    - Active jobs (jobs in progress or confirmed)
-    - Completed jobs
-    Includes status and messaging capability
-    """
+    """Show the worker lifecycle clearly: pending applications, accepted work, active jobs, and completed service."""
     pending_applications = JobApplication.objects.filter(
         worker=request.user,
         status='PENDING'
@@ -650,9 +671,14 @@ def worker_my_jobs(request):
         status='ACCEPTED'
     ).select_related('service_request', 'service_request__customer').order_by('-created_at')
 
+    confirmed_jobs = Job.objects.filter(
+        worker=request.user,
+        status='CONFIRMED'
+    ).select_related('customer', 'service_request').order_by('-created_at')
+
     active_jobs = Job.objects.filter(
         worker=request.user,
-        status__in=['CONFIRMED', 'IN_PROGRESS']
+        status='IN_PROGRESS'
     ).select_related('customer', 'service_request').order_by('-created_at')
 
     completed_jobs = Job.objects.filter(
@@ -663,9 +689,10 @@ def worker_my_jobs(request):
     context = {
         'pending_applications': pending_applications,
         'accepted_applications': accepted_applications,
+        'confirmed_jobs': confirmed_jobs,
         'active_jobs': active_jobs,
         'completed_jobs': completed_jobs,
-        'total_jobs': len(active_jobs),
+        'total_jobs': len(confirmed_jobs) + len(active_jobs),
         'total_completed': len(completed_jobs),
     }
 
@@ -734,12 +761,15 @@ def job_messages(request, pk):
     Both worker and customer can access this.
     """
     job = get_object_or_404(Job, pk=pk)
-    
+
+    if request.user.role == 'admin':
+        messages.warning(request, 'Admins cannot access the customer/worker job communication flow.')
+        return redirect('dashboard_home')
+
     # Permission check
     if request.user != job.customer and request.user != job.worker:
-        if request.user.role != 'admin':
-            messages.error(request, 'You do not have permission to view job messages.')
-            return redirect('home')
+        messages.error(request, 'You do not have permission to view job messages.')
+        return redirect('home')
     
     # Get all messages for this job
     job_messages = BookingMessage.objects.filter(job=job).order_by('created_at')

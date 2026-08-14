@@ -44,6 +44,37 @@ class AdminDashboardTests(TestCase):
         self.assertContains(response, 'Bookings')
         self.assertContains(response, 'Complaints')
 
+    def test_customer_dashboard_shows_required_business_flow(self):
+        customer = User.objects.create_user(
+            username='customerworkflow',
+            email='customerworkflow@example.com',
+            password='Customer12345!',
+            role='customer',
+            customer_status='ACTIVE',
+        )
+
+        self.client.login(username='customerworkflow', password='Customer12345!')
+        response = self.client.get(reverse('dashboard_home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Select Service → Select Worker → Request Work → Wait → Pay')
+
+    def test_admin_dashboard_shows_required_business_flow(self):
+        admin_user = User.objects.create_user(
+            username='adminworkflowsteps',
+            email='adminworkflowsteps@example.com',
+            password='Admin12345!',
+            role='admin'
+        )
+        admin_user.is_staff = True
+        admin_user.save()
+
+        self.client.login(username='adminworkflowsteps', password='Admin12345!')
+        response = self.client.get(reverse('dashboard_home'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Manage Users → Manage Services → Monitor Jobs → Manage Commission → Monitor Payments → Generate Reports')
+
     def test_admin_can_approve_worker_and_block_customer(self):
         admin_user = User.objects.create_user(
             username='adminmanager',
