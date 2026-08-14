@@ -79,7 +79,15 @@ class RegisterForm(UserCreationForm):
         user.receive_notifications = self.cleaned_data.get('receive_notifications', True)
         user.is_staff = False
         user.is_superuser = False
-        user.worker_status = 'PENDING'
+        
+        # Set status based on role
+        if user.role == 'worker':
+            user.worker_status = 'PENDING'
+            user.customer_status = None
+        else:  # customer or other
+            user.customer_status = 'ACTIVE'
+            user.worker_status = None
+        
         if commit:
             user.save()
 

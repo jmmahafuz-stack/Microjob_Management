@@ -95,7 +95,7 @@ class WorkerRegistrationTests(TestCase):
 
     def test_worker_dashboard_shows_only_matching_services(self):
         service_a = Service.objects.create(
-            name='Electrical Service',
+            name='Alpha Electric Service',
             category='Electrical',
             description='Electrical work',
             price='1200.00',
@@ -105,9 +105,9 @@ class WorkerRegistrationTests(TestCase):
             is_available=True,
         )
         service_b = Service.objects.create(
-            name='Plumbing Service',
-            category='Plumbing',
-            description='Plumbing work',
+            name='Beta Drain Service',
+            category='Drainage',
+            description='Drainage work',
             price='1100.00',
             image='service_images/default.jpg',
             duration='2 hours',

@@ -1,0 +1,258 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Jobs - Worker{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 2rem 1rem;">
+    <h1 style="margin-bottom: 2rem; color: var(--primary, #0f172a);">My Jobs</h1>
+
+    <!-- Stats Section -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+        <div style="background: #e0e7ff; padding: 1.5rem; border-radius: 8px; text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: #4f46e5;">{{ total_jobs }}</div>
+            <div style="color: #555; font-size: 0.9rem;">Active Jobs</div>
+        </div>
+        <div style="background: #dbeafe; padding: 1.5rem; border-radius: 8px; text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: #0284c7;">{{ pending_applications|length }}</div>
+            <div style="color: #555; font-size: 0.9rem;">Pending Applications</div>
+        </div>
+        <div style="background: #d1fae5; padding: 1.5rem; border-radius: 8px; text-align: center;">
+            <div style="font-size: 2rem; font-weight: bold; color: #059669;">{{ total_completed }}</div>
+            <div style="color: #555; font-size: 0.9rem;">Completed Jobs</div>
+        </div>
+    </div>
+
+    <!-- Active Jobs Section -->
+    {% if active_jobs %}
+    <section style="margin-bottom: 3rem;">
+        <h2 style="color: var(--primary, #0f172a); border-bottom: 2px solid #4f46e5; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+            Active Jobs ({{ active_jobs|length }})
+        </h2>
+        
+        <div style="display: grid; gap: 1.5rem;">
+            {% for job in active_jobs %}
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary, #0f172a);">{{ job.title }}</h3>
+                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
+                            <strong>Customer:</strong> {{ job.customer.get_full_name|default:job.customer.username }}
+                        </p>
+                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
+                            <strong>Amount:</strong> <span style="color: #059669; font-weight: bold;">৳{{ job.proposed_price }}</span>
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        {% if job.status == 'CONFIRMED' %}
+                            <span style="display: inline-block; background: #fef08a; color: #854d0e; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                                🔔 Confirmed
+                            </span>
+                        {% elif job.status == 'IN_PROGRESS' %}
+                            <span style="display: inline-block; background: #dbeafe; color: #0c4a6e; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                                ✓ In Progress
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <p style="margin: 0.5rem 0; color: #666;">
+                    <strong>Description:</strong> {{ job.description|truncatewords:30 }}
+                </p>
+
+                <p style="margin: 0.5rem 0; color: #666;">
+                    <strong>Location:</strong> {{ job.location }}
+                </p>
+
+                {% if job.scheduled_date %}
+                <p style="margin: 0.5rem 0; color: #666;">
+                    <strong>Scheduled:</strong> {{ job.scheduled_date }}
+                    {% if job.scheduled_time_start %}
+                        at {{ job.scheduled_time_start }}
+                    {% endif %}
+                </p>
+                {% endif %}
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
+                    <a href="{% url 'job_detail' job.pk %}" 
+                       style="padding: 0.75rem 1rem; background: #4f46e5; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
+                        View Details
+                    </a>
+                    <a href="{% url 'job_messages' job.pk %}" 
+                       style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
+                        💬 Message Customer
+                    </a>
+                    {% if job.status == 'CONFIRMED' %}
+                    <a href="{% url 'job_detail' job.pk %}" 
+                       style="padding: 0.75rem 1rem; background: #059669; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
+                        Start Job
+                    </a>
+                    {% elif job.status == 'IN_PROGRESS' %}
+                    <a href="{% url 'job_complete' job.pk %}" 
+                       style="padding: 0.75rem 1rem; background: #059669; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
+                        Complete Job
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Accepted Applications Section -->
+    {% if accepted_applications %}
+    <section style="margin-bottom: 3rem;">
+        <h2 style="color: var(--primary, #0f172a); border-bottom: 2px solid #0284c7; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+            Accepted Applications - Awaiting Job Start ({{ accepted_applications|length }})
+        </h2>
+        
+        <div style="display: grid; gap: 1.5rem;">
+            {% for app in accepted_applications %}
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary, #0f172a);">{{ app.service_request.title }}</h3>
+                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
+                            <strong>Customer:</strong> {{ app.service_request.customer.get_full_name|default:app.service_request.customer.username }}
+                        </p>
+                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
+                            <strong>Your Quote:</strong> <span style="color: #059669; font-weight: bold;">৳{{ app.proposed_price }}</span>
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="display: inline-block; background: #d1fae5; color: #065f46; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                            ✓ Accepted
+                        </span>
+                    </div>
+                </div>
+
+                <p style="margin: 0.5rem 0; color: #666;">
+                    <strong>Customer Request:</strong> {{ app.service_request.description|truncatewords:30 }}
+                </p>
+
+                <p style="margin: 0.5rem 0; color: #666;">
+                    <strong>Your Proposal:</strong> {{ app.proposal_message|truncatewords:20 }}
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
+                    <a href="{% url 'job_messages' app.service_request.pk %}" 
+                       style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
+                        💬 Contact Customer
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Pending Applications Section -->
+    {% if pending_applications %}
+    <section style="margin-bottom: 3rem;">
+        <h2 style="color: var(--primary, #0f172a); border-bottom: 2px solid #f59e0b; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+            Pending Applications ({{ pending_applications|length }})
+        </h2>
+        
+        <div style="display: grid; gap: 1.5rem;">
+            {% for app in pending_applications %}
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary, #0f172a);">{{ app.service_request.title }}</h3>
+                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
+                            <strong>Customer:</strong> {{ app.service_request.customer.get_full_name|default:app.service_request.customer.username }}
+                        </p>
+                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
+                            <strong>Your Quote:</strong> <span style="color: #059669; font-weight: bold;">৳{{ app.proposed_price }}</span>
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="display: inline-block; background: #fef3c7; color: #92400e; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                            ⏳ Pending
+                        </span>
+                    </div>
+                </div>
+
+                <p style="margin: 0.5rem 0; color: #666;">
+                    <strong>Customer Request:</strong> {{ app.service_request.description|truncatewords:30 }}
+                </p>
+
+                <p style="margin: 0.5rem 0; color: #666;">
+                    <strong>Your Proposal:</strong> {{ app.proposal_message|truncatewords:20 }}
+                </p>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
+                    <a href="{% url 'service_request_detail' app.service_request.pk %}" 
+                       style="padding: 0.75rem 1rem; background: #4f46e5; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
+                        View Request
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Completed Jobs Section -->
+    {% if completed_jobs %}
+    <section style="margin-bottom: 3rem;">
+        <h2 style="color: var(--primary, #0f172a); border-bottom: 2px solid #059669; padding-bottom: 1rem; margin-bottom: 1.5rem;">
+            Completed Jobs ({{ completed_jobs|length }})
+        </h2>
+        
+        <div style="display: grid; gap: 1.5rem;">
+            {% for job in completed_jobs %}
+            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); opacity: 0.9;">
+                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary, #0f172a);">{{ job.title }}</h3>
+                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
+                            <strong>Customer:</strong> {{ job.customer.get_full_name|default:job.customer.username }}
+                        </p>
+                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
+                            <strong>Amount Earned:</strong> <span style="color: #059669; font-weight: bold;">৳{{ job.actual_price|default:job.proposed_price }}</span>
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span style="display: inline-block; background: #d1fae5; color: #065f46; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
+                            ✓ Completed
+                        </span>
+                    </div>
+                </div>
+
+                {% if job.completion_notes %}
+                <p style="margin: 0.5rem 0; color: #666;">
+                    <strong>Notes:</strong> {{ job.completion_notes|truncatewords:30 }}
+                </p>
+                {% endif %}
+
+                <p style="margin: 0.5rem 0; color: #999; font-size: 0.9rem;">
+                    Completed on: {{ job.updated_at|date:"M d, Y" }}
+                </p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Empty State -->
+    {% if not active_jobs and not pending_applications and not accepted_applications and not completed_jobs %}
+    <div style="background: #f3f4f6; border: 2px dashed #d1d5db; border-radius: 8px; padding: 3rem; text-align: center;">
+        <p style="font-size: 1.1rem; color: #666; margin-bottom: 1rem;">No jobs yet</p>
+        <p style="color: #999; margin-bottom: 1.5rem;">Browse open service requests and start applying to get your first job!</p>
+        <a href="{% url 'service_request_list' %}" 
+           style="display: inline-block; padding: 0.75rem 1.5rem; background: #4f46e5; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
+            Browse Open Requests
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+</style>
+{% endblock %}

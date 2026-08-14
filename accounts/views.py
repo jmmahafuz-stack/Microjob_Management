@@ -59,6 +59,9 @@ def _ensure_demo_accounts():
                 'email': f'{username}@example.com',
                 'is_staff': role == 'admin',
                 'is_superuser': role == 'admin',
+                'is_active': True,
+                'worker_status': 'APPROVED' if role == 'worker' else None,
+                'customer_status': 'ACTIVE' if role == 'customer' else None,
             },
         )
         if created or user.role != role:
@@ -66,6 +69,11 @@ def _ensure_demo_accounts():
             user.email = user.email or f'{username}@example.com'
             user.is_staff = role == 'admin'
             user.is_superuser = role == 'admin'
+            user.is_active = True
+            if role == 'worker':
+                user.worker_status = 'APPROVED'
+            elif role == 'customer':
+                user.customer_status = 'ACTIVE'
         user.set_password(password)
         user.save()
 

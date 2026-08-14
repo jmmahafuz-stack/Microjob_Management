@@ -10,10 +10,13 @@
             <a href="{% url 'dashboard_home' %}">Dashboard</a>
             <a href="{% url 'admin:index' %}">Admin</a>
         {% elif user.role == 'worker' %}
-            <a href="{% url 'worker_dashboard' %}">MY Jobs</a>
-            <a href="{% url 'service_request_list' %}">Open Requests</a>
+            <!-- Worker Navigation -->
+            <a href="{% url 'worker_dashboard' %}">Dashboard</a>
+            <a href="{% url 'worker_my_jobs' %}">My Jobs</a>
         {% else %}
-            <a href="{% url 'my_bookings' %}">MY Bookings</a>
+            <!-- Customer Navigation -->
+            <a href="{% url 'my_bookings' %}">My Bookings</a>
+            <a href="{% url 'service_request_list' %}">My Requests</a>
         {% endif %}
 
         <a href="{% url 'profile' %}">Profile</a>
@@ -24,3 +27,84 @@
         <a href="{% url 'register' %}">Register</a>
     {% endif %}
 </nav>
+
+<style>
+    .nav-dropdown {
+        position: relative;
+        display: inline-block;
+    }
+
+    .nav-dropdown-toggle {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .nav-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        background: var(--primary-dark, #0f172a);
+        min-width: 220px;
+        flex-direction: column;
+        gap: 0;
+        padding: 0.75rem 0;
+        border-radius: 6px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+        margin-top: 0.5rem;
+    }
+
+    .nav-dropdown:hover .nav-dropdown-menu {
+        display: flex;
+    }
+
+    .nav-dropdown-menu a {
+        padding: 0.75rem 1.25rem;
+        color: white;
+        text-decoration: none;
+        font-weight: 400;
+        font-size: 0.9rem;
+        border: none;
+        transition: all 0.2s ease;
+        display: block;
+        white-space: nowrap;
+    }
+
+    .nav-dropdown-menu a:hover {
+        background: rgba(255, 255, 255, 0.1);
+        padding-left: 1.5rem;
+        color: #e0e7ff;
+    }
+
+    .nav-dropdown-menu a:first-child {
+        border-radius: 6px 6px 0 0;
+    }
+
+    .nav-dropdown-menu a:last-child {
+        border-radius: 0 0 6px 6px;
+    }
+
+    @media (max-width: 768px) {
+        .nav-dropdown-menu {
+            position: static;
+            display: none;
+            background: rgba(0, 0, 0, 0.2);
+            min-width: auto;
+            padding: 0;
+            margin: 0;
+            box-shadow: none;
+        }
+
+        .nav-dropdown:hover .nav-dropdown-menu {
+            display: flex;
+        }
+
+        .nav-dropdown-menu a {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+    }
+</style>

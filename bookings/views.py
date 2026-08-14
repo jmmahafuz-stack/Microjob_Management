@@ -624,6 +624,53 @@ def cancel_job(request, pk):
 
 @login_required
 @worker_required
+def worker_my_jobs(request):
+    """
+    Show worker's all jobs including:
+    - Pending applications (customer requests they applied to)
+    - Accepted applications (customer requests where they were chosen)
+    - Active jobs (jobs in progress or confirmed)
+    - Completed jobs
+    Includes status and messaging capability
+    """
+    # Get all pending applications by this worker
+    pending_applications = JobApplication.objects.filter(
+        worker=request.user,
+        status='PENDING'
+    ).select_related('service_request', 'service_request__customer').order_by('-created_at')
+    
+    # Get all accepted applications (but not yet jobs)
+    accepted_applications = JobApplication.objects.filter(
+        worker=request.user,
+        status='ACCEPTED'
+    ).select_related('service_request', 'service_request__customer').order_by('-created_at')
+    
+    # Get all active jobs (confirmed and in progress)
+    active_jobs = Job.objects.filter(
+        worker=request.user,
+        status__in=['CONFIRMED', 'IN_PROGRESS']
+    ).select_related('customer', 'service_request').order_by('-created_at')
+    
+    # Get all completed jobs
+    completed_jobs = Job.objects.filter(
+        worker=request.user,
+        status='COMPLETED'
+    ).select_related('customer', 'service_request').order_by('-created_at')
+    
+    context = {
+        'pending_applications': pending_applications,
+        'accepted_applications': accepted_applications,
+        'active_jobs': active_jobs,
+        'completed_jobs': completed_jobs,
+        'total_jobs': len(active_jobs),
+        'total_completed': len(completed_jobs),
+    }
+    
+    return render(request, 'bookings/worker_my_jobs.html', context)
+
+
+@login_required
+@worker_required
 def worker_available_jobs(request):
     """
     Show all jobs assigned to this worker.

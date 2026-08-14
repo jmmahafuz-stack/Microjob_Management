@@ -22,7 +22,10 @@ urlpatterns = [
     path('requests/<int:pk>/', views.service_request_detail, name='service_request_detail'),
     path('requests/<int:service_request_id>/apply/', views.job_application_create, name='job_application_create'),
     path('applications/<int:pk>/review/', views.job_application_review, name='job_application_review'),
+    path('worker-jobs/', views.worker_my_jobs, name='worker_my_jobs'),
+    path('jobs/', views.worker_available_jobs, name='worker_available_jobs'),
     path('jobs/<int:pk>/', views.job_detail, name='job_detail'),
+    path('jobs/<int:pk>/messages/', views.job_messages, name='job_messages'),
     path('jobs/<int:pk>/complete/', views.job_complete, name='job_complete'),
     path('jobs/<int:pk>/cancel/', views.cancel_job, name='cancel_job'),
 ]
