@@ -5,6 +5,7 @@ from django.contrib.auth.forms import (
     PasswordChangeForm
 )
 from services.models import Service
+from workers.models import WorkerProfile
 from .models import CustomUser
 
 
@@ -27,6 +28,7 @@ class RegisterForm(UserCreationForm):
     role = forms.ChoiceField(
         choices=[('customer', 'Customer'), ('worker', 'Worker')],
         initial='customer',
+        required=False,
         label='Register as'
     )
     register_as_worker = forms.BooleanField(required=False, widget=forms.HiddenInput(), label='Register as a worker')
@@ -63,38 +65,39 @@ class RegisterForm(UserCreationForm):
             'password2',
         ]
 
+    def clean_role(self):
+        value = self.cleaned_data.get('role')
+        if value not in {'customer', 'worker', 'admin'}:
+            return 'customer'
+        return value
+
     def save(self, commit=True):
         user = super().save(commit=False)
-        selected_role = self.cleaned_data.get('role') or ('worker' if self.cleaned_data.get('register_as_worker') else 'customer')
-        register_as_worker = selected_role == 'worker'
-        user.role = selected_role
+        selected_role = self.cleaned_data.get('role') or 'customer'
+        user.role = selected_role if selected_role in {'customer', 'worker', 'admin'} else 'customer'
         user.preferred_contact_method = self.cleaned_data.get('preferred_contact_method') or 'Email'
         user.receive_notifications = self.cleaned_data.get('receive_notifications', True)
         user.is_staff = False
         user.is_superuser = False
-        if user.role == 'worker':
-            user.worker_status = 'PENDING'
+        user.worker_status = 'PENDING'
         if commit:
             user.save()
 
-        if register_as_worker:
-            from workers.models import WorkerProfile
-            selected_service = self.cleaned_data.get('worker_service')
-            WorkerProfile.objects.get_or_create(
-                user=user,
-                defaults={
-                    'service': selected_service,
-                    'service_category': (
-                        selected_service.category if selected_service else self.cleaned_data.get('worker_service_category')
-                    ) or 'General',
-                    'skills': self.cleaned_data.get('worker_skills') or 'General services',
-                    'experience': self.cleaned_data.get('worker_experience') or 'New',
-                    'service_area': self.cleaned_data.get('worker_service_area') or 'Local',
-                    'portfolio_link': self.cleaned_data.get('worker_portfolio_link'),
-                    'hourly_rate': self.cleaned_data.get('worker_hourly_rate'),
-                    'bio': self.cleaned_data.get('worker_bio'),
-                }
-            )
+            if user.role == 'worker':
+                profile, _ = WorkerProfile.objects.get_or_create(user=user)
+                service = self.cleaned_data.get('worker_service')
+                profile.service = service
+                profile.service_category = self.cleaned_data.get('worker_service_category') or (service.category if service else '')
+                profile.skills = self.cleaned_data.get('worker_skills') or profile.skills
+                profile.experience_years = int(self.cleaned_data.get('worker_experience') or 0) if self.cleaned_data.get('worker_experience') else 0
+                profile.service_area = self.cleaned_data.get('worker_service_area') or profile.service_area
+                profile.portfolio_link = self.cleaned_data.get('worker_portfolio_link') or profile.portfolio_link
+                profile.hourly_rate = self.cleaned_data.get('worker_hourly_rate') or profile.hourly_rate
+                profile.bio = self.cleaned_data.get('worker_bio') or profile.bio
+                profile.verification_status = 'Pending'
+                profile.training_status = 'Pending'
+                profile.save()
+
         return user
 
 

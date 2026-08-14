@@ -45,7 +45,7 @@
                             <div class="card-body">
                                 <p><strong>Amount:</strong> ৳{{ notification.payment.customer_amount }}</p>
                                 <p><strong>Status:</strong> <span class="badge bg-{{ notification.payment.payment_status|lower }}">{{ notification.payment.get_payment_status_display }}</span></p>
-                                {% if notification.payment.job %}
+                                {% if notification.payment.job and notification.payment.job.id %}
                                     <a href="{% url 'job_detail' notification.payment.job.id %}" class="btn btn-sm btn-primary">View Job</a>
                                 {% endif %}
                             </div>

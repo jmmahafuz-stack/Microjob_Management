@@ -18,6 +18,7 @@ from workers.models import WorkerProfile
 from payments.models import Payment, PayoutRequest
 from bookings.models import Job
 from reviews.models import Review
+from services.models import Service
 
 
 def _get_or_create_worker_profile(user):
@@ -56,8 +57,8 @@ def worker_dashboard(request):
         cancelled=Count('pk', filter=Q(status='CANCELLED')),
     )
     
-    # Recent jobs
-    recent_jobs = Job.objects.filter(worker=worker).order_by('-created_at')[:5]
+    # Recent jobs / Active jobs
+    active_jobs = Job.objects.filter(worker=worker).exclude(status='CANCELLED').order_by('-created_at')[:5]
     
     # Recent payments
     recent_payments = Payment.objects.filter(
@@ -78,13 +79,41 @@ def worker_dashboard(request):
         amount=Sum('requested_amount')
     )
     
+    # Get worker's offered services
+    available_services = Service.objects.filter(is_available=True)
+    if profile.service:
+        available_services = available_services.filter(pk=profile.service.pk)
+    elif profile.service_category:
+        available_services = available_services.filter(category__icontains=profile.service_category)
+    elif profile.categories.exists():
+        available_services = available_services.filter(category__in=[c.name for c in profile.categories.all()])
+    else:
+        available_services = available_services.none()
+    
+    # Get reviews
+    reviews = Review.objects.filter(worker=worker).order_by('-created_at')[:5]
+    
+    # Calculate earnings
+    pending_earnings = profile.pending_earnings
+    available_earnings = profile.available_earnings
+    withdrawn_earnings = profile.withdrawn_earnings
+    total_earnings = pending_earnings + available_earnings + withdrawn_earnings
+    
     context = {
         'profile': profile,
+        'worker_profile': profile,  # Also pass as worker_profile for template compatibility
         'job_stats': job_stats,
-        'recent_jobs': recent_jobs,
+        'active_jobs': active_jobs,
+        'recent_jobs': active_jobs,
         'recent_payments': recent_payments,
         'recent_payouts': recent_payouts,
         'pending_payouts': pending_payouts,
+        'available_services': available_services,
+        'reviews': reviews,
+        'pending_earnings': pending_earnings,
+        'available_earnings': available_earnings,
+        'withdrawn_earnings': withdrawn_earnings,
+        'total_earnings': total_earnings,
     }
     
     return render(request, 'workers/worker_dashboard.html', context)
@@ -286,6 +315,7 @@ def worker_profile_edit(request):
     
     worker = request.user
     profile = _get_or_create_worker_profile(worker)
+    services = Service.objects.filter(is_available=True)
     
     if request.method == 'POST':
         # Update basic info
@@ -300,6 +330,20 @@ def worker_profile_edit(request):
         profile.service_area = request.POST.get('service_area', profile.service_area)
         profile.languages = request.POST.get('languages', profile.languages)
         profile.hourly_rate = request.POST.get('hourly_rate', profile.hourly_rate)
+        
+        # Update selected service
+        service_id = request.POST.get('service')
+        if service_id:
+            try:
+                profile.service = Service.objects.get(pk=service_id)
+                profile.service_category = profile.service.category
+            except Service.DoesNotExist:
+                profile.service = None
+                profile.service_category = request.POST.get('service_category', '')
+        else:
+            profile.service = None
+            profile.service_category = request.POST.get('service_category', '')
+        
         profile.save()
         
         messages.success(request, 'Profile updated successfully.')
@@ -308,6 +352,7 @@ def worker_profile_edit(request):
     context = {
         'worker': worker,
         'profile': profile,
+        'services': services,
     }
     
     return render(request, 'workers/profile_edit.html', context)

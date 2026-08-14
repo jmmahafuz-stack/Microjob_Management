@@ -50,7 +50,8 @@ def _get_related_workers(service):
 @login_required
 def booking_list(request):
     if request.user.role == 'admin':
-        bookings = Booking.objects.all().order_by('-created_at')
+        messages.warning(request, 'Admin access is limited to reports and user management. Job workflow pages are not available to admins.')
+        return redirect('dashboard_home')
     elif request.user.role == 'worker':
         bookings = Booking.objects.filter(worker=request.user).order_by('-created_at')
     else:
@@ -325,19 +326,18 @@ def update_status(request, pk):
 def invoice(request, pk):
     booking = get_object_or_404(Booking, pk=pk)
 
-    if request.user.role == 'customer' and booking.customer != request.user:
-        messages.error(request, 'You can only view your own invoice.')
-        return redirect('booking_list')
+    if request.user.role == 'admin':
+        messages.warning(request, 'Admins cannot view customer or worker invoice pages.')
+        return redirect('dashboard_home')
 
-    if request.user.role == 'worker' and booking.worker != request.user:
-        messages.error(request, 'You can only view invoices for your assigned bookings.')
-        return redirect('booking_list')
+    if request.user.role == 'customer' and booking.customer == request.user:
+        return render(request, 'bookings/invoice.html', {'booking': booking})
 
-    return render(
-        request,
-        'bookings/invoice.html',
-        {'booking': booking}
-    )
+    if request.user.role == 'worker' and booking.worker == request.user:
+        return render(request, 'bookings/invoice.html', {'booking': booking})
+
+    messages.error(request, 'You can only view invoices for your own booking or your assigned booking.')
+    return redirect('booking_list')
 
 
 # ===== PHASE 2 VIEWS: ServiceRequest, JobApplication, Job Workflow =====
@@ -378,20 +378,22 @@ def service_request_create(request, service_id=None):
 @login_required
 def service_request_list(request):
     """List service requests based on user role"""
+    if request.user.role == 'admin':
+        messages.warning(request, 'Admins can view reports and manage users, but they cannot access the customer/worker request workflow.')
+        return redirect('dashboard_home')
     if request.user.role == 'customer':
         service_requests = ServiceRequest.objects.filter(customer=request.user)
     elif request.user.role == 'worker':
-        # Workers can see all open/reviewing requests
         service_requests = ServiceRequest.objects.filter(
             status__in=['OPEN', 'REVIEWING']
         )
-    else:  # admin
-        service_requests = ServiceRequest.objects.all()
-    
+    else:
+        service_requests = ServiceRequest.objects.none()
+
     service_requests = service_requests.annotate(
         application_count=Count('job_applications')
     ).order_by('-created_at')
-    
+
     context = {'service_requests': service_requests}
     return render(request, 'bookings/service_request_list.html', context)
 
@@ -479,33 +481,37 @@ def job_application_review(request, pk):
         
         if action == 'ACCEPTED':
             # Create a Job from this application
-            job = Job.objects.create(
-                service_request=application.service_request,
-                job_application=application,
-                customer=request.user,
-                worker=application.worker,
-                title=application.service_request.title,
-                description=application.service_request.description,
-                proposed_price=application.proposed_price,
-                estimated_duration=application.estimated_duration,
-                scheduled_date=application.can_start_date,
-                location=application.service_request.location,
-                address=application.service_request.address,
-            )
-            application.status = 'ACCEPTED'
-            application.save()
-            
-            # Update service request status
-            application.service_request.status = 'ASSIGNED'
-            application.service_request.save()
-            
-            # Reject other applications
-            JobApplication.objects.filter(
-                service_request=application.service_request
-            ).exclude(pk=application.pk).update(status='REJECTED')
-            
-            messages.success(request, 'Application accepted! Job created successfully!')
-            return redirect('job_detail', pk=job.pk)
+            try:
+                job = Job.objects.create(
+                    service_request=application.service_request,
+                    job_application=application,
+                    customer=request.user,
+                    worker=application.worker,
+                    title=application.service_request.title,
+                    description=application.service_request.description,
+                    proposed_price=application.proposed_price,
+                    estimated_duration=application.estimated_duration,
+                    scheduled_date=application.can_start_date,
+                    location=application.service_request.location,
+                    address=application.service_request.address,
+                )
+                application.status = 'ACCEPTED'
+                application.save()
+                
+                # Update service request status
+                application.service_request.status = 'ASSIGNED'
+                application.service_request.save()
+                
+                # Reject other applications
+                JobApplication.objects.filter(
+                    service_request=application.service_request
+                ).exclude(pk=application.pk).update(status='REJECTED')
+                
+                messages.success(request, 'Application accepted! Job created successfully!')
+                return redirect('job_detail', pk=job.pk)
+            except Exception as e:
+                messages.error(request, f'Error creating job: {str(e)}')
+                return redirect('service_request_detail', pk=application.service_request.pk)
             
         elif action == 'REJECTED':
             application.status = 'REJECTED'
@@ -520,7 +526,13 @@ def job_application_review(request, pk):
 @login_required
 def job_detail(request, pk):
     """View job details"""
-    job = get_object_or_404(Job, pk=pk)
+    from django.core.exceptions import ObjectDoesNotExist
+    
+    try:
+        job = Job.objects.get(pk=pk)
+    except Job.DoesNotExist:
+        messages.error(request, f'Job #{pk} not found. It may have been deleted or the link is invalid.')
+        return redirect('my_jobs')
     
     # Permission check
     if request.user != job.customer and request.user != job.worker:
@@ -608,3 +620,126 @@ def cancel_job(request, pk):
     
     context = {'job': job}
     return render(request, 'bookings/cancel_job.html', context)
+
+
+@login_required
+@worker_required
+def worker_available_jobs(request):
+    """
+    Show all jobs assigned to this worker.
+    Worker can only see jobs where they are the assigned worker.
+    """
+    if request.user.worker_status != 'APPROVED':
+        messages.error(request, 'You must be approved by admin before viewing available jobs.')
+        return redirect('home')
+    
+    # Get all jobs assigned to this worker
+    available_jobs = Job.objects.filter(
+        worker=request.user
+    ).select_related(
+        'customer', 'service_request'
+    ).order_by('-created_at')
+    
+    context = {
+        'jobs': available_jobs,
+    }
+    return render(request, 'bookings/worker_available_jobs.html', context)
+
+
+@login_required
+def job_messages(request, pk):
+    """
+    View messages between worker and customer for a specific job.
+    Both worker and customer can access this.
+    """
+    job = get_object_or_404(Job, pk=pk)
+    
+    # Permission check
+    if request.user != job.customer and request.user != job.worker:
+        if request.user.role != 'admin':
+            messages.error(request, 'You do not have permission to view job messages.')
+            return redirect('home')
+    
+    # Get or create a BookingMessage thread (using job as reference)
+    # For now, we'll use BookingMessage with a booking-like relationship
+    job_messages = BookingMessage.objects.filter(
+        Q(sender=job.worker) | Q(sender=job.customer)
+    ).filter(
+        booking__isnull=True
+    ).order_by('created_at')
+    
+    # Add a way to track job messages by storing them with booking for simplicity
+    # Or create a new message for each job interaction
+    
+    if request.method == 'POST':
+        message_text = request.POST.get('message', '').strip()
+        
+        if message_text:
+            # Create a new message
+            # We'll store it as a booking message but associate with the job
+            # In production, you'd want a JobMessage model
+            booking_message = BookingMessage.objects.create(
+                booking=None,  # Jobs don't use Booking model
+                sender=request.user,
+                message=message_text,
+            )
+            
+            # Create a notification for the other party
+            recipient = job.customer if request.user == job.worker else job.worker
+            Notification.create_notification(
+                user=recipient,
+                title=f"New message in job: {job.title}",
+                message=f"{request.user.username}: {message_text[:50]}...",
+                notification_type='JOB_MESSAGE',
+                job=job,
+                related_user=request.user,
+            )
+            
+            messages.success(request, 'Message sent!')
+            return redirect('job_messages', pk=job.pk)
+    
+    context = {
+        'job': job,
+        'messages': job_messages,
+    }
+    return render(request, 'bookings/job_messages.html', context)
+
+
+@login_required
+@customer_required
+def initiate_payment(request, job_id):
+    """
+    Customer initiates payment for a completed job.
+    This creates a Payment record and shows payment options.
+    """
+    job = get_object_or_404(Job, pk=job_id)
+    
+    # Permission check
+    if job.customer != request.user:
+        messages.error(request, 'You can only pay for your own jobs.')
+        return redirect('my_jobs')
+    
+    # Check job is completed
+    if job.status != 'COMPLETED':
+        messages.error(request, 'You can only pay for completed jobs.')
+        return redirect('job_detail', pk=job.pk)
+    
+    # Check if payment already exists
+    existing_payment = Payment.objects.filter(job=job).first()
+    if existing_payment:
+        if existing_payment.payment_status == 'Verified':
+            messages.info(request, 'Payment for this job has already been completed.')
+            return redirect('job_detail', pk=job.pk)
+        else:
+            return redirect('make_payment', job_id=job.pk)
+    
+    # Create payment record
+    from payments.models import Payment
+    payment = Payment.objects.create(
+        job=job,
+        customer_amount=job.proposed_price,
+        payment_method=request.POST.get('payment_method', 'BKash'),
+    )
+    
+    # Redirect to payment completion
+    return redirect('make_payment', job_id=job.pk)

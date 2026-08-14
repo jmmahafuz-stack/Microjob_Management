@@ -456,10 +456,157 @@ button:active, input[type="submit"]:active, .btn:active {
    DASHBOARD
    =================================== */
 
+.dashboard-shell {
+    max-width: 1280px;
+    margin: 2rem auto;
+    padding: 2rem 1.25rem 3rem;
+}
+
+.admin-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 2rem 2rem 1.5rem;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 35%, #2d6ea8 100%);
+    color: white;
+    border-radius: 22px;
+    box-shadow: var(--shadow-xl);
+}
+
+.admin-header h1 {
+    margin: 0;
+    color: white;
+    font-size: clamp(2rem, 4vw, 2.7rem);
+}
+
+.eyebrow {
+    margin: 0 0 0.5rem;
+    color: #dbeafe;
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.admin-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 1.25rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: white;
+    color: var(--primary-dark);
+}
+
+.btn-primary:hover {
+    background: #f8fafc;
+    color: var(--primary-dark);
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: white;
+}
+
+.admin-intro {
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.admin-intro p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 1rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-left: 5px solid transparent;
+    border-radius: 18px;
+    padding: 1.2rem 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-card.accent-blue { border-left-color: #2563eb; }
+.stat-card.accent-green { border-left-color: #10b981; }
+.stat-card.accent-orange { border-left-color: #f59e0b; }
+.stat-card.accent-purple { border-left-color: #8b5cf6; }
+.stat-card.accent-red { border-left-color: #ef4444; }
+.stat-card.accent-cyan { border-left-color: #06b6d4; }
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #eff6ff;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+.stat-card:nth-child(2) .stat-icon { background: #ecfdf5; color: var(--success-color); }
+.stat-card:nth-child(3) .stat-icon { background: #fff7ed; color: var(--warning-color); }
+.stat-card:nth-child(4) .stat-icon { background: #f5f3ff; color: #7c3aed; }
+.stat-card:nth-child(5) .stat-icon { background: #fef2f2; color: var(--danger-color); }
+.stat-card:nth-child(6) .stat-icon { background: #ecfeff; color: #0891b2; }
+
+.stat-card span {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+}
+
+.stat-card strong {
+    display: block;
+    font-size: 1.7rem;
+    color: var(--text-dark);
+    line-height: 1.2;
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.5rem;
+    gap: 1.2rem;
     margin: 2rem 0;
 }
 
@@ -480,32 +627,127 @@ button:active, input[type="submit"]:active, .btn:active {
 
 .dashboard-card h3 {
     color: var(--text-muted);
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 0.92rem;
+    font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.06em;
     margin-bottom: 1rem;
 }
 
 .dashboard-number {
-    font-size: 2.5rem;
+    font-size: 2.3rem;
     font-weight: 700;
     color: var(--primary-color);
     margin-bottom: 1rem;
+    line-height: 1;
 }
 
 .dashboard-card a {
     display: inline-block;
-    padding: 0.75rem 1.5rem;
+    padding: 0.7rem 1.25rem;
     background: var(--primary-color);
     color: white;
     border-radius: var(--radius-md);
     text-decoration: none;
     transition: all 0.2s ease;
+    font-weight: 600;
 }
 
 .dashboard-card a:hover {
     background: var(--primary-dark);
+}
+
+.admin-panel-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.panel-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+}
+
+.panel-header span {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+}
+
+.metric-box {
+    background: linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
+    border: 1px solid #dfeaf9;
+    border-radius: 14px;
+    padding: 1rem;
+}
+
+.metric-box h4 {
+    margin-bottom: 0.7rem;
+    color: var(--primary-dark);
+}
+
+.metric-box p {
+    margin: 0.2rem 0;
+    color: var(--text-muted);
+}
+
+.quick-actions .dashboard-links {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.dashboard-links a {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.dashboard-links a i {
+    color: var(--primary-color);
+    width: 18px;
+}
+
+.dashboard-links a:hover {
+    background: #eef6ff;
+    color: var(--primary-color);
+}
+
+.dashboard-shell-card {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
 }
 
 /* ===================================

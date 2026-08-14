@@ -6,6 +6,26 @@ User = get_user_model()
 
 
 class AdminDashboardTests(TestCase):
+    def test_admin_is_redirected_from_workflow_management_pages(self):
+        admin_user = User.objects.create_user(
+            username='adminworkflow',
+            email='adminworkflow@example.com',
+            password='Admin12345!',
+            role='admin'
+        )
+        admin_user.is_staff = True
+        admin_user.save()
+
+        self.client.login(username='adminworkflow', password='Admin12345!')
+
+        response = self.client.get(reverse('booking_list'))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('dashboard_home'))
+
+        response = self.client.get(reverse('service_request_list'))
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('dashboard_home'))
+
     def test_admin_dashboard_shows_key_management_summary(self):
         admin_user = User.objects.create_user(
             username='adminuser',

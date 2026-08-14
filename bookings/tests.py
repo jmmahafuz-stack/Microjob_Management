@@ -16,6 +16,47 @@ class BookingCreationTests(TestCase):
             role='customer',
         )
 
+    def test_admin_cannot_access_customer_invoice(self):
+        service = Service.objects.create(
+            name='Invoice Service',
+            category='Electrical',
+            description='A service with invoice access testing.',
+            price='150.00',
+            image='service_images/test.png',
+            duration='2 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            username='workerinvoice',
+            email='workerinvoice@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        booking = Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            worker=worker,
+            booking_date='2026-08-11',
+            booking_time='11:00:00',
+            address='Invoice test address',
+            problem_description='Need help',
+            status='Completed',
+        )
+        admin = CustomUser.objects.create_user(
+            username='admininvoice',
+            email='admininvoice@example.com',
+            password='testpass123',
+            role='admin',
+        )
+
+        self.client.force_login(admin)
+        response = self.client.get(reverse('invoice', args=[booking.pk]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('dashboard_home'))
+
     def test_preselected_service_can_be_used_to_create_booking(self):
         service = Service.objects.create(
             name='Test Service',
@@ -65,8 +106,9 @@ class BookingCreationTests(TestCase):
         WorkerProfile.objects.create(
             user=worker,
             service=service,
+            service_category='Electrical',
             skills='Electrical repairs',
-            experience='5 years',
+            experience_years=5,
             verification_status='Approved',
         )
 
@@ -104,7 +146,7 @@ class BookingCreationTests(TestCase):
             user=worker,
             service_category='Plumbing',
             skills='Plumbing fixes',
-            experience='4 years',
+            experience_years=4,
             verification_status='Approved',
         )
 
@@ -135,8 +177,9 @@ class BookingCreationTests(TestCase):
         WorkerProfile.objects.create(
             user=worker,
             service=service,
+            service_category='Cleaning',
             skills='Cleaning maintenance',
-            experience='3 years',
+            experience_years=3,
             verification_status='Approved',
         )
 
@@ -168,8 +211,9 @@ class BookingCreationTests(TestCase):
         WorkerProfile.objects.create(
             user=worker,
             service=service,
+            service_category='Laundry',
             skills='Laundry care',
-            experience='2 years',
+            experience_years=2,
             verification_status='Approved',
         )
 

@@ -72,19 +72,24 @@ def worker_dashboard(request):
     worker_profile, _ = WorkerProfile.objects.get_or_create(user=request.user)
     reviews = Review.objects.filter(worker=request.user)
     
-    # Get Job-based earnings from Payment model
     from payments.models import Payment
     from bookings.models import Job
     
     active_jobs = Job.objects.filter(worker=request.user).exclude(status='CANCELLED').order_by('-created_at')[:5]
-    
-    # Calculate earnings from new payment system
     pending_earnings = worker_profile.pending_earnings
     available_earnings = worker_profile.available_earnings
     withdrawn_earnings = worker_profile.withdrawn_earnings
     total_earnings = (pending_earnings + available_earnings + withdrawn_earnings)
-    
-    available_services = Service.objects.filter(is_available=True)
+
+    relevant_services = Service.objects.filter(is_available=True)
+    if worker_profile.service:
+        relevant_services = relevant_services.filter(pk=worker_profile.service.pk)
+    elif worker_profile.service_category:
+        relevant_services = relevant_services.filter(category__icontains=worker_profile.service_category)
+    elif worker_profile.categories.exists():
+        relevant_services = relevant_services.filter(category__in=[c.name for c in worker_profile.categories.all()])
+    else:
+        relevant_services = relevant_services.none()
 
     report_daily = _get_worker_earnings_data(request.user, 'daily')
     report_monthly = _get_worker_earnings_data(request.user, 'monthly')
@@ -105,7 +110,7 @@ def worker_dashboard(request):
             'pending_earnings': pending_earnings,
             'available_earnings': available_earnings,
             'withdrawn_earnings': withdrawn_earnings,
-            'available_services': available_services,
+            'available_services': relevant_services,
             'active_jobs': active_jobs,
             'report_daily': report_daily,
             'report_monthly': report_monthly,

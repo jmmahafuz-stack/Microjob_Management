@@ -10,6 +10,12 @@ class CustomUser(AbstractUser):
         ('worker', 'Worker'),
         ('admin', 'Admin'),
     )
+
+    def __init__(self, *args, **kwargs):
+        legacy_verified = kwargs.pop('is_verified_worker', None)
+        if legacy_verified is not None:
+            kwargs['worker_status'] = 'APPROVED' if legacy_verified else 'PENDING'
+        super().__init__(*args, **kwargs)
     
     WORKER_STATUS_CHOICES = [
         ('PENDING', 'Pending Approval'),
@@ -78,10 +84,19 @@ class CustomUser(AbstractUser):
         return f"{self.get_full_name() or self.username} ({dict(self.ROLE_CHOICES).get(self.role, self.role)})"
     
     @property
+    def is_verified_worker(self):
+        """Backward-compatible alias for the worker approval status."""
+        return self.role == 'worker' and self.worker_status == 'APPROVED'
+
+    @is_verified_worker.setter
+    def is_verified_worker(self, value):
+        self.worker_status = 'APPROVED' if value else 'PENDING'
+
+    @property
     def is_worker_approved(self):
         """Check if worker is approved."""
-        return self.role == 'worker' and self.worker_status == 'APPROVED'
-    
+        return self.is_verified_worker
+
     @property
     def is_customer_active(self):
         """Check if customer is active."""

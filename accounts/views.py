@@ -94,7 +94,8 @@ def login_view(request):
 
         if user is not None:
             if user.role == 'worker' and user.worker_status != 'APPROVED':
-                messages.warning(request, 'Your worker account is pending admin verification. You can use customer features now.')
+                messages.warning(request, 'Your worker account is pending verification. You can use customer features now.')
+                return render(request, 'accounts/login.html', {'form': form})
 
             if user.role == 'admin':
                 user.is_staff = True
@@ -109,10 +110,7 @@ def login_view(request):
             messages.success(request, f'Welcome {user.first_name or user.username}!')
 
             if user.role == 'worker':
-                if user.worker_status == 'APPROVED':
-                    return redirect('worker_dashboard')
-                messages.warning(request, 'Your worker account is pending admin approval. You can still browse as a customer.')
-                return redirect('home')
+                return redirect('worker_dashboard')
             if user.role == 'admin':
                 return redirect('dashboard_home')
             return redirect('home')
