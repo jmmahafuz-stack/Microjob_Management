@@ -38,6 +38,9 @@ def worker_required(view_func):
         if getattr(request.user, 'is_blocked', False):
             messages.error(request, 'Your worker account is blocked. Please contact support.')
             return redirect('home')
+        if getattr(request.user, 'worker_status', None) != 'APPROVED':
+            messages.error(request, 'Your worker account is waiting for admin approval before you can take services.')
+            return redirect('home')
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -60,10 +63,19 @@ def worker_dashboard(request):
     # Recent jobs / Active jobs
     active_jobs = Job.objects.filter(worker=worker).exclude(status='CANCELLED').order_by('-created_at')[:5]
     
-    # Recent payments
+    # Recent payments from real customer confirmations (show the service and actual customer-paid amount)
     recent_payments = Payment.objects.filter(
-        job__worker=worker
-    ).select_related('job').order_by('-payment_date')[:5]
+        job__worker=worker,
+        payment_status='Verified'
+    ).select_related('job', 'job__customer', 'job__service_request').order_by('-payment_date')[:5]
+
+    for payment in recent_payments:
+        job = payment.job
+        service_request = getattr(job, 'service_request', None)
+        service = getattr(service_request, 'service', None)
+        payment.service_name = getattr(service, 'name', None) or getattr(job, 'title', None) or (service_request.title if service_request else 'Service')
+        payment.customer_name = getattr(job.customer, 'get_full_name', lambda: None)() or job.customer.username
+        payment.paid_amount = payment.customer_amount
     
     # Recent payouts
     recent_payouts = PayoutRequest.objects.filter(

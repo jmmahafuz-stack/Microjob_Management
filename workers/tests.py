@@ -443,6 +443,95 @@ class WorkerRegistrationTests(TestCase):
         self.assertEqual(refreshed['total_earned'], Decimal('1080.00'))
         self.assertEqual(profile.available_earnings, Decimal('1080.00'))
 
+    def test_worker_dashboard_shows_recent_verified_payment_with_service_name_and_amount(self):
+        customer = CustomUser.objects.create_user(
+            username='dashboardpaycustomer',
+            email='dashboardpaycustomer@example.com',
+            password='StrongPassword123',
+            role='customer',
+            customer_status='ACTIVE',
+        )
+        worker = CustomUser.objects.create_user(
+            username='dashboardpayworker',
+            email='dashboardpayworker@example.com',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        WorkerProfile.objects.create(
+            user=worker,
+            verification_status='Approved',
+            training_status='Completed',
+            bkash_number='01700000002',
+        )
+
+        service = Service.objects.create(
+            name='Dashboard Payment Service',
+            category='Repair',
+            description='Service with payment summary',
+            price='1500.00',
+            image='service_images/default.jpg',
+            duration='2 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+
+        request_obj = ServiceRequest.objects.create(
+            customer=customer,
+            service=service,
+            title='Dashboard payment request',
+            description='Need repair',
+            location='Dhaka',
+            address='Road 4',
+            preferred_date=date.today() + timedelta(days=2),
+            status='OPEN',
+            budget_min=Decimal('1000.00'),
+            budget_max=Decimal('2000.00'),
+        )
+
+        application = JobApplication.objects.create(
+            service_request=request_obj,
+            worker=worker,
+            proposed_price=Decimal('1200.00'),
+            estimated_duration=timedelta(hours=2),
+            proposal_message='I can do it.',
+            can_start_date=date.today() + timedelta(days=1),
+        )
+        application.status = 'ACCEPTED'
+        application.save()
+
+        job = Job.objects.create(
+            service_request=request_obj,
+            job_application=application,
+            customer=customer,
+            worker=worker,
+            title=request_obj.title,
+            description=request_obj.description,
+            proposed_price=application.proposed_price,
+            estimated_duration=timedelta(hours=2),
+            scheduled_date=request_obj.preferred_date,
+            location=request_obj.location,
+            address=request_obj.address,
+            status='COMPLETED',
+        )
+
+        self.client.login(username='dashboardpaycustomer', password='StrongPassword123')
+        self.client.post(
+            reverse('make_payment', kwargs={'job_id': job.pk}),
+            {
+                'payment_method': 'BKash',
+                'transaction_id': 'TX-DASHBOARD-1',
+                'confirm_payment': 'on',
+            },
+        )
+
+        self.client.login(username='dashboardpayworker', password='StrongPassword123')
+        response = self.client.get(reverse('worker_dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Dashboard Payment Service')
+        self.assertContains(response, '৳')
+
     def test_customer_cannot_pay_before_worker_marks_job_complete(self):
         customer = CustomUser.objects.create_user(
             username='pendingpaycustomer',

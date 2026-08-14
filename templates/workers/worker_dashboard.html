@@ -79,6 +79,42 @@
     {% endif %}
 </div>
 
+<div class="card">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Payment Summary</p>
+            <h2>Recent Customer Payments</h2>
+        </div>
+    </div>
+
+    {% if recent_payments %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in recent_payments %}
+                        <tr>
+                            <td>{{ payment.service_name|default:payment.job.title }}</td>
+                            <td>{{ payment.customer_name|default:payment.job.customer.username }}</td>
+                            <td>৳{{ payment.paid_amount|floatformat:2 }}</td>
+                            <td><span class="badge badge-success">{{ payment.payment_status }}</span></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="empty-state">No customer payments confirmed yet. Once a customer confirms payment for a completed job, it will appear here.</p>
+    {% endif %}
+</div>
+
 <!-- Earnings Period Summary -->
 <div class="card">
     <h3>Earnings by Period</h3>
