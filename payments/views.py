@@ -14,12 +14,12 @@ from .models import Payment, PayoutRequest
 def make_payment(request, job_id):
     """Customer payment for a completed job.
 
-    Flow:
+    Required flow:
     1. Job must be completed.
     2. Customer pays the final job price.
-    3. System calculates platform commission.
-    4. Worker earnings are calculated automatically.
-    5. Payment remains pending until verified by admin.
+    3. Payment is saved as a unique record for that job.
+    4. Platform commission is calculated automatically.
+    5. Worker earnings are calculated automatically from the real payment data.
     """
 
     job = get_object_or_404(Job, pk=job_id)
@@ -28,56 +28,53 @@ def make_payment(request, job_id):
         messages.error(request, 'You can only pay for your own jobs.')
         return redirect('booking_list')
 
-    if job.status != 'COMPLETED':
+    is_job_completed = str(job.status).upper() == 'COMPLETED'
+    if not is_job_completed:
         messages.error(
             request,
-            'Payment is only allowed after the job is completed.'
+            'Payment is only allowed after the worker marks the job as completed.'
         )
         return redirect('job_detail', pk=job.pk)
 
     payment, created = Payment.objects.get_or_create(
         job=job,
         defaults={
-            'customer_amount': job.final_price,
+            'customer_amount': Decimal(str(job.final_price)),
             'payment_status': 'Pending',
             'worker_payout_status': 'Pending',
+            'payment_method': 'BKash',
         }
     )
 
-    if created or not payment.platform_commission:
+    if payment.payment_status == 'Verified':
+        messages.info(request, 'This payment has already been saved and verified for this job.')
+        return redirect('payment_history')
+
+    if created or payment.customer_amount == 0 or payment.platform_commission == 0:
         payment.customer_amount = Decimal(str(job.final_price))
         payment.calculate_commission()
         payment.save()
 
     if request.method == 'POST':
-        form = CustomerPaymentForm(
-            request.POST,
-            request.FILES,
-            instance=payment
-        )
+        form = CustomerPaymentForm(request.POST, request.FILES, instance=payment)
 
         if form.is_valid():
             payment = form.save(commit=False)
             payment.job = job
             payment.customer_amount = Decimal(str(job.final_price))
             payment.payment_method = form.cleaned_data.get('payment_method')
-            payment.payment_status = 'Verified'
 
             if not payment.transaction_id and payment.receipt:
-                payment.transaction_id = f'{payment.payment_method}-{job.pk}-{job.completed_at if hasattr(job, "completed_at") else job.pk}'
+                payment.transaction_id = f'{payment.payment_method}-{job.pk}-{job.pk}'
             elif not payment.transaction_id:
                 payment.transaction_id = f'{payment.payment_method}-{job.pk}-{job.id}'
 
             payment.calculate_commission()
+            payment.payment_status = 'Verified'
             payment.worker_payout_status = 'Available'
             payment.save()
 
-            if job.worker:
-                worker_profile = job.worker.worker_profile
-                worker_profile.pending_earnings += payment.worker_amount
-                worker_profile.total_earnings += payment.worker_amount
-                worker_profile.save(update_fields=['pending_earnings', 'total_earnings'])
-                worker_profile.confirm_pending_earnings(payment.worker_amount)
+            payment.verify_payment()
 
             Notification.create_notification(
                 user=request.user,
@@ -88,15 +85,16 @@ def make_payment(request, job_id):
                 job=job,
             )
 
-            Notification.create_notification(
-                user=job.worker,
-                title=f"Payment Received for {job.title}",
-                message=f"Customer sent ৳{payment.worker_amount} via {payment.payment_method}. It is now added to your earnings.",
-                notification_type='PAYMENT_VERIFIED',
-                payment=payment,
-                job=job,
-                related_user=request.user,
-            )
+            if job.worker:
+                Notification.create_notification(
+                    user=job.worker,
+                    title=f"Payment Received for {job.title}",
+                    message=f"Customer sent ৳{payment.worker_amount} via {payment.payment_method}. It is now added to your earnings.",
+                    notification_type='PAYMENT_VERIFIED',
+                    payment=payment,
+                    job=job,
+                    related_user=request.user,
+                )
 
             messages.success(
                 request,

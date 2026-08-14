@@ -457,9 +457,18 @@ def job_application_create(request, service_request_id):
         service_request=service_request,
         worker=request.user
     ).first()
-    
+
     if existing_application:
-        messages.warning(request, 'You have already applied for this request.')
+        if existing_application.status == 'ACCEPTED':
+            messages.info(request, 'Your application for this request has already been accepted. Please continue from My Jobs.')
+            return redirect('my_jobs')
+        if existing_application.status == 'PENDING':
+            messages.info(request, 'You already submitted an application for this request. It is waiting for customer review.')
+            return redirect('service_request_detail', pk=service_request.pk)
+        if existing_application.status == 'REJECTED':
+            messages.info(request, 'Your previous application for this request was rejected. Please apply only to open requests.')
+            return redirect('service_request_detail', pk=service_request.pk)
+        messages.info(request, 'You already have an application for this request.')
         return redirect('service_request_detail', pk=service_request.pk)
     
     if request.method == 'POST':

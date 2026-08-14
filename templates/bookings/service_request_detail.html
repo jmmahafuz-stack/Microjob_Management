@@ -91,7 +91,25 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    {% if request.user.role == 'worker' and service_request.status == 'OPEN' %}
+                    {% if request.user.role == 'worker' %}
+                        {% for app in applications %}
+                            {% if app.worker == request.user %}
+                                <div class="alert alert-info mb-3">
+                                    {% if app.status == 'PENDING' %}
+                                        Your application is pending customer review.
+                                    {% elif app.status == 'ACCEPTED' %}
+                                        Your application was accepted. Continue from My Jobs.
+                                    {% elif app.status == 'REJECTED' %}
+                                        Your application was rejected for this request.
+                                    {% else %}
+                                        You already applied for this request.
+                                    {% endif %}
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if request.user.role == 'worker' and service_request.status == 'OPEN' and not applications|length or request.user.role == 'worker' and service_request.status == 'OPEN' and not applications %}
                         <a href="{% url 'job_application_create' service_request.id %}" class="btn btn-primary btn-block w-100 mb-3">
                             <i class="fas fa-paper-plane"></i> Apply Now
                         </a>

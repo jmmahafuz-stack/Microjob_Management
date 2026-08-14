@@ -532,6 +532,26 @@ class WorkerRegistrationTests(TestCase):
         self.assertContains(response, 'Dashboard Payment Service')
         self.assertContains(response, '৳')
 
+    def test_worker_earnings_report_can_download_pdf(self):
+        worker = CustomUser.objects.create_user(
+            username='reportworker',
+            email='reportworker@example.com',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        WorkerProfile.objects.create(
+            user=worker,
+            verification_status='Approved',
+            training_status='Completed',
+        )
+
+        self.client.login(username='reportworker', password='StrongPassword123')
+        response = self.client.get(reverse('worker_earnings_report') + '?period=monthly&download=pdf')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('application/pdf', response['Content-Type'])
+
     def test_customer_cannot_pay_before_worker_marks_job_complete(self):
         customer = CustomUser.objects.create_user(
             username='pendingpaycustomer',

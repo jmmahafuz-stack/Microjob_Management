@@ -7,9 +7,20 @@
     <p><strong>From:</strong> {{ start_date }}</p>
     <p><strong>Total Earnings:</strong> ৳{{ total_earnings|default:'0.00' }}</p>
 
-    <div style="margin: 20px 0;">
-        <a href="{% url 'worker_earnings_report' %}?period={{ period }}&pdf=1" class="btn btn-primary">Download PDF</a>
-        <a href="{% url 'worker_dashboard' %}" class="btn btn-outline-primary">Back to Dashboard</a>
+    <div style="margin: 20px 0; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+        <a href="{% url 'worker_earnings_report' %}?period={{ period }}&download=pdf"
+           style="background: linear-gradient(135deg, #7c3aed, #2563eb); color: white; border: none; border-radius: 12px; padding: 12px 20px; font-weight: 700; text-decoration: none; box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25); display: inline-block;">
+            Download PDF
+        </a>
+        <a href="{% url 'worker_earnings_report' %}?period={{ period }}&download=excel"
+           style="background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; border: none; border-radius: 12px; padding: 12px 18px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 16px rgba(20, 184, 166, 0.22); display: inline-block;">
+            Excel
+        </a>
+        <a href="{% url 'worker_earnings_report' %}?period={{ period }}&download=csv"
+           style="background: linear-gradient(135deg, #334155, #475569); color: white; border: none; border-radius: 12px; padding: 12px 18px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 16px rgba(51, 65, 85, 0.22); display: inline-block;">
+            CSV
+        </a>
+        <a href="{% url 'worker_dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
     </div>
 
     {% if job_entries %}

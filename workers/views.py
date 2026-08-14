@@ -3,11 +3,13 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from accounts.decorators import admin_required, worker_required
 from bookings.models import Booking, Job
+from payments.models import Payment
 from reviews.models import Review
 from .forms import WorkerProfileForm, WorkerVerificationForm
 from .models import WorkerProfile
@@ -27,29 +29,30 @@ def _get_worker_earnings_data(user, period='monthly'):
         start_date = now.date().replace(day=1)
         label = 'Monthly earnings'
 
-    jobs = Job.objects.filter(worker=user, status='COMPLETED').select_related('customer', 'service_request')
+    payments = Payment.objects.filter(
+        job__worker=user,
+        payment_status='Verified'
+    ).select_related('job', 'job__customer', 'job__service_request', 'job__service_request__service').order_by('-payment_date')
+
     if start_date:
-        jobs = jobs.filter(created_at__date__gte=start_date)
+        payments = payments.filter(payment_date__date__gte=start_date)
 
     job_entries = []
     total_earnings = Decimal('0.00')
 
-    for job in jobs.order_by('-created_at'):
-        payment = getattr(job, 'payment', None)
-        amount = Decimal('0.00')
-        if payment and payment.worker_amount is not None:
-            amount = Decimal(str(payment.worker_amount))
-        elif job.actual_price is not None:
-            amount = Decimal(str(job.actual_price))
-        elif job.proposed_price is not None:
-            amount = Decimal(str(job.proposed_price))
+    for payment in payments:
+        job = payment.job
+        if not job:
+            continue
 
+        amount = Decimal(str(payment.worker_amount or Decimal('0.00')))
         total_earnings += amount
+        service_name = getattr(job.service_request.service, 'name', None) or job.title
         job_entries.append({
             'job': job,
-            'date': job.created_at.date(),
+            'date': payment.payment_date.date(),
             'customer': job.customer.get_full_name() or job.customer.username,
-            'service_title': job.title,
+            'service_title': service_name,
             'amount': amount,
         })
 
@@ -122,7 +125,71 @@ def worker_dashboard(request):
 @worker_required
 def worker_earnings_report(request):
     period = request.GET.get('period', 'monthly')
+    download = request.GET.get('download', '').lower()
     data = _get_worker_earnings_data(request.user, period)
+
+    if download in {'csv', 'excel', 'pdf'}:
+        rows = [
+            [entry['date'].strftime('%Y-%m-%d'), entry['customer'], entry['service_title'], str(entry['amount'])]
+            for entry in data['jobs']
+        ]
+        filename = f'worker_earnings_{period}_{timezone.now().strftime("%Y%m%d")}.{download}'
+
+        if download == 'csv':
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            import csv
+            writer = csv.writer(response)
+            writer.writerow(['Date', 'Customer', 'Service', 'Amount'])
+            writer.writerows(rows)
+            return response
+
+        if download == 'excel':
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            import openpyxl
+            from io import BytesIO
+            workbook = openpyxl.Workbook()
+            sheet = workbook.active
+            sheet.title = 'Worker Earnings'
+            sheet.append(['Date', 'Customer', 'Service', 'Amount'])
+            for row in rows:
+                sheet.append(row)
+            buffer = BytesIO()
+            workbook.save(buffer)
+            response.write(buffer.getvalue())
+            return response
+
+        if download == 'pdf':
+            from reportlab.lib import colors
+            from reportlab.lib.pagesizes import A4
+            from reportlab.lib.styles import getSampleStyleSheet
+            from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+            from io import BytesIO
+
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=A4)
+            styles = getSampleStyleSheet()
+            elements = [
+                Paragraph(f'Worker Earnings Report - {data["label"]}', styles['Title']),
+                Paragraph(f'Total Earnings: ৳{data["total_earnings"]}', styles['Normal']),
+                Spacer(1, 12),
+            ]
+            table_data = [['Date', 'Customer', 'Service', 'Amount']] + rows
+            table = Table(table_data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#366092')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('GRID', (0, 0), (-1, -1), 1, colors.grey),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ]))
+            elements.append(table)
+            doc.build(elements)
+            response = HttpResponse(content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            response.write(buffer.getvalue())
+            return response
 
     return render(
         request,

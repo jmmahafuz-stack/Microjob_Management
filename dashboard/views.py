@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 
 from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Sum
@@ -76,18 +77,21 @@ def dashboard_home(request):
         return render(request, 'dashboard/dashboard.html', context)
 
     if request.user.role == 'worker':
-        bookings = Booking.objects.filter(worker=request.user)
-        completed_jobs = bookings.filter(status='Completed').count()
-        total_earnings = sum(
-            booking.service.price for booking in bookings.filter(status='Completed')
+        verified_payments = Payment.objects.filter(
+            job__worker=request.user,
+            payment_status='Verified'
         )
+        completed_jobs = Job.objects.filter(worker=request.user, status='COMPLETED').count()
+        total_earnings = verified_payments.aggregate(total=Sum('worker_amount'))['total'] or Decimal('0.00')
+        platform_commission = verified_payments.aggregate(total=Sum('platform_commission'))['total'] or Decimal('0.00')
         worker_reviews = Review.objects.filter(worker=request.user)
         average_rating = worker_reviews.aggregate(avg=Avg('rating'))['avg'] or 0
 
         context = {
-            'bookings': bookings,
+            'bookings': Booking.objects.filter(worker=request.user),
             'completed_jobs': completed_jobs,
             'total_earnings': total_earnings,
+            'platform_commission': platform_commission,
             'average_rating': average_rating,
             'reviews': worker_reviews,
         }

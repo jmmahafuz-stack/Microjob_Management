@@ -352,6 +352,10 @@ class Job(models.Model):
         return reverse('job_detail', kwargs={'pk': self.pk})
 
     @property
+    def is_completed(self):
+        return str(self.status).upper() == 'COMPLETED'
+
+    @property
     def final_price(self):
         """Return actual price if set, otherwise proposed price"""
         return self.actual_price if self.actual_price else self.proposed_price

@@ -183,40 +183,54 @@ class Payment(models.Model):
         return self.platform_commission, self.worker_amount
 
     def verify_payment(self):
-        """Mark payment as verified and update worker earnings."""
+        """Mark payment as verified and update worker earnings from the real saved payment record."""
+        if self.payment_status == 'Verified':
+            return False
 
-        if self.payment_status != 'Verified':
-            self.payment_status = 'Verified'
-            self.worker_payout_status = 'Available'
+        self.payment_status = 'Verified'
+        self.worker_payout_status = 'Available'
 
-            if self.job and self.job.worker:
-                self.job.worker.worker_profile.confirm_pending_earnings(
-                    self.worker_amount
-                )
+        if self.customer_amount is None:
+            self.customer_amount = Decimal('0.00')
 
-            self.save()
-            
-            # Send notification to worker
-            from notifications.models import Notification
-            if self.job and self.job.worker:
-                Notification.create_notification(
-                    user=self.job.worker,
-                    title=f"Payment Received for {self.job.title}",
-                    message=f"Your payment of ৳{self.worker_amount} has been verified and is now available for withdrawal.",
-                    notification_type='PAYMENT_VERIFIED',
-                    payment=self,
-                    job=self.job,
-                    related_user=self.job.customer,
-                )
-            
-            return True
+        self.calculate_commission(self.commission_rate)
 
-        return False
+        if self.job and self.job.worker:
+            worker_profile = self.job.worker.worker_profile
+            worker_profile.pending_earnings = (
+                (worker_profile.pending_earnings or Decimal('0.00')) - self.worker_amount
+            )
+            worker_profile.available_earnings = (
+                (worker_profile.available_earnings or Decimal('0.00')) + self.worker_amount
+            )
+            worker_profile.total_earnings = (
+                (worker_profile.total_earnings or Decimal('0.00')) + self.worker_amount
+            )
+            worker_profile.save(update_fields=['pending_earnings', 'available_earnings', 'total_earnings'])
+
+        self.save()
+
+        from notifications.models import Notification
+        if self.job and self.job.worker:
+            Notification.create_notification(
+                user=self.job.worker,
+                title=f"Payment Received for {self.job.title}",
+                message=f"Your payment of ৳{self.worker_amount} has been verified and is now available for withdrawal.",
+                notification_type='PAYMENT_VERIFIED',
+                payment=self,
+                job=self.job,
+                related_user=self.job.customer,
+            )
+
+        return True
 
     def save(self, *args, **kwargs):
-        # Auto-calculate commission if customer amount is set
-        if self.customer_amount is not None and not self.platform_commission:
-            self.calculate_commission()
+        # Auto-calculate commission if customer amount is set and values are still unset.
+        if self.customer_amount is not None and self.customer_amount != Decimal('0.00'):
+            if self.platform_commission == 0 or self.worker_amount == 0:
+                self.calculate_commission()
+        elif self.customer_amount is None:
+            self.customer_amount = Decimal('0.00')
 
         super().save(*args, **kwargs)
 
