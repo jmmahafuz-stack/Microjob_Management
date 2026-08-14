@@ -42,6 +42,7 @@
 
             // Add toggle buttons to all password inputs
             const passwordInputs = document.querySelectorAll('input[type="password"]');
+
             passwordInputs.forEach(function(input) {
                 // Wrap the input in a password-field-wrapper if not already wrapped
                 if (!input.parentElement.classList.contains('password-field-wrapper')) {
@@ -53,12 +54,19 @@
 
                 // Create and add toggle button
                 const toggleBtn = document.createElement('button');
+
                 toggleBtn.type = 'button';
                 toggleBtn.className = 'password-toggle-btn hide';
-                toggleBtn.setAttribute('aria-label', 'Toggle password visibility');
+                toggleBtn.setAttribute(
+                    'aria-label',
+                    'Toggle password visibility'
+                );
+
                 toggleBtn.addEventListener('click', function(e) {
                     e.preventDefault();
+
                     togglePasswordVisibility(input);
+
                     // Toggle button class
                     if (input.type === 'text') {
                         toggleBtn.classList.remove('hide');
@@ -68,6 +76,7 @@
                         toggleBtn.classList.add('hide');
                     }
                 });
+
                 input.parentNode.appendChild(toggleBtn);
             });
         });

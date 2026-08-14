@@ -18,41 +18,73 @@
         <p><strong>Payment Status:</strong> {{ booking_payment.payment_status }}</p>
         <p><strong>Payment Method:</strong> {{ booking_payment.payment_method }}</p>
         {% if booking_payment.receipt %}
-            <p><strong>Receipt:</strong> <a href="{{ booking_payment.receipt.url }}" target="_blank">Download</a></p>
+            <p>
+                <strong>Receipt:</strong>
+                <a href="{{ booking_payment.receipt.url }}" target="_blank">Download</a>
+            </p>
         {% endif %}
     {% endif %}
 
     {% if user.role == 'customer' and booking.customer == user %}
         {% if booking.status == 'Pending' or booking.status == 'Confirmed' %}
             <p>
+<<<<<<< HEAD
+                <a href="{% url 'edit_booking' booking.pk %}" class="btn btn-primary">
+                    Reschedule / Edit
+                </a>
+                <a href="{% url 'cancel_booking' booking.pk %}" class="btn btn-outline-primary">
+                    Cancel Booking
+                </a>
+=======
                 <a href="{% url 'edit_booking' booking.pk %}" class="btn btn-primary">Reschedule / Edit</a>
                 <form method="post" action="{% url 'cancel_booking' booking.pk %}" style="display:inline;">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-primary">Cancel Booking</button>
                 </form>
+>>>>>>> origin/main
             </p>
         {% elif booking.status == 'Completed' %}
             {% if booking_payment and booking_payment.payment_status == 'Paid' %}
                 <p><strong>Payment complete.</strong></p>
             {% else %}
-                <p><a href="{% url 'make_payment' booking.pk %}" class="btn btn-primary">Pay for Service</a></p>
+                <p>
+                    <a href="{% url 'make_payment' booking.pk %}" class="btn btn-primary">
+                        Pay for Service
+                    </a>
+                </p>
             {% endif %}
-            <p><a href="{% url 'create_review' booking.pk %}" class="btn btn-outline-primary">Give Rating & Review</a></p>
+
+            <p>
+                <a href="{% url 'create_review' booking.pk %}" class="btn btn-outline-primary">
+                    Give Rating & Review
+                </a>
+            </p>
         {% endif %}
     {% endif %}
 
     {% if user.role == 'worker' and booking.worker == user %}
         {% if booking.status == 'Pending' %}
             <p>
-                <a href="{% url 'respond_to_booking' booking.pk 'accept' %}" class="btn btn-primary">Accept Booking</a>
-                <a href="{% url 'respond_to_booking' booking.pk 'decline' %}" class="btn btn-outline-primary">Decline Booking</a>
+                <a href="{% url 'respond_to_booking' booking.pk 'accept' %}" class="btn btn-primary">
+                    Accept Booking
+                </a>
+                <a href="{% url 'respond_to_booking' booking.pk 'decline' %}" class="btn btn-outline-primary">
+                    Decline Booking
+                </a>
             </p>
         {% elif booking.status == 'Completed' %}
             <p><strong>Service completed.</strong></p>
+
             {% if booking_payment and booking_payment.worker_amount %}
-                <p><strong>Worker earnings:</strong> ৳{{ booking_payment.worker_amount }}</p>
+                <p>
+                    <strong>Worker earnings:</strong>
+                    ৳{{ booking_payment.worker_amount }}
+                </p>
             {% else %}
-                <p><strong>Worker earnings:</strong> ৳{{ booking.service.price }}</p>
+                <p>
+                    <strong>Worker earnings:</strong>
+                    ৳{{ booking.service.price }}
+                </p>
             {% endif %}
         {% endif %}
     {% endif %}
@@ -74,10 +106,14 @@
     {% endif %}
 
     <h3>Messages</h3>
+
     {% if booking_messages %}
         <ul>
             {% for message in booking_messages %}
-                <li><strong>{{ message.sender.username }}:</strong> {{ message.message }}</li>
+                <li>
+                    <strong>{{ message.sender.username }}:</strong>
+                    {{ message.message }}
+                </li>
             {% endfor %}
         </ul>
     {% else %}
@@ -90,7 +126,12 @@
         <button type="submit">Send Message</button>
     </form>
 
-    <p><a href="{% url 'invoice' booking.pk %}">View Invoice</a></p>
-    <p><a href="{% url 'booking_list' %}">Back to Booking List</a></p>
+    <p>
+        <a href="{% url 'invoice' booking.pk %}">View Invoice</a>
+    </p>
+
+    <p>
+        <a href="{% url 'booking_list' %}">Back to Booking List</a>
+    </p>
 </div>
 {% endblock %}

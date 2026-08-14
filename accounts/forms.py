@@ -10,6 +10,23 @@ from .models import CustomUser
 
 
 class RegisterForm(UserCreationForm):
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'type': 'password',
+            'autocomplete': 'new-password'
+        })
+    )
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'type': 'password',
+            'autocomplete': 'new-password'
+        })
+    )
+    
     email = forms.EmailField(required=True)
     phone = forms.CharField(required=False, max_length=15, label='Phone number')
     address = forms.CharField(

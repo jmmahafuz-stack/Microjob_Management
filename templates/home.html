@@ -3,12 +3,12 @@
 {% block content %}
 
 <div class="container">
-    <!-- Hero Section -->
+    <!-- Hero Section with Search -->
     <section class="hero-section">
         <div class="hero-content">
             <h1>Welcome to MJMS</h1>
             <p>Connect with trusted, verified professionals for all your home maintenance needs</p>
-            
+
             <!-- Quick Category Tags -->
             <div class="quick-categories">
                 <span class="category-label">Popular Categories:</span>
@@ -20,12 +20,13 @@
                     <a href="{% url 'service_list' %}?q=Cleaning" class="category-tag">🧹 Cleaning</a>
                 </div>
             </div>
-            
+
             <!-- CTA Buttons -->
             <div class="hero-cta">
                 <a href="{% url 'service_list' %}" class="btn btn-primary btn-lg">
                     <i class="fas fa-search"></i> Browse Services
                 </a>
+
                 {% if user.is_authenticated %}
                     {% if user.role == 'admin' %}
                         <a href="{% url 'dashboard_home' %}" class="btn btn-outline-primary btn-lg">
@@ -55,22 +56,26 @@
             <h2>Why Choose MJMS?</h2>
             <p>Your trusted platform for home services</p>
         </div>
+
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">✓</div>
                 <h3>Verified Workers</h3>
                 <p>All professionals are thoroughly vetted and company-trained for quality assurance</p>
             </div>
+
             <div class="feature-card">
                 <div class="feature-icon">🔒</div>
                 <h3>Secure Payments</h3>
                 <p>Safe and encrypted payment processing with multiple payment options</p>
             </div>
+
             <div class="feature-card">
                 <div class="feature-icon">⭐</div>
                 <h3>Ratings & Reviews</h3>
                 <p>Transparent feedback system to help you make informed decisions</p>
             </div>
+
             <div class="feature-card">
                 <div class="feature-icon">💬</div>
                 <h3>24/7 Support</h3>
@@ -85,40 +90,49 @@
             <h2>Our Services</h2>
             <p>Find skilled professionals for various home maintenance tasks</p>
         </div>
+
         <div class="services-preview-grid">
             <a href="{% url 'service_list' %}?q=Plumbing" class="service-preview-card">
                 <div class="service-preview-icon">🔧</div>
                 <h4>Plumbing</h4>
                 <p>Repairs & installations</p>
             </a>
+
             <a href="{% url 'service_list' %}?q=Electrical" class="service-preview-card">
                 <div class="service-preview-icon">⚡</div>
                 <h4>Electrical</h4>
                 <p>Wiring & maintenance</p>
             </a>
+
             <a href="{% url 'service_list' %}?q=Carpentry" class="service-preview-card">
                 <div class="service-preview-icon">🪵</div>
                 <h4>Carpentry</h4>
                 <p>Furniture & doors</p>
             </a>
+
             <a href="{% url 'service_list' %}?q=Painting" class="service-preview-card">
                 <div class="service-preview-icon">🎨</div>
                 <h4>Painting</h4>
                 <p>Interior & exterior</p>
             </a>
+
             <a href="{% url 'service_list' %}?q=Cleaning" class="service-preview-card">
                 <div class="service-preview-icon">🧹</div>
                 <h4>Cleaning</h4>
                 <p>House & deep cleaning</p>
             </a>
+
             <a href="{% url 'service_list' %}?q=HVAC" class="service-preview-card">
                 <div class="service-preview-icon">❄️</div>
                 <h4>HVAC</h4>
                 <p>AC & heating systems</p>
             </a>
         </div>
+
         <div class="services-preview-footer">
-            <a href="{% url 'service_list' %}" class="btn btn-primary">View All Services</a>
+            <a href="{% url 'service_list' %}" class="btn btn-primary">
+                View All Services
+            </a>
         </div>
     </section>
 </div>
