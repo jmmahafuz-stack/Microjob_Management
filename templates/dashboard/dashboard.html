@@ -65,76 +65,56 @@
 
         <section class="dashboard-grid admin-grid">
             <div class="dashboard-card">
-                <h3>Customers</h3>
-                <p class="dashboard-number">{{ total_customers }}</p>
-                <a href="{% url 'admin:index' %}">Manage customers</a>
-            </div>
-            <div class="dashboard-card">
-                <h3>Workers</h3>
-                <p class="dashboard-number">{{ total_workers }}</p>
-                <a href="{% url 'worker_verification_list' %}">Review workers</a>
-            </div>
-            <div class="dashboard-card">
-                <h3>Pending Workers</h3>
-                <p class="dashboard-number">{{ pending_workers }}</p>
-                <a href="{% url 'worker_verification_list' %}">Approve / reject</a>
-            </div>
-            <div class="dashboard-card">
-                <h3>Service Requests</h3>
-                <p class="dashboard-number">{{ service_requests }}</p>
-                <a href="{% url 'service_request_list' %}">Monitor requests</a>
-            </div>
-            <div class="dashboard-card">
                 <h3>Completed Jobs</h3>
                 <p class="dashboard-number">{{ completed_jobs }}</p>
-                <a href="{% url 'booking_list' %}">Review outcomes</a>
+                <small>Successful job outcomes</small>
             </div>
             <div class="dashboard-card">
                 <h3>Cancelled Jobs</h3>
                 <p class="dashboard-number">{{ cancelled_jobs }}</p>
-                <a href="{% url 'booking_list' %}">Check issues</a>
+                <small>Jobs requiring follow-up</small>
             </div>
             <div class="dashboard-card">
                 <h3>Paid Transactions</h3>
                 <p class="dashboard-number">{{ paid_transactions }}</p>
-                <a href="{% url 'payment_history' %}">View payments</a>
+                <small>Verified payments</small>
             </div>
             <div class="dashboard-card">
                 <h3>Platform Revenue</h3>
                 <p class="dashboard-number">৳{{ platform_revenue|default:'0.00' }}</p>
-                <a href="{% url 'payment_history' %}">Commission overview</a>
+                <small>Commission collected</small>
             </div>
             <div class="dashboard-card">
                 <h3>Worker Earnings</h3>
                 <p class="dashboard-number">৳{{ worker_earnings|default:'0.00' }}</p>
-                <a href="{% url 'worker_dashboard' %}">Worker reports</a>
+                <small>Gross payout value</small>
             </div>
             <div class="dashboard-card">
                 <h3>Avg Rating</h3>
                 <p class="dashboard-number">{{ avg_rating|floatformat:1 }}</p>
-                <a href="{% url 'review_history' %}">Review quality</a>
+                <small>Marketplace quality</small>
             </div>
         </section>
 
         <section class="admin-panel-grid">
             <div class="panel-card analytics-card">
                 <div class="panel-header">
-                    <h3>Admin analytics</h3>
-                    <span>Performance summary</span>
+                    <h3>Performance summary</h3>
+                    <span>Recent business health</span>
                 </div>
                 <div class="analytics-grid">
                     <div class="metric-box">
-                        <h4>Daily report</h4>
+                        <h4>Daily</h4>
                         <p><strong>Revenue:</strong> ৳{{ report_daily.revenue|default:'0.00' }}</p>
                         <p><strong>Jobs:</strong> {{ report_daily.jobs }}</p>
                     </div>
                     <div class="metric-box">
-                        <h4>Monthly report</h4>
+                        <h4>Monthly</h4>
                         <p><strong>Revenue:</strong> ৳{{ report_monthly.revenue|default:'0.00' }}</p>
                         <p><strong>Jobs:</strong> {{ report_monthly.jobs }}</p>
                     </div>
                     <div class="metric-box">
-                        <h4>Yearly report</h4>
+                        <h4>Yearly</h4>
                         <p><strong>Revenue:</strong> ৳{{ report_yearly.revenue|default:'0.00' }}</p>
                         <p><strong>Jobs:</strong> {{ report_yearly.jobs }}</p>
                     </div>
@@ -144,15 +124,14 @@
             <aside class="panel-card quick-actions">
                 <div class="panel-header">
                     <h3>Quick actions</h3>
-                    <span>Common tasks</span>
+                    <span>Most used tools</span>
                 </div>
                 <div class="dashboard-links">
-                    <a href="{% url 'admin:index' %}"><i class="fa-solid fa-shield-halved"></i> Admin Panel</a>
-                    <a href="{% url 'admin_users_list' %}"><i class="fa-solid fa-user-gear"></i> Manage Users</a>
-                    <a href="{% url 'service_list' %}"><i class="fa-solid fa-briefcase"></i> Services</a>
-                    <a href="{% url 'booking_list' %}"><i class="fa-solid fa-calendar-check"></i> Bookings</a>
-                    <a href="{% url 'worker_verification_list' %}"><i class="fa-solid fa-user-check"></i> Worker Approval</a>
-                    <a href="{% url 'complaint_history' %}"><i class="fa-solid fa-circle-exclamation"></i> Complaints</a>
+                    <a href="{% url 'admin:index' %}"><i class="fa-solid fa-shield-halved"></i> Admin panel</a>
+                    <a href="{% url 'admin_users_list' %}"><i class="fa-solid fa-user-gear"></i> User management</a>
+                    <a href="{% url 'worker_verification_list' %}"><i class="fa-solid fa-user-check"></i> Worker approvals</a>
+                    <a href="{% url 'service_request_list' %}"><i class="fa-solid fa-clipboard-list"></i> Service requests</a>
+                    <a href="{% url 'payment_history' %}"><i class="fa-solid fa-sack-dollar"></i> Payment overview</a>
                 </div>
             </aside>
         </section>
