@@ -194,21 +194,12 @@ class Payment(models.Model):
             self.customer_amount = Decimal('0.00')
 
         self.calculate_commission(self.commission_rate)
+        self.save()
 
+        # Sync earnings from actual payment records (not manual updates)
         if self.job and self.job.worker:
             worker_profile = self.job.worker.worker_profile
-            worker_profile.pending_earnings = (
-                (worker_profile.pending_earnings or Decimal('0.00')) - self.worker_amount
-            )
-            worker_profile.available_earnings = (
-                (worker_profile.available_earnings or Decimal('0.00')) + self.worker_amount
-            )
-            worker_profile.total_earnings = (
-                (worker_profile.total_earnings or Decimal('0.00')) + self.worker_amount
-            )
-            worker_profile.save(update_fields=['pending_earnings', 'available_earnings', 'total_earnings'])
-
-        self.save()
+            worker_profile.sync_earnings_from_payments()
 
         from notifications.models import Notification
         if self.job and self.job.worker:
