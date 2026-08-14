@@ -73,7 +73,16 @@ class BookingMessage(models.Model):
     booking = models.ForeignKey(
         Booking,
         on_delete=models.CASCADE,
-        related_name='messages'
+        related_name='messages',
+        null=True,
+        blank=True
+    )
+    job = models.ForeignKey(
+        'Job',
+        on_delete=models.CASCADE,
+        related_name='messages',
+        null=True,
+        blank=True
     )
     sender = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -87,6 +96,8 @@ class BookingMessage(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
+        if self.job:
+            return f"Message from {self.sender.username} on Job #{self.job.id}"
         return f"Message from {self.sender.username} on {self.booking}"
 
 

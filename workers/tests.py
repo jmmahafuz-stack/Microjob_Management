@@ -332,6 +332,97 @@ class WorkerRegistrationTests(TestCase):
 
         self.assertEqual(profile.total_earnings, payment.worker_amount)
 
+    def test_worker_dashboard_uses_real_payment_values_when_profile_is_stale(self):
+        customer = CustomUser.objects.create_user(
+            username='staleearningscustomer',
+            email='staleearningscustomer@example.com',
+            password='StrongPassword123',
+            role='customer',
+            customer_status='ACTIVE',
+        )
+        worker = CustomUser.objects.create_user(
+            username='staleearningsworker',
+            email='staleearningsworker@example.com',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        profile = WorkerProfile.objects.create(
+            user=worker,
+            verification_status='Approved',
+            training_status='Completed',
+            pending_earnings=0,
+            available_earnings=0,
+            withdrawn_earnings=0,
+            total_earnings=0,
+        )
+
+        service = Service.objects.create(
+            name='Stale Earnings Service',
+            category='Repair',
+            description='Service with stale profile',
+            price='1500.00',
+            duration='2 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+
+        request_obj = ServiceRequest.objects.create(
+            customer=customer,
+            service=service,
+            title='Stale earnings job',
+            description='Need fix',
+            location='Dhaka',
+            address='Road 10',
+            preferred_date=date.today() + timedelta(days=2),
+            status='OPEN',
+            budget_min=Decimal('1000.00'),
+            budget_max=Decimal('2000.00'),
+        )
+
+        application = JobApplication.objects.create(
+            service_request=request_obj,
+            worker=worker,
+            proposed_price=Decimal('1200.00'),
+            estimated_duration=timedelta(hours=2),
+            proposal_message='I can do it.',
+            can_start_date=date.today() + timedelta(days=1),
+        )
+        application.status = 'ACCEPTED'
+        application.save()
+
+        job = Job.objects.create(
+            service_request=request_obj,
+            job_application=application,
+            customer=customer,
+            worker=worker,
+            title=request_obj.title,
+            description=request_obj.description,
+            proposed_price=application.proposed_price,
+            estimated_duration=timedelta(hours=2),
+            scheduled_date=request_obj.preferred_date,
+            location=request_obj.location,
+            address=request_obj.address,
+            status='COMPLETED',
+        )
+
+        Payment.objects.create(
+            job=job,
+            customer_amount=Decimal('1200.00'),
+            platform_commission=Decimal('120.00'),
+            worker_amount=Decimal('1080.00'),
+            payment_method='BKash',
+            payment_status='Verified',
+            worker_payout_status='Available',
+            transaction_id='TX-STALE-1',
+        )
+
+        refreshed = profile.sync_earnings_from_payments()
+
+        self.assertEqual(refreshed['available'], Decimal('1080.00'))
+        self.assertEqual(refreshed['total_earned'], Decimal('1080.00'))
+        self.assertEqual(profile.available_earnings, Decimal('1080.00'))
+
     def test_customer_cannot_pay_before_worker_marks_job_complete(self):
         customer = CustomUser.objects.create_user(
             username='pendingpaycustomer',

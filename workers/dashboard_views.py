@@ -93,11 +93,12 @@ def worker_dashboard(request):
     # Get reviews
     reviews = Review.objects.filter(worker=worker).order_by('-created_at')[:5]
     
-    # Calculate earnings
-    pending_earnings = profile.pending_earnings
-    available_earnings = profile.available_earnings
-    withdrawn_earnings = profile.withdrawn_earnings
-    total_earnings = pending_earnings + available_earnings + withdrawn_earnings
+    # Recalculate from real payment records to avoid stale cached zero values.
+    earnings = profile.sync_earnings_from_payments()
+    pending_earnings = earnings['pending']
+    available_earnings = earnings['available']
+    withdrawn_earnings = earnings['withdrawn']
+    total_earnings = earnings['total_earned']
     
     context = {
         'profile': profile,

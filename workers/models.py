@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
 from django.db.models import Avg
@@ -170,6 +172,39 @@ class WorkerProfile(models.Model):
             'withdrawn': self.withdrawn_earnings,
             'total_earned': self.pending_earnings + self.available_earnings + self.withdrawn_earnings,
         }
+
+    def sync_earnings_from_payments(self):
+        """Reconcile worker earnings with actual payment records."""
+        from payments.models import Payment
+
+        payments = Payment.objects.filter(job__worker=self.user)
+
+        pending_total = payments.filter(payment_status='Pending').aggregate(
+            total=models.Sum('worker_amount')
+        )['total'] or Decimal('0.00')
+
+        available_total = payments.filter(
+            payment_status='Verified',
+            worker_payout_status='Available'
+        ).aggregate(total=models.Sum('worker_amount'))['total'] or Decimal('0.00')
+
+        withdrawn_total = payments.filter(
+            payment_status='Verified',
+            worker_payout_status='Withdrawn'
+        ).aggregate(total=models.Sum('worker_amount'))['total'] or Decimal('0.00')
+
+        total_earned = payments.filter(
+            payment_status__in=['Pending', 'Verified']
+        ).aggregate(total=models.Sum('worker_amount'))['total'] or Decimal('0.00')
+
+        self.pending_earnings = pending_total
+        self.available_earnings = available_total
+        self.withdrawn_earnings = withdrawn_total
+        self.total_earnings = total_earned
+
+        self.save(update_fields=['pending_earnings', 'available_earnings', 'withdrawn_earnings', 'total_earnings'])
+
+        return self.get_earnings_breakdown()
 
     def update_earnings_from_payment(self, amount, is_confirmed=False):
         """Update worker earnings when payment is processed"""

@@ -741,26 +741,16 @@ def job_messages(request, pk):
             messages.error(request, 'You do not have permission to view job messages.')
             return redirect('home')
     
-    # Get or create a BookingMessage thread (using job as reference)
-    # For now, we'll use BookingMessage with a booking-like relationship
-    job_messages = BookingMessage.objects.filter(
-        Q(sender=job.worker) | Q(sender=job.customer)
-    ).filter(
-        booking__isnull=True
-    ).order_by('created_at')
-    
-    # Add a way to track job messages by storing them with booking for simplicity
-    # Or create a new message for each job interaction
+    # Get all messages for this job
+    job_messages = BookingMessage.objects.filter(job=job).order_by('created_at')
     
     if request.method == 'POST':
         message_text = request.POST.get('message', '').strip()
         
         if message_text:
-            # Create a new message
-            # We'll store it as a booking message but associate with the job
-            # In production, you'd want a JobMessage model
+            # Create a new message associated with the job
             booking_message = BookingMessage.objects.create(
-                booking=None,  # Jobs don't use Booking model
+                job=job,
                 sender=request.user,
                 message=message_text,
             )

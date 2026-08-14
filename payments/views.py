@@ -156,7 +156,7 @@ def payout_request_list(request):
     )
 
     worker_profile = request.user.worker_profile
-    earnings_breakdown = worker_profile.get_earnings_breakdown()
+    earnings_breakdown = worker_profile.sync_earnings_from_payments()
 
     context = {
         'payout_requests': payout_requests,
