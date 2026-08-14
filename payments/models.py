@@ -46,15 +46,6 @@ class Payment(models.Model):
         help_text="Total amount customer pays (e.g., 1500)"
     )
 
-    # Legacy single amount field
-    amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="Legacy: single amount field"
-    )
-
     platform_commission = models.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -131,11 +122,6 @@ class Payment(models.Model):
     gateway_status = models.CharField(
         max_length=50, blank=True, default='',
         help_text="Status returned by payment gateway"
-    )
-    
-    commission_calculated_at = models.DateTimeField(
-        null=True,
-        blank=True
     )
     
     # Worker payout status

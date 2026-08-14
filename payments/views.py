@@ -58,51 +58,62 @@ def make_payment(request, job_id):
 
         if form.is_valid():
             payment = form.save(commit=False)
-
             payment.job = job
             payment.customer_amount = Decimal(str(job.final_price))
             payment.payment_method = form.cleaned_data.get('payment_method')
+            payment.payment_status = 'Verified'
 
-            if payment.transaction_id or payment.receipt:
-                payment.payment_status = 'Pending'  # Awaiting admin verification
-                
-                # Calculate commission
-                payment.calculate_commission()
-                payment.save()
-                
-                # Add pending earnings to worker (not yet available for withdrawal)
-                if job.worker:
-                    worker_profile = job.worker.worker_profile
-                    worker_profile.pending_earnings += payment.worker_amount
-                    worker_profile.total_earnings += payment.worker_amount
-                    worker_profile.save(update_fields=['pending_earnings', 'total_earnings'])
-                
-                # Send notification to customer about payment submission
-                Notification.create_notification(
-                    user=request.user,
-                    title=f"Payment Submitted for {job.title}",
-                    message=f"Your payment of ৳{payment.customer_amount} has been submitted and is awaiting admin verification.",
-                    notification_type='JOB_PAYMENT_SUBMITTED',
-                    payment=payment,
-                    job=job,
-                )
-                
-                messages.success(
-                    request,
-                    f'Payment submitted! Your transaction ID is '
-                    f'{payment.transaction_id or "pending verification"}. '
-                    f'Once verified, the worker will receive '
-                    f'৳{payment.worker_amount:.2f}.'
-                )
+            if not payment.transaction_id and payment.receipt:
+                payment.transaction_id = f'{payment.payment_method}-{job.pk}-{job.completed_at if hasattr(job, "completed_at") else job.pk}'
+            elif not payment.transaction_id:
+                payment.transaction_id = f'{payment.payment_method}-{job.pk}-{job.id}'
 
-                return redirect('payment_history')
+            payment.calculate_commission()
+            payment.worker_payout_status = 'Available'
+            payment.save()
 
-            messages.error(
-                request,
-                'Please provide a transaction ID or receipt to proceed.'
+            if job.worker:
+                worker_profile = job.worker.worker_profile
+                worker_profile.pending_earnings += payment.worker_amount
+                worker_profile.total_earnings += payment.worker_amount
+                worker_profile.save(update_fields=['pending_earnings', 'total_earnings'])
+                worker_profile.confirm_pending_earnings(payment.worker_amount)
+
+            Notification.create_notification(
+                user=request.user,
+                title=f"Payment Confirmed for {job.title}",
+                message=f"Your payment of ৳{payment.customer_amount} has been confirmed and sent to the worker.",
+                notification_type='JOB_PAYMENT_SUBMITTED',
+                payment=payment,
+                job=job,
             )
+
+            Notification.create_notification(
+                user=job.worker,
+                title=f"Payment Received for {job.title}",
+                message=f"Customer sent ৳{payment.worker_amount} via {payment.payment_method}. It is now added to your earnings.",
+                notification_type='PAYMENT_VERIFIED',
+                payment=payment,
+                job=job,
+                related_user=request.user,
+            )
+
+            messages.success(
+                request,
+                f'Payment confirmed. ৳{payment.worker_amount:.2f} has been added to the worker earnings.'
+            )
+
+            return redirect('payment_history')
     else:
         form = CustomerPaymentForm(instance=payment)
+
+    worker_profile = getattr(job.worker, 'worker_profile', None)
+    payment_options = []
+    if worker_profile:
+        if worker_profile.bkash_number:
+            payment_options.append({'method': 'BKash', 'number': worker_profile.bkash_number, 'label': 'bKash'})
+        if worker_profile.nagad_number:
+            payment_options.append({'method': 'Nagad', 'number': worker_profile.nagad_number, 'label': 'Nagad'})
 
     return render(
         request,
@@ -111,6 +122,8 @@ def make_payment(request, job_id):
             'form': form,
             'job': job,
             'payment': payment,
+            'worker_profile': worker_profile,
+            'payment_options': payment_options,
         }
     )
 

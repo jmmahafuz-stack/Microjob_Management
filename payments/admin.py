@@ -45,7 +45,6 @@ class PaymentAdmin(admin.ModelAdmin):
             'fields': (
                 'booking',
                 'job',
-                'amount',
                 'customer_amount',
             )
         }),
@@ -54,7 +53,6 @@ class PaymentAdmin(admin.ModelAdmin):
             'fields': (
                 'platform_commission',
                 'commission_rate',
-                'commission_calculated_at',
                 'worker_amount',
                 'commission_display',
                 'payment_breakdown',

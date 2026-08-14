@@ -238,3 +238,182 @@ class WorkerRegistrationTests(TestCase):
         job.refresh_from_db()
         self.assertEqual(job.status, 'IN_PROGRESS')
         self.assertContains(self.client.get(reverse('worker_my_jobs')), 'Assigned Service Request')
+
+    def test_customer_confirms_payment_and_adds_worker_earnings(self):
+        customer = CustomUser.objects.create_user(
+            username='payingcustomer',
+            email='payingcustomer@example.com',
+            password='StrongPassword123',
+            role='customer',
+            customer_status='ACTIVE',
+        )
+        worker = CustomUser.objects.create_user(
+            username='earningworker',
+            email='earningworker@example.com',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        profile = WorkerProfile.objects.create(
+            user=worker,
+            verification_status='Approved',
+            training_status='Completed',
+            bkash_number='01700000000',
+            nagad_number='01800000000',
+        )
+
+        service = Service.objects.create(
+            name='Paid Repair Service',
+            category='Repair',
+            description='Repair with payment',
+            price='1500.00',
+            image='service_images/default.jpg',
+            duration='2 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+
+        request_obj = ServiceRequest.objects.create(
+            customer=customer,
+            service=service,
+            title='Paid job request',
+            description='Need repair',
+            location='Dhaka',
+            address='Road 9',
+            preferred_date=date.today() + timedelta(days=2),
+            status='OPEN',
+            budget_min=Decimal('1000.00'),
+            budget_max=Decimal('2000.00'),
+        )
+
+        application = JobApplication.objects.create(
+            service_request=request_obj,
+            worker=worker,
+            proposed_price=Decimal('1200.00'),
+            estimated_duration=timedelta(hours=2),
+            proposal_message='I can do it.',
+            can_start_date=date.today() + timedelta(days=1),
+        )
+        application.status = 'ACCEPTED'
+        application.save()
+
+        job = Job.objects.create(
+            service_request=request_obj,
+            job_application=application,
+            customer=customer,
+            worker=worker,
+            title=request_obj.title,
+            description=request_obj.description,
+            proposed_price=application.proposed_price,
+            estimated_duration=timedelta(hours=2),
+            scheduled_date=request_obj.preferred_date,
+            location=request_obj.location,
+            address=request_obj.address,
+            status='COMPLETED',
+        )
+
+        self.client.login(username='payingcustomer', password='StrongPassword123')
+        response = self.client.post(
+            reverse('make_payment', kwargs={'job_id': job.pk}),
+            {
+                'payment_method': 'BKash',
+                'transaction_id': 'TX-12345',
+                'confirm_payment': 'on',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        payment = job.payment
+        self.assertEqual(payment.payment_status, 'Verified')
+        self.assertEqual(payment.worker_payout_status, 'Available')
+        profile.refresh_from_db()
+        self.assertGreater(profile.available_earnings, 0)
+        self.assertEqual(profile.pending_earnings, 0)
+
+        self.assertEqual(profile.total_earnings, payment.worker_amount)
+
+    def test_customer_cannot_pay_before_worker_marks_job_complete(self):
+        customer = CustomUser.objects.create_user(
+            username='pendingpaycustomer',
+            email='pendingpaycustomer@example.com',
+            password='StrongPassword123',
+            role='customer',
+            customer_status='ACTIVE',
+        )
+        worker = CustomUser.objects.create_user(
+            username='pendingpayworker',
+            email='pendingpayworker@example.com',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        WorkerProfile.objects.create(
+            user=worker,
+            verification_status='Approved',
+            training_status='Completed',
+            bkash_number='01700000001',
+        )
+
+        service = Service.objects.create(
+            name='Pending Payment Service',
+            category='Repair',
+            description='Service pending payment',
+            price='1500.00',
+            image='service_images/default.jpg',
+            duration='2 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+
+        request_obj = ServiceRequest.objects.create(
+            customer=customer,
+            service=service,
+            title='Pending payment request',
+            description='Need service',
+            location='Dhaka',
+            address='Road 10',
+            preferred_date=date.today() + timedelta(days=2),
+            status='OPEN',
+            budget_min=Decimal('1000.00'),
+            budget_max=Decimal('2000.00'),
+        )
+
+        application = JobApplication.objects.create(
+            service_request=request_obj,
+            worker=worker,
+            proposed_price=Decimal('1200.00'),
+            estimated_duration=timedelta(hours=2),
+            proposal_message='I can do it.',
+            can_start_date=date.today() + timedelta(days=1),
+        )
+        application.status = 'ACCEPTED'
+        application.save()
+
+        job = Job.objects.create(
+            service_request=request_obj,
+            job_application=application,
+            customer=customer,
+            worker=worker,
+            title=request_obj.title,
+            description=request_obj.description,
+            proposed_price=application.proposed_price,
+            estimated_duration=timedelta(hours=2),
+            scheduled_date=request_obj.preferred_date,
+            location=request_obj.location,
+            address=request_obj.address,
+            status='IN_PROGRESS',
+        )
+
+        self.client.login(username='pendingpaycustomer', password='StrongPassword123')
+        response = self.client.post(
+            reverse('make_payment', kwargs={'job_id': job.pk}),
+            {
+                'payment_method': 'BKash',
+                'transaction_id': 'TX-999',
+                'confirm_payment': 'on',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('job_detail', kwargs={'pk': job.pk}))
+        self.assertFalse(hasattr(job, 'payment'))

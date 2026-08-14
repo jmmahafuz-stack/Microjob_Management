@@ -16,12 +16,18 @@ class PaymentForm(forms.ModelForm):
 
 
 class CustomerPaymentForm(forms.ModelForm):
+    confirm_payment = forms.BooleanField(
+        required=False,
+        label='I have completed the payment and want to confirm it now.',
+    )
+
     class Meta:
         model = Payment
         fields = [
             'payment_method',
             'transaction_id',
             'receipt',
+            'confirm_payment',
         ]
 
         widgets = {
@@ -30,7 +36,7 @@ class CustomerPaymentForm(forms.ModelForm):
             ),
             'transaction_id': forms.TextInput(
                 attrs={
-                    'placeholder': 'Enter transaction ID when payment is complete',
+                    'placeholder': 'Optional transaction reference',
                     'class': 'form-control'
                 }
             ),
@@ -44,11 +50,11 @@ class CustomerPaymentForm(forms.ModelForm):
 
         transaction_id = cleaned_data.get('transaction_id')
         receipt = cleaned_data.get('receipt')
+        confirm_payment = cleaned_data.get('confirm_payment')
 
-        if not transaction_id and not receipt:
+        if not transaction_id and not receipt and not confirm_payment:
             raise forms.ValidationError(
-                'Please enter a transaction ID or upload a payment receipt '
-                'to confirm the payment.'
+                'Please confirm the payment and provide a transaction ID or receipt.'
             )
 
         return cleaned_data
