@@ -15,6 +15,8 @@ urlpatterns = [
     path('<int:pk>/status/', views.update_status, name='update_status'),
     path('<int:pk>/respond/<str:action>/', views.respond_to_booking, name='respond_to_booking'),
     path('<int:pk>/invoice/', views.invoice, name='invoice'),
+    path('response/<int:response_id>/accept/', views.accept_worker_response, name='accept_worker_response'),
+    path('response/<int:response_id>/reject/', views.reject_worker_response, name='reject_worker_response'),
     
     # ===== PHASE 2: Service Request Workflow =====
     path('requests/', views.service_request_list, name='service_request_list'),

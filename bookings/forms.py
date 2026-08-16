@@ -3,7 +3,7 @@ from django import forms
 from accounts.models import CustomUser
 from services.models import Service
 
-from .models import Booking, BookingMessage, ServiceRequest, JobApplication, Job
+from .models import Booking, BookingMessage, ServiceRequest, JobApplication, Job, WorkerResponse
 
 
 class BookingCreateForm(forms.ModelForm):
@@ -101,13 +101,32 @@ class BookingStatusUpdateForm(forms.ModelForm):
         fields = ['status']
 
 
+class WorkerResponseForm(forms.ModelForm):
+    """Form for workers to respond to bookings"""
+    class Meta:
+        model = WorkerResponse
+        fields = ['status', 'message']
+        widgets = {
+            'status': forms.Select(attrs={
+                'class': 'form-input',
+                'required': True
+            }),
+            'message': forms.Textarea(attrs={
+                'class': 'form-textarea',
+                'rows': 4,
+                'placeholder': 'Tell the customer about your response, availability, or questions...'
+            })
+        }
+
+
 # ===== PHASE 2 FORMS: ServiceRequest, JobApplication, Job =====
 
 class ServiceRequestCreateForm(forms.ModelForm):
     """Form for customers to create a service request"""
     class Meta:
-        model_name = 'ServiceRequest'  # Placeholder - will be ServiceRequest once imported
+        model = ServiceRequest
         fields = [
+            'service',
             'title',
             'description',
             'location',
@@ -119,6 +138,7 @@ class ServiceRequestCreateForm(forms.ModelForm):
             'budget_max',
         ]
         widgets = {
+            'service': forms.Select(attrs={'class': 'form-select'}),
             'title': forms.TextInput(attrs={
                 'class': 'form-input',
                 'placeholder': 'What service do you need?',
@@ -167,7 +187,8 @@ class ServiceRequestCreateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         self.service = kwargs.pop('service', None)
         super().__init__(*args, **kwargs)
-        # Will be used to pre-fill service in view
+        if self.service:
+            self.fields['service'].initial = self.service
 
     def clean(self):
         cleaned_data = super().clean()
@@ -183,7 +204,7 @@ class ServiceRequestCreateForm(forms.ModelForm):
 class JobApplicationForm(forms.ModelForm):
     """Form for workers to apply for a service request"""
     class Meta:
-        model_name = 'JobApplication'  # Placeholder
+        model = JobApplication
         fields = [
             'proposed_price',
             'estimated_duration',

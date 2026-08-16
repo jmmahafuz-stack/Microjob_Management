@@ -101,6 +101,66 @@ class BookingMessage(models.Model):
         return f"Message from {self.sender.username} on {self.booking}"
 
 
+class WorkerResponse(models.Model):
+    """
+    Worker's response to a booking.
+    Allows worker to accept, reject, or propose completion status with messaging.
+    """
+    RESPONSE_STATUS_CHOICES = [
+        ('PENDING', 'Pending - Considering the job'),
+        ('REJECTED', 'Rejected - Cannot do this job'),
+        ('ACCEPTED', 'Accepted - Ready to work'),
+        ('IN_PROGRESS', 'In Progress - Working on it'),
+        ('COMPLETED', 'Completed - Job finished'),
+    ]
+
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='worker_responses'
+    )
+    worker = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='booking_responses'
+    )
+    
+    # Worker's response status
+    status = models.CharField(
+        max_length=20,
+        choices=RESPONSE_STATUS_CHOICES,
+        default='PENDING'
+    )
+    
+    # Worker's message to customer
+    message = models.TextField(help_text="Your response message to the customer")
+    
+    # Customer acceptance
+    customer_accepted = models.BooleanField(default=False)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['booking', 'worker']),
+            models.Index(fields=['status']),
+        ]
+
+    def __str__(self):
+        return f"Response from {self.worker.username} on Booking #{self.booking.id} - {self.status}"
+
+    def clean(self):
+        if self.worker_id and self.worker.role != 'worker':
+            raise ValidationError('Only workers can create responses.')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
+
 # ===== PHASE 2 MODELS: Core Workflow (ServiceRequest → JobApplication → Job) =====
 
 class ServiceRequest(models.Model):

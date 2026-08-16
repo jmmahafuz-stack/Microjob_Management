@@ -22,8 +22,9 @@ from .forms import (
     JobApplicationReviewForm,
     JobForm,
     JobCompletionForm,
+    WorkerResponseForm,
 )
-from .models import Booking, BookingMessage, ServiceRequest, JobApplication, Job
+from .models import Booking, BookingMessage, ServiceRequest, JobApplication, Job, WorkerResponse
 
 
 def _get_related_workers(service):
@@ -116,11 +117,30 @@ def booking_detail(request, pk):
     assign_form = BookingAssignForm(instance=booking)
     status_form = BookingStatusUpdateForm(instance=booking)
     message_form = BookingMessageForm()
+    response_form = WorkerResponseForm()
     booking_payment = getattr(booking, 'payment', None)
 
     booking_messages = booking.messages.all()
+    worker_responses = booking.worker_responses.all().order_by('-created_at')
+    latest_response = worker_responses.first() if worker_responses.exists() else None
 
-    if request.method == 'POST' and 'message' in request.POST:
+    # Handle worker submitting a response
+    if request.method == 'POST' and 'worker_response' in request.POST:
+        if request.user.role != 'worker' or booking.worker != request.user:
+            messages.error(request, 'Only assigned workers can submit responses.')
+            return redirect('booking_detail', pk=booking.pk)
+
+        response_form = WorkerResponseForm(request.POST)
+        if response_form.is_valid():
+            worker_response = response_form.save(commit=False)
+            worker_response.booking = booking
+            worker_response.worker = request.user
+            worker_response.save()
+            messages.success(request, 'Your response has been sent to the customer.')
+            return redirect('booking_detail', pk=booking.pk)
+
+    # Handle message posting
+    if request.method == 'POST' and 'send_message' in request.POST:
         message_form = BookingMessageForm(request.POST)
         if request.user.role == 'customer' and booking.customer != request.user:
             messages.error(request, 'You can only message for your own booking.')
@@ -146,8 +166,66 @@ def booking_detail(request, pk):
             'assign_form': assign_form,
             'status_form': status_form,
             'message_form': message_form,
+            'response_form': response_form,
             'booking_messages': booking_messages,
+            'worker_responses': worker_responses,
+            'latest_response': latest_response,
         }
+    )
+
+
+@login_required
+@customer_required
+def accept_worker_response(request, response_id):
+    """Customer accepts a worker's response"""
+    worker_response = get_object_or_404(WorkerResponse, pk=response_id)
+    booking = worker_response.booking
+
+    if booking.customer != request.user:
+        messages.error(request, 'You can only accept responses for your own bookings.')
+        return redirect('booking_list')
+
+    if request.method == 'POST':
+        worker_response.customer_accepted = True
+        worker_response.save()
+        
+        # Update booking status if worker accepted
+        if worker_response.status == 'ACCEPTED':
+            booking.status = 'Confirmed'
+            booking.save()
+            messages.success(request, 'You have accepted the worker\'s proposal. The booking is now confirmed!')
+        else:
+            messages.success(request, 'Your response has been recorded.')
+        
+        return redirect('booking_detail', pk=booking.pk)
+
+    return render(
+        request,
+        'bookings/confirm_response.html',
+        {'worker_response': worker_response, 'booking': booking}
+    )
+
+
+@login_required
+@customer_required
+def reject_worker_response(request, response_id):
+    """Customer rejects a worker's response"""
+    worker_response = get_object_or_404(WorkerResponse, pk=response_id)
+    booking = worker_response.booking
+
+    if booking.customer != request.user:
+        messages.error(request, 'You can only reject responses for your own bookings.')
+        return redirect('booking_list')
+
+    if request.method == 'POST':
+        worker_response.delete()
+        messages.info(request, 'You have rejected this worker\'s response. They will not be notified.')
+        return redirect('booking_detail', pk=booking.pk)
+
+    return render(
+        request,
+        'bookings/confirm_rejection.html',
+        {'worker_response': worker_response, 'booking': booking}
     )
 
 
@@ -168,6 +246,14 @@ def create_booking(request):
             else:
                 booking.customer = request.user
             booking.status = 'Pending'
+            
+            # Auto-assign a suitable worker if none selected
+            if not booking.worker and booking.service:
+                related_workers = _get_related_workers(booking.service)
+                if related_workers.exists():
+                    booking.worker = related_workers.first().user
+                    booking.status = 'Assigned'
+            
             booking.save()
             messages.success(request, 'Booking request created successfully.')
             return redirect('booking_detail', pk=booking.pk)
@@ -368,15 +454,18 @@ def service_request_create(request, service_id=None):
             service_request.customer = request.user
             if service:
                 service_request.service = service
-            else:
-                service_request.service = get_object_or_404(Service, pk=request.POST.get('service'))
             service_request.save()
-            messages.success(request, 'Service request created successfully!')
+            messages.success(request, 'Service request created successfully! Workers can now apply for your request.')
             return redirect('service_request_detail', pk=service_request.pk)
     else:
-        form = ServiceRequestCreateForm(service=service)
-        if service:
-            form.initial['service'] = service
+        initial = {'service': service} if service else {}
+        requested_service_id = request.GET.get('service')
+        if requested_service_id and not service:
+            try:
+                initial['service'] = Service.objects.get(pk=requested_service_id)
+            except (Service.DoesNotExist, ValueError):
+                pass
+        form = ServiceRequestCreateForm(service=service, initial=initial)
     
     context = {
         'form': form,
@@ -432,16 +521,18 @@ def service_request_detail(request, pk):
         messages.error(request, 'You do not have permission to view this request.')
         return redirect('service_request_list')
 
-    # Get applications
+    # Customers see all applications; each worker sees only their own application.
     if request.user.role == 'customer':
-        applications = service_request.job_applications.all()
+        applications = service_request.job_applications.select_related('worker').all()
+        worker_application = None
     else:
-        # Worker can see their own application
         applications = service_request.job_applications.filter(worker=request.user)
-    
+        worker_application = applications.first()
+
     context = {
         'service_request': service_request,
         'applications': applications,
+        'worker_application': worker_application,
     }
     return render(request, 'bookings/service_request_detail.html', context)
 
@@ -451,6 +542,10 @@ def service_request_detail(request, pk):
 def job_application_create(request, service_request_id):
     """Worker applies for a service request"""
     service_request = get_object_or_404(ServiceRequest, pk=service_request_id)
+
+    if service_request.status != 'OPEN':
+        messages.info(request, 'This request is no longer accepting applications.')
+        return redirect('service_request_detail', pk=service_request.pk)
     
     # Check if worker already applied
     existing_application = JobApplication.objects.filter(
@@ -605,6 +700,8 @@ def job_complete(request, pk):
             job.status = 'COMPLETED'
             job.actual_end_time = django.utils.timezone.now()
             job.save()
+            job.service_request.status = 'COMPLETED'
+            job.service_request.save(update_fields=['status', 'updated_at'])
             
             # Send notification to customer
             Notification.create_notification(
@@ -718,8 +815,8 @@ def job_accept(request, pk):
         messages.error(request, 'You can only accept jobs assigned to you.')
         return redirect('worker_my_jobs')
 
-    if job.status in ['COMPLETED', 'CANCELLED']:
-        messages.error(request, 'This job is no longer active.')
+    if job.status != 'CONFIRMED':
+        messages.info(request, 'This job is not waiting for acceptance.')
         return redirect('job_detail', pk=job.pk)
 
     job.status = 'IN_PROGRESS'
@@ -743,8 +840,10 @@ def job_accept(request, pk):
 @worker_required
 def worker_available_jobs(request):
     """
-    Show all jobs assigned to this worker.
-    Worker can only see jobs where they are the assigned worker.
+    Show all jobs and bookings assigned to this worker.
+    Worker can see:
+    1. Jobs where they are the assigned worker
+    2. Bookings where customer selected them as preferred/assigned worker
     """
     if getattr(request.user, 'is_blocked', False):
         messages.error(request, 'Your worker account is blocked. Please contact support.')
@@ -757,8 +856,18 @@ def worker_available_jobs(request):
         'customer', 'service_request'
     ).order_by('-created_at')
     
+    # Get all bookings assigned to this worker (Pending/Assigned status)
+    assigned_bookings = Booking.objects.filter(
+        worker=request.user
+    ).exclude(
+        status='Cancelled'
+    ).select_related(
+        'customer', 'service'
+    ).order_by('-created_at')
+    
     context = {
         'jobs': available_jobs,
+        'bookings': assigned_bookings,
     }
     return render(request, 'bookings/worker_available_jobs.html', context)
 

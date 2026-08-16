@@ -26,32 +26,21 @@
     {% endif %}
 
     {% if user.role == 'customer' and booking.customer == user %}
-        {% if booking.status == 'Pending' or booking.status == 'Confirmed' %}
+        {% if booking.status == 'Pending' or booking.status == 'Confirmed' or booking.status == 'Assigned' %}
             <p>
-<<<<<<< HEAD
                 <a href="{% url 'edit_booking' booking.pk %}" class="btn btn-primary">
                     Reschedule / Edit
                 </a>
                 <a href="{% url 'cancel_booking' booking.pk %}" class="btn btn-outline-primary">
                     Cancel Booking
                 </a>
-=======
-                <a href="{% url 'edit_booking' booking.pk %}" class="btn btn-primary">Reschedule / Edit</a>
-                <form method="post" action="{% url 'cancel_booking' booking.pk %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-outline-primary">Cancel Booking</button>
-                </form>
->>>>>>> origin/main
             </p>
         {% elif booking.status == 'Completed' %}
-            {% if booking_payment and booking_payment.payment_status == 'Paid' %}
-                <p><strong>Payment complete.</strong></p>
+            {% if booking_payment and booking_payment.payment_status == 'Verified' %}
+                <p><strong style="color: green;">✓ Payment verified and completed.</strong></p>
             {% else %}
-                <p>
-                    <a href="{% url 'make_payment' booking.pk %}" class="btn btn-primary">
-                        Pay for Service
-                    </a>
-                </p>
+                <p><strong>Service completed successfully!</strong></p>
+                <small class="text-muted">Note: Payment processing is handled through the job workflow. Please contact admin if you need to record payment for this booking.</small>
             {% endif %}
 
             <p>
@@ -63,15 +52,21 @@
     {% endif %}
 
     {% if user.role == 'worker' and booking.worker == user %}
-        {% if booking.status == 'Pending' %}
-            <p>
-                <a href="{% url 'respond_to_booking' booking.pk 'accept' %}" class="btn btn-primary">
-                    Accept Booking
-                </a>
-                <a href="{% url 'respond_to_booking' booking.pk 'decline' %}" class="btn btn-outline-primary">
-                    Decline Booking
-                </a>
-            </p>
+        {% if booking.status == 'Pending' or booking.status == 'Assigned' %}
+            <div class="card mt-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">📝 Respond to this Booking</h4>
+                </div>
+                <div class="card-body">
+                    <p>Tell the customer if you can do this job, your availability, or any questions you have.</p>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="worker_response" value="1">
+                        {{ response_form.as_p }}
+                        <button type="submit" class="btn btn-info">Send Response</button>
+                    </form>
+                </div>
+            </div>
         {% elif booking.status == 'Completed' %}
             <p><strong>Service completed.</strong></p>
 
@@ -120,10 +115,61 @@
         <p>No messages yet.</p>
     {% endif %}
 
+    <!-- Worker Responses Section -->
+    {% if worker_responses %}
+        <div class="card mt-4 border-warning">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">⭐ Worker Responses ({{ worker_responses|length }})</h4>
+            </div>
+            <div class="card-body">
+                {% for response in worker_responses %}
+                    <div class="border rounded p-3 mb-3" style="border-left: 4px solid {% if response.status == 'ACCEPTED' %}#28a745{% elif response.status == 'REJECTED' %}#dc3545{% elif response.status == 'IN_PROGRESS' %}#ffc107{% elif response.status == 'COMPLETED' %}#17a2b8{% else %}#6c757d{% endif %};">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h5>{{ response.get_status_display }}</h5>
+                                <p class="text-muted small mb-2">
+                                    From: <strong>{{ response.worker.get_full_name|default:response.worker.username }}</strong>
+                                    <br>
+                                    Date: <strong>{{ response.created_at|date:"M d, Y H:i" }}</strong>
+                                </p>
+                                <p><strong>Message:</strong></p>
+                                <p style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
+                                    {{ response.message }}
+                                </p>
+                            </div>
+                            {% if user.role == 'customer' and booking.customer == user and not response.customer_accepted and response.status == 'ACCEPTED' %}
+                                <div>
+                                    <form method="post" action="{% url 'accept_worker_response' response.pk %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-success">✓ Accept</button>
+                                    </form>
+                                    <form method="post" action="{% url 'reject_worker_response' response.pk %}" style="display:inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-sm btn-danger">✗ Reject</button>
+                                    </form>
+                                </div>
+                            {% elif response.customer_accepted %}
+                                <div>
+                                    <span class="badge bg-success">✓ Accepted by Customer</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% elif user.role == 'customer' and booking.customer == user and booking.worker and (booking.status == 'Pending' or booking.status == 'Assigned') %}
+        <div class="alert alert-info mt-4">
+            <strong>💬 Waiting for worker response...</strong><br>
+            The assigned worker will respond with their status and availability.
+        </div>
+    {% endif %}
+
     <form method="post">
         {% csrf_token %}
+        <input type="hidden" name="send_message" value="1">
         {{ message_form.as_p }}
-        <button type="submit">Send Message</button>
+        <button type="submit" class="btn btn-primary">Send Message</button>
     </form>
 
     <p>

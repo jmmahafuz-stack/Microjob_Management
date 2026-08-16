@@ -45,15 +45,18 @@
                     <p>{{ service.description }}</p>
                 </div>
 
-                {% if user.is_authenticated %}
+                {% if user.is_authenticated and user.role == 'customer' %}
                     <div class="detail-action-group">
-                        <a href="{% url 'create_booking' %}?service={{ service.id }}" class="btn btn-primary">
-                            Book This Service
+                        <a href="{% url 'service_request_create' %}?service={{ service.id }}" class="btn btn-primary">
+                            Request This Service
+                        </a>
+                        <a href="{% url 'create_booking' %}?service={{ service.id }}" class="btn btn-outline-secondary">
+                            Book Directly (Legacy)
                         </a>
                     </div>
-                {% else %}
+                {% elif not user.is_authenticated %}
                     <p class="detail-login-message">
-                        <a href="{% url 'login' %}?next={{ request.path }}">Login to book this service</a>
+                        <a href="{% url 'login' %}?next={{ request.path }}">Login to request this service</a>
                     </p>
                 {% endif %}
             </div>

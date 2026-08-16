@@ -4,70 +4,138 @@
 <div class="card">
     <div class="booking-page__header">
         <div>
-            <p class="section-kicker">Jobs</p>
-            <h2>My Available Jobs</h2>
-            <p>All jobs assigned to you. Accept, work, and complete each job to earn.</p>
+            <p class="section-kicker">Jobs & Bookings</p>
+            <h2>My Available Jobs & Bookings</h2>
+            <p>All jobs and bookings assigned to you. Accept, work, and complete each job to earn.</p>
         </div>
     </div>
 
-    {% if jobs %}
-        <div class="service-list">
-            {% for job in jobs %}
-                <article class="service-list-item" style="border-left: 4px solid 
-                    {% if job.status == 'CONFIRMED' %}#0c63e4{% elif job.status == 'IN_PROGRESS' %}#f59e0b{% elif job.status == 'COMPLETED' %}#10b981{% else %}#6b7280{% endif %};
-                ">
-                    <div class="service-list-item__body">
-                        <h4>{{ job.title }}</h4>
-                        <p class="service-category">Customer: {{ job.customer.get_full_name|default:job.customer.username }}</p>
-                        <p><strong>Service:</strong> {{ job.service_request.service.name }}</p>
-                        <p><strong>Description:</strong> {{ job.description|truncatewords:15 }}</p>
-                        <p><strong>Location:</strong> {{ job.address }}</p>
-                        <p><strong>Scheduled:</strong> {{ job.scheduled_date }} at {{ job.scheduled_time_start|default:'TBD' }}</p>
-                        
-                        <!-- Status Badge -->
-                        <div style="margin-top: 12px;">
-                            <span style="
-                                display: inline-block;
-                                padding: 4px 12px;
-                                border-radius: 20px;
-                                font-size: 0.85rem;
-                                font-weight: 600;
-                                background: 
-                                    {% if job.status == 'CONFIRMED' %}#dbeafe{% elif job.status == 'IN_PROGRESS' %}#fef3c7{% elif job.status == 'COMPLETED' %}#d1fae5{% else %}#f3f4f6{% endif %};
-                                color:
-                                    {% if job.status == 'CONFIRMED' %}#0c63e4{% elif job.status == 'IN_PROGRESS' %}#d97706{% elif job.status == 'COMPLETED' %}#10b981{% else %}#4b5563{% endif %};
-                            ">
-                                {{ job.status|default:'CONFIRMED' }}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="service-list-item__price">
-                        <div style="text-align: right;">
-                            <strong style="font-size: 1.4rem; color: #0c63e4;">৳{{ job.final_price|floatformat:2 }}</strong>
-                            <p style="margin: 8px 0 0; color: #64748b; font-size: 0.85rem;">Proposed Price</p>
+    {% if jobs or bookings %}
+        <!-- BOOKINGS SECTION -->
+        {% if bookings %}
+        <div style="margin-bottom: 2rem;">
+            <h3 style="margin-bottom: 1rem; color: #0c63e4;">📋 Customer Bookings (Open Requests)</h3>
+            <div class="service-list">
+                {% for booking in bookings %}
+                    <article class="service-list-item" style="border-left: 4px solid 
+                        {% if booking.status == 'Pending' %}#f59e0b{% elif booking.status == 'Assigned' %}#0c63e4{% elif booking.status == 'In Progress' %}#f59e0b{% elif booking.status == 'Completed' %}#10b981{% else %}#6b7280{% endif %};
+                    ">
+                        <div class="service-list-item__body">
+                            <h4>{{ booking.service.name }}</h4>
+                            <p class="service-category">Customer: {{ booking.customer.get_full_name|default:booking.customer.username }}</p>
+                            <p><strong>Problem:</strong> {{ booking.problem_description|truncatewords:15 }}</p>
+                            <p><strong>Location:</strong> {{ booking.address }}</p>
+                            <p><strong>Scheduled:</strong> {{ booking.booking_date }} at {{ booking.booking_time }}</p>
+                            
+                            <!-- Status Badge -->
+                            <div style="margin-top: 12px;">
+                                <span style="
+                                    display: inline-block;
+                                    padding: 4px 12px;
+                                    border-radius: 20px;
+                                    font-size: 0.85rem;
+                                    font-weight: 600;
+                                    background: 
+                                        {% if booking.status == 'Pending' %}#fef3c7{% elif booking.status == 'Assigned' %}#dbeafe{% elif booking.status == 'In Progress' %}#fef3c7{% elif booking.status == 'Completed' %}#d1fae5{% else %}#f3f4f6{% endif %};
+                                    color:
+                                        {% if booking.status == 'Pending' %}#d97706{% elif booking.status == 'Assigned' %}#0c63e4{% elif booking.status == 'In Progress' %}#d97706{% elif booking.status == 'Completed' %}#10b981{% else %}#4b5563{% endif %};
+                                ">
+                                    {{ booking.status }}
+                                </span>
+                            </div>
                         </div>
                         
-                        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
-                            <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Details</a>
+                        <div class="service-list-item__price">
+                            <div style="text-align: right;">
+                                <p style="color: #64748b; font-size: 0.85rem;">ID: #{{ booking.id }}</p>
+                            </div>
                             
-                            {% if job.status == 'CONFIRMED' %}
-                                <a href="{% url 'job_detail' job.pk %}" class="btn btn-outline-secondary">Start Work</a>
-                            {% elif job.status == 'IN_PROGRESS' %}
-                                <a href="{% url 'job_complete' job.pk %}" class="btn btn-success">Mark Complete</a>
-                            {% elif job.status != 'COMPLETED' %}
-                                <a href="{% url 'cancel_job' job.pk %}" class="btn btn-outline-danger">Cancel</a>
-                            {% endif %}
-                            
-                            <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-secondary">💬 Message Customer</a>
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                                <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-primary">View Details</a>
+                                
+                                {% if booking.status == 'Pending' or booking.status == 'Assigned' %}
+                                    <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-outline-secondary">💬 Connect with Customer</a>
+                                    <a href="{% url 'respond_to_booking' booking.pk 'accept' %}" class="btn btn-success" style="background-color: #10b981;">✓ Accept Booking</a>
+                                    <a href="{% url 'respond_to_booking' booking.pk 'decline' %}" class="btn btn-outline-danger">✗ Decline Booking</a>
+                                {% elif booking.status == 'In Progress' %}
+                                    <a href="{% url 'update_status' booking.pk %}" class="btn btn-success">✓ Mark Complete</a>
+                                    <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-outline-secondary">💬 Message Customer</a>
+                                {% elif booking.status == 'Completed' %}
+                                    <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-outline-secondary">View Invoice</a>
+                                {% else %}
+                                    <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-outline-secondary">View Details</a>
+                                {% endif %}
+                            </div>
                         </div>
-                    </div>
-                </article>
-            {% endfor %}
+                    </article>
+                {% endfor %}
+            </div>
         </div>
+        {% endif %}
+
+        <!-- JOBS SECTION -->
+        {% if jobs %}
+        <div>
+            <h3 style="margin-bottom: 1rem; color: #0c63e4;">⭐ Accepted Jobs</h3>
+            <div class="service-list">
+                {% for job in jobs %}
+                    <article class="service-list-item" style="border-left: 4px solid 
+                        {% if job.status == 'CONFIRMED' %}#0c63e4{% elif job.status == 'IN_PROGRESS' %}#f59e0b{% elif job.status == 'COMPLETED' %}#10b981{% else %}#6b7280{% endif %};
+                    ">
+                        <div class="service-list-item__body">
+                            <h4>{{ job.title }}</h4>
+                            <p class="service-category">Customer: {{ job.customer.get_full_name|default:job.customer.username }}</p>
+                            <p><strong>Service:</strong> {{ job.service_request.service.name }}</p>
+                            <p><strong>Description:</strong> {{ job.description|truncatewords:15 }}</p>
+                            <p><strong>Location:</strong> {{ job.address }}</p>
+                            <p><strong>Scheduled:</strong> {{ job.scheduled_date }} at {{ job.scheduled_time_start|default:'TBD' }}</p>
+                            
+                            <!-- Status Badge -->
+                            <div style="margin-top: 12px;">
+                                <span style="
+                                    display: inline-block;
+                                    padding: 4px 12px;
+                                    border-radius: 20px;
+                                    font-size: 0.85rem;
+                                    font-weight: 600;
+                                    background: 
+                                        {% if job.status == 'CONFIRMED' %}#dbeafe{% elif job.status == 'IN_PROGRESS' %}#fef3c7{% elif job.status == 'COMPLETED' %}#d1fae5{% else %}#f3f4f6{% endif %};
+                                    color:
+                                        {% if job.status == 'CONFIRMED' %}#0c63e4{% elif job.status == 'IN_PROGRESS' %}#d97706{% elif job.status == 'COMPLETED' %}#10b981{% else %}#4b5563{% endif %};
+                                ">
+                                    {{ job.status|default:'CONFIRMED' }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="service-list-item__price">
+                            <div style="text-align: right;">
+                                <strong style="font-size: 1.4rem; color: #0c63e4;">৳{{ job.final_price|floatformat:2 }}</strong>
+                                <p style="margin: 8px 0 0; color: #64748b; font-size: 0.85rem;">Proposed Price</p>
+                            </div>
+                            
+                            <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+                                <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Details</a>
+                                
+                                {% if job.status == 'CONFIRMED' %}
+                                    <a href="{% url 'job_detail' job.pk %}" class="btn btn-outline-secondary">Start Work</a>
+                                {% elif job.status == 'IN_PROGRESS' %}
+                                    <a href="{% url 'job_complete' job.pk %}" class="btn btn-success">Mark Complete</a>
+                                {% elif job.status != 'COMPLETED' %}
+                                    <a href="{% url 'cancel_job' job.pk %}" class="btn btn-outline-danger">Cancel</a>
+                                {% endif %}
+                                
+                                <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-secondary">💬 Message Customer</a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     {% else %}
         <div style="text-align: center; padding: 3rem 1rem; background: #f8fbff; border-radius: 8px;">
-            <p style="font-size: 1.2rem; color: #64748b; margin-bottom: 1rem;">📭 No jobs assigned yet</p>
+            <p style="font-size: 1.2rem; color: #64748b; margin-bottom: 1rem;">📭 No jobs or bookings assigned yet</p>
             <p style="color: #94a3b8; margin-bottom: 1.5rem;">Check open customer requests to find work.</p>
             <a href="{% url 'service_request_list' %}" class="btn btn-primary">Browse Requests</a>
         </div>
@@ -75,22 +143,29 @@
 </div>
 
 <!-- Job Statistics -->
-{% if jobs %}
+{% if jobs or bookings %}
     <div class="card" style="margin-top: 2rem;">
-        <h3>Your Job Statistics</h3>
+        <h3>Your Statistics</h3>
         <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h4>Total Bookings</h4>
+                <p class="dashboard-number">{{ bookings|length }}</p>
+                <small>Pending & Active bookings</small>
+            </div>
             <div class="dashboard-card">
                 <h4>Total Jobs</h4>
                 <p class="dashboard-number">{{ jobs|length }}</p>
-                <small>All jobs assigned to you</small>
+                <small>All accepted jobs</small>
             </div>
             <div class="dashboard-card">
                 <h4>In Progress</h4>
                 <p class="dashboard-number">
+                    {% with pending=bookings|dictsort:"status"|slice:":1" %}
                     {% regroup jobs by status as status_groups %}
                     {% for status, group in status_groups %}
                         {% if status == 'IN_PROGRESS' %}{{ group|length }}{% endif %}
                     {% endfor %}
+                    {% endwith %}
                 </p>
                 <small>Currently working on</small>
             </div>
