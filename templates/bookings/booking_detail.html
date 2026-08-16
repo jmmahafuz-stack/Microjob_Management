@@ -1,183 +1,829 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="card">
-    <h2>Booking Details</h2>
-
-    <p><strong>Customer:</strong> {{ booking.customer.username }}</p>
-    <p><strong>Service:</strong> {{ booking.service.name }}</p>
-    <p><strong>Preferred worker:</strong> {{ booking.worker.username|default:'Not selected' }}</p>
-    <p><strong>Date:</strong> {{ booking.booking_date }}</p>
-    <p><strong>Time:</strong> {{ booking.booking_time }}</p>
-    <p><strong>Address:</strong> {{ booking.address }}</p>
-    <p><strong>Problem:</strong> {{ booking.problem_description }}</p>
-    <p><strong>Status:</strong> {{ booking.status }}</p>
-    <p><strong>Price:</strong> ৳{{ booking.service.price }}</p>
-
-    {% if booking_payment %}
-        <p><strong>Payment Status:</strong> {{ booking_payment.payment_status }}</p>
-        <p><strong>Payment Method:</strong> {{ booking_payment.payment_method }}</p>
-        {% if booking_payment.receipt %}
-            <p>
-                <strong>Receipt:</strong>
-                <a href="{{ booking_payment.receipt.url }}" target="_blank">Download</a>
-            </p>
-        {% endif %}
-    {% endif %}
-
-    {% if user.role == 'customer' and booking.customer == user %}
-        {% if booking.status == 'Pending' or booking.status == 'Confirmed' or booking.status == 'Assigned' %}
-            <p>
-                <a href="{% url 'edit_booking' booking.pk %}" class="btn btn-primary">
-                    Reschedule / Edit
-                </a>
-                <a href="{% url 'cancel_booking' booking.pk %}" class="btn btn-outline-primary">
-                    Cancel Booking
-                </a>
-            </p>
-        {% elif booking.status == 'Completed' %}
-            {% if booking_payment and booking_payment.payment_status == 'Verified' %}
-                <p><strong style="color: green;">✓ Payment verified and completed.</strong></p>
-            {% else %}
-                <p><strong>Service completed successfully!</strong></p>
-                <small class="text-muted">Note: Payment processing is handled through the job workflow. Please contact admin if you need to record payment for this booking.</small>
+<div class="booking-detail-container">
+    <!-- Status Notification Bar -->
+    {% if booking.status == 'Completed' and booking.worker %}
+    <div class="completion-notification">
+        <div class="completion-notification__content">
+            <div class="completion-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="completion-text">
+                <h3>✓ Work Completed!</h3>
+                <p>{{ booking.worker.get_full_name|default:booking.worker.username }} has completed the service. Review the details below and proceed with payment.</p>
+            </div>
+            {% if user.role == 'customer' and booking.customer == user %}
+            <a href="{% url 'payment_history' %}" class="btn btn-success btn-lg">
+                <i class="fas fa-credit-card"></i> Pay Now
+            </a>
             {% endif %}
-
-            <p>
-                <a href="{% url 'create_review' booking.pk %}" class="btn btn-outline-primary">
-                    Give Rating & Review
-                </a>
-            </p>
-        {% endif %}
+        </div>
+    </div>
     {% endif %}
 
-    {% if user.role == 'worker' and booking.worker == user %}
-        {% if booking.status == 'Pending' or booking.status == 'Assigned' %}
-            <div class="card mt-4 border-info">
-                <div class="card-header bg-info text-white">
-                    <h4 class="mb-0">📝 Respond to this Booking</h4>
+    <!-- Main Content Grid -->
+    <div class="booking-detail-grid">
+        <!-- Left Column -->
+        <div class="booking-detail-left">
+            <!-- Booking Info Card -->
+            <div class="info-card">
+                <div class="info-card__header">
+                    <h2>Booking Details</h2>
+                    <span class="status-badge status-badge--{{ booking.status|slugify }}">
+                        <i class="fas fa-{% if booking.status == 'Pending' %}clock{% elif booking.status == 'Confirmed' %}check{% elif booking.status == 'In Progress' %}hourglass-half{% elif booking.status == 'Completed' %}check-circle{% else %}times-circle{% endif %}"></i>
+                        {{ booking.status }}
+                    </span>
                 </div>
-                <div class="card-body">
-                    <p>Tell the customer if you can do this job, your availability, or any questions you have.</p>
-                    <form method="post">
-                        {% csrf_token %}
-                        <input type="hidden" name="worker_response" value="1">
-                        {{ response_form.as_p }}
-                        <button type="submit" class="btn btn-info">Send Response</button>
-                    </form>
+
+                <div class="info-grid">
+                    <!-- Service Info -->
+                    <div class="info-row">
+                        <div class="info-col">
+                            <label>Service</label>
+                            <p class="info-value">{{ booking.service.name }}</p>
+                        </div>
+                        <div class="info-col">
+                            <label>Price</label>
+                            <p class="info-value price">৳{{ booking.service.price }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Date & Time -->
+                    <div class="info-row">
+                        <div class="info-col">
+                            <label><i class="fas fa-calendar"></i> Date</label>
+                            <p class="info-value">{{ booking.booking_date|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="info-col">
+                            <label><i class="fas fa-clock"></i> Time</label>
+                            <p class="info-value">{{ booking.booking_time|time:"g:i A" }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="info-row full-width">
+                        <label><i class="fas fa-map-marker-alt"></i> Location</label>
+                        <p class="info-value">{{ booking.address }}</p>
+                    </div>
+
+                    <!-- Problem Description -->
+                    <div class="info-row full-width">
+                        <label><i class="fas fa-clipboard"></i> Problem Description</label>
+                        <p class="info-value">{{ booking.problem_description }}</p>
+                    </div>
+
+                    <!-- Customer Info -->
+                    <div class="info-row full-width">
+                        <label><i class="fas fa-user"></i> Customer</label>
+                        <p class="info-value">{{ booking.customer.get_full_name|default:booking.customer.username }}</p>
+                    </div>
                 </div>
             </div>
-        {% elif booking.status == 'Completed' %}
-            <p><strong>Service completed.</strong></p>
 
-            {% if booking_payment and booking_payment.worker_amount %}
-                <p>
-                    <strong>Worker earnings:</strong>
-                    ৳{{ booking_payment.worker_amount }}
-                </p>
-            {% else %}
-                <p>
-                    <strong>Worker earnings:</strong>
-                    ৳{{ booking.service.price }}
-                </p>
-            {% endif %}
-        {% endif %}
-    {% endif %}
-
-    {% if user.role == 'admin' %}
-        <form method="post" action="{% url 'assign_worker' booking.pk %}">
-            {% csrf_token %}
-            {{ assign_form.as_p }}
-            <button type="submit">Assign Worker</button>
-        </form>
-    {% endif %}
-
-    {% if user.role == 'admin' or user.role == 'worker' %}
-        <form method="post" action="{% url 'update_status' booking.pk %}">
-            {% csrf_token %}
-            {{ status_form.as_p }}
-            <button type="submit">Update Status</button>
-        </form>
-    {% endif %}
-
-    <h3>Messages</h3>
-
-    {% if booking_messages %}
-        <ul>
-            {% for message in booking_messages %}
-                <li>
-                    <strong>{{ message.sender.username }}:</strong>
-                    {{ message.message }}
-                </li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No messages yet.</p>
-    {% endif %}
-
-    <!-- Worker Responses Section -->
-    {% if worker_responses %}
-        <div class="card mt-4 border-warning">
-            <div class="card-header bg-warning text-dark">
-                <h4 class="mb-0">⭐ Worker Responses ({{ worker_responses|length }})</h4>
-            </div>
-            <div class="card-body">
-                {% for response in worker_responses %}
-                    <div class="border rounded p-3 mb-3" style="border-left: 4px solid {% if response.status == 'ACCEPTED' %}#28a745{% elif response.status == 'REJECTED' %}#dc3545{% elif response.status == 'IN_PROGRESS' %}#ffc107{% elif response.status == 'COMPLETED' %}#17a2b8{% else %}#6c757d{% endif %};">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h5>{{ response.get_status_display }}</h5>
-                                <p class="text-muted small mb-2">
-                                    From: <strong>{{ response.worker.get_full_name|default:response.worker.username }}</strong>
-                                    <br>
-                                    Date: <strong>{{ response.created_at|date:"M d, Y H:i" }}</strong>
-                                </p>
-                                <p><strong>Message:</strong></p>
-                                <p style="background: #f8f9fa; padding: 10px; border-radius: 5px;">
-                                    {{ response.message }}
-                                </p>
-                            </div>
-                            {% if user.role == 'customer' and booking.customer == user and not response.customer_accepted and response.status == 'ACCEPTED' %}
-                                <div>
-                                    <form method="post" action="{% url 'accept_worker_response' response.pk %}" style="display:inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-success">✓ Accept</button>
-                                    </form>
-                                    <form method="post" action="{% url 'reject_worker_response' response.pk %}" style="display:inline;">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-danger">✗ Reject</button>
-                                    </form>
-                                </div>
-                            {% elif response.customer_accepted %}
-                                <div>
-                                    <span class="badge bg-success">✓ Accepted by Customer</span>
-                                </div>
+            <!-- Worker Info Card -->
+            {% if booking.worker %}
+            <div class="info-card">
+                <div class="info-card__header">
+                    <h3>Assigned Worker</h3>
+                </div>
+                <div class="worker-info-section">
+                    <div class="worker-profile">
+                        <div class="worker-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="worker-details">
+                            <h4>{{ booking.worker.get_full_name|default:booking.worker.username }}</h4>
+                            <p class="worker-email">{{ booking.worker.email }}</p>
+                            {% if booking.worker.worker_profile.phone_number %}
+                            <p class="worker-phone"><i class="fas fa-phone"></i> {{ booking.worker.worker_profile.phone_number }}</p>
                             {% endif %}
                         </div>
                     </div>
-                {% endfor %}
+                </div>
             </div>
+            {% endif %}
+
+            <!-- Payment Info Card -->
+            {% if booking_payment %}
+            <div class="info-card">
+                <div class="info-card__header">
+                    <h3>Payment Information</h3>
+                </div>
+                <div class="payment-info">
+                    <div class="payment-row">
+                        <span>Amount:</span>
+                        <strong>৳{{ booking.service.price }}</strong>
+                    </div>
+                    <div class="payment-row">
+                        <span>Status:</span>
+                        <span class="payment-status payment-status--{{ booking_payment.payment_status|lower }}">
+                            {{ booking_payment.payment_status }}
+                        </span>
+                    </div>
+                    {% if booking_payment.payment_method %}
+                    <div class="payment-row">
+                        <span>Method:</span>
+                        <strong>{{ booking_payment.payment_method }}</strong>
+                    </div>
+                    {% endif %}
+                    {% if booking_payment.receipt %}
+                    <div class="payment-row">
+                        <span>Receipt:</span>
+                        <a href="{{ booking_payment.receipt.url }}" target="_blank" class="btn btn-sm btn-primary">
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
         </div>
-    {% elif user.role == 'customer' and booking.customer == user and booking.worker and (booking.status == 'Pending' or booking.status == 'Assigned') %}
-        <div class="alert alert-info mt-4">
-            <strong>💬 Waiting for worker response...</strong><br>
-            The assigned worker will respond with their status and availability.
+
+        <!-- Right Column -->
+        <div class="booking-detail-right">
+            <!-- Action Buttons -->
+            <div class="action-section">
+                <h3>Actions</h3>
+                <div class="action-buttons">
+                    {% if user.role == 'customer' and booking.customer == user %}
+                        {% if booking.status in 'Pending|Confirmed|Assigned' %}
+                            <a href="{% url 'edit_booking' booking.pk %}" class="btn btn-primary">
+                                <i class="fas fa-edit"></i> Reschedule
+                            </a>
+                            <a href="{% url 'cancel_booking' booking.pk %}" class="btn btn-danger" onclick="return confirm('Are you sure?');">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        {% elif booking.status == 'Completed' %}
+                            <a href="{% url 'payment_history' %}" class="btn btn-success">
+                                <i class="fas fa-credit-card"></i> Pay Now
+                            </a>
+                            <a href="{% url 'create_review' booking.pk %}" class="btn btn-info">
+                                <i class="fas fa-star"></i> Leave Review
+                            </a>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if user.role == 'worker' and booking.worker == user %}
+                        {% if booking.status in 'Pending|Assigned' %}
+                        <div class="worker-response-section">
+                            <h4>Respond to Booking</h4>
+                            <form method="post" class="response-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="worker_response" value="1">
+                                {{ response_form.as_p }}
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Send Response
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if user.role == 'admin' %}
+                        <div class="admin-section">
+                            <form method="post" action="{% url 'assign_worker' booking.pk %}" class="admin-form">
+                                {% csrf_token %}
+                                {{ assign_form.as_p }}
+                                <button type="submit" class="btn btn-primary">Assign Worker</button>
+                            </form>
+                            <form method="post" action="{% url 'update_status' booking.pk %}" class="admin-form">
+                                {% csrf_token %}
+                                {{ status_form.as_p }}
+                                <button type="submit" class="btn btn-primary">Update Status</button>
+                            </form>
+                        </div>
+                    {% endif %}
+
+                    <a href="{% url 'booking_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back
+                    </a>
+                </div>
+            </div>
+
+            <!-- Worker Responses -->
+            {% if worker_responses %}
+            <div class="worker-responses-section">
+                <h3>Worker Responses ({{ worker_responses|length }})</h3>
+                <div class="responses-list">
+                    {% for response in worker_responses %}
+                    <div class="response-card response-card--{{ response.status|lower }}">
+                        <div class="response-header">
+                            <span class="response-status">{{ response.get_status_display }}</span>
+                            <span class="response-date">{{ response.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="response-body">
+                            <p><strong>{{ response.worker.get_full_name|default:response.worker.username }}</strong></p>
+                            <p class="response-message">{{ response.message }}</p>
+                        </div>
+                        {% if user.role == 'customer' and booking.customer == user and not response.customer_accepted and response.status == 'ACCEPTED' %}
+                        <div class="response-actions">
+                            <form method="post" action="{% url 'accept_worker_response' response.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success">✓ Accept</button>
+                            </form>
+                            <form method="post" action="{% url 'reject_worker_response' response.pk %}" style="display:inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-danger">✗ Reject</button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
         </div>
-    {% endif %}
+    </div>
 
-    <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="send_message" value="1">
-        {{ message_form.as_p }}
-        <button type="submit" class="btn btn-primary">Send Message</button>
-    </form>
+    <!-- Messages Section -->
+    <div class="messages-section">
+        <h3>Messages & Communication</h3>
+        
+        {% if booking_messages %}
+        <div class="messages-list">
+            {% for message in booking_messages %}
+            <div class="message-item message-item--{{ message.sender.role }}">
+                <div class="message-avatar">
+                    {{ message.sender.get_full_name|first|upper }}
+                </div>
+                <div class="message-content">
+                    <div class="message-header">
+                        <strong>{{ message.sender.get_full_name|default:message.sender.username }}</strong>
+                        <span class="message-time">{{ message.created_at|date:"M d, Y g:i A" }}</span>
+                    </div>
+                    <p class="message-text">{{ message.message }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="no-messages">No messages yet. Start the conversation!</p>
+        {% endif %}
 
-    <p>
-        <a href="{% url 'invoice' booking.pk %}">View Invoice</a>
-    </p>
+        <!-- Send Message Form -->
+        <form method="post" class="send-message-form">
+            {% csrf_token %}
+            <input type="hidden" name="send_message" value="1">
+            <div class="message-input-group">
+                {{ message_form.as_p }}
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+            </div>
+        </form>
+    </div>
 
-    <p>
-        <a href="{% url 'booking_list' %}">Back to Booking List</a>
-    </p>
+    <!-- Invoice Link -->
+    <div class="invoice-section">
+        <a href="{% url 'invoice' booking.pk %}" class="btn btn-outline-primary">
+            <i class="fas fa-file-invoice"></i> View Invoice
+        </a>
+    </div>
 </div>
+
+<style>
+.booking-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+/* Completion Notification */
+.completion-notification {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border: 2px solid #16a34a;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
+}
+
+.completion-notification__content {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.completion-icon {
+    font-size: 2.5rem;
+    color: #16a34a;
+    flex-shrink: 0;
+}
+
+.completion-text h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #15803d;
+    margin: 0 0 0.5rem 0;
+}
+
+.completion-text p {
+    color: #166534;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+/* Detail Grid Layout */
+.booking-detail-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+/* Info Cards */
+.info-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.875rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.info-card:hover {
+    border-color: #d1d5db;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.info-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.info-card__header h2,
+.info-card__header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #111827;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.status-badge--pending {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.status-badge--confirmed,
+.status-badge--assigned {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.status-badge--in-progress {
+    background: #cffafe;
+    color: #0c4a6e;
+}
+
+.status-badge--completed {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.status-badge--cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Info Grid */
+.info-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.info-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.info-row.full-width {
+    grid-template-columns: 1fr;
+}
+
+.info-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-col label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6b7280;
+    margin-bottom: 0.4rem;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.info-value {
+    font-size: 0.95rem;
+    color: #374151;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.info-value.price {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+/* Worker Profile */
+.worker-profile {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.worker-avatar {
+    font-size: 3rem;
+    color: #2563eb;
+    flex-shrink: 0;
+}
+
+.worker-details h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.25rem 0;
+}
+
+.worker-email,
+.worker-phone {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0.25rem 0;
+}
+
+.worker-phone {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Payment Info */
+.payment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.payment-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.payment-row:last-child {
+    border-bottom: none;
+}
+
+.payment-status {
+    display: inline-block;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.payment-status--pending {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.payment-status--verified,
+.payment-status--completed {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.payment-status--failed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Right Column Sections */
+.action-section,
+.worker-responses-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.875rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.action-section h3,
+.worker-responses-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 1rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.action-buttons .btn {
+    width: 100%;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+/* Worker Response Cards */
+.responses-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.response-card {
+    border: 1px solid #e5e7eb;
+    border-left: 4px solid #d1d5db;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: #f9fafb;
+    transition: all 0.2s ease;
+}
+
+.response-card--accepted {
+    border-left-color: #10b981;
+    background: #ecfdf5;
+}
+
+.response-card--rejected {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+
+.response-card--in_progress {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+
+.response-card--completed {
+    border-left-color: #06b6d4;
+    background: #ecfdff;
+}
+
+.response-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.response-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.response-status {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #111827;
+}
+
+.response-date {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.response-body p {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: #374151;
+}
+
+.response-message {
+    padding: 0.75rem;
+    background: white;
+    border-radius: 0.4rem;
+    border-left: 3px solid #2563eb;
+}
+
+.response-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #d1d5db;
+}
+
+/* Messages Section */
+.messages-section {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.875rem;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.messages-section h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 1.5rem 0;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f3f4f6;
+}
+
+.messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.message-item {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    border-left: 3px solid #e5e7eb;
+}
+
+.message-item--customer {
+    border-left-color: #2563eb;
+    background: #eff6ff;
+}
+
+.message-item--worker {
+    border-left-color: #10b981;
+    background: #ecfdf5;
+}
+
+.message-avatar {
+    width: 40px;
+    height: 40px;
+    background: #2563eb;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.message-item--customer .message-avatar {
+    background: #2563eb;
+}
+
+.message-item--worker .message-avatar {
+    background: #10b981;
+}
+
+.message-content {
+    flex: 1;
+}
+
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.message-header strong {
+    font-size: 0.95rem;
+    color: #111827;
+}
+
+.message-time {
+    font-size: 0.8rem;
+    color: #9ca3af;
+}
+
+.message-text {
+    font-size: 0.9rem;
+    color: #374151;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.no-messages {
+    text-align: center;
+    color: #9ca3af;
+    padding: 1rem;
+    font-style: italic;
+}
+
+/* Send Message Form */
+.send-message-form {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #f3f4f6;
+}
+
+.message-input-group {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.message-input-group textarea {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    resize: vertical;
+    min-height: 80px;
+}
+
+.message-input-group .btn {
+    align-self: flex-end;
+    white-space: nowrap;
+}
+
+/* Invoice Section */
+.invoice-section {
+    text-align: center;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.875rem;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+    .booking-detail-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .booking-detail-container {
+        padding: 1rem 0.5rem;
+    }
+
+    .completion-notification__content {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .completion-notification__content .btn {
+        width: 100%;
+    }
+
+    .info-row {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons .btn {
+        justify-content: center;
+    }
+
+    .message-input-group {
+        flex-direction: column;
+    }
+
+    .message-input-group .btn {
+        align-self: stretch;
+        width: 100%;
+    }
+
+    .messages-list {
+        max-height: 300px;
+    }
+}
+</style>
 {% endblock %}

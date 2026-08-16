@@ -196,6 +196,11 @@ class Payment(models.Model):
         self.calculate_commission(self.commission_rate)
         self.save()
 
+        # Mark the job as completed when payment is verified
+        if self.job:
+            self.job.status = 'COMPLETED'
+            self.job.save()
+
         # Sync earnings from actual payment records (not manual updates)
         if self.job and self.job.worker:
             worker_profile = self.job.worker.worker_profile
@@ -211,6 +216,18 @@ class Payment(models.Model):
                 payment=self,
                 job=self.job,
                 related_user=self.job.customer,
+            )
+
+        # Also notify customer that job is now complete
+        if self.job and self.job.customer:
+            Notification.create_notification(
+                user=self.job.customer,
+                title=f"Job Complete: {self.job.title}",
+                message=f"Your job has been completed and payment verified. You can now view your history and leave a review.",
+                notification_type='JOB_COMPLETED',
+                payment=self,
+                job=self.job,
+                related_user=self.job.worker,
             )
 
         return True

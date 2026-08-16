@@ -3,7 +3,7 @@ from decimal import Decimal
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
 
-from accounts.decorators import customer_required, worker_required
+from accounts.decorators import admin_required, customer_required, worker_required
 from bookings.models import Job
 from notifications.models import Notification
 from .forms import CustomerPaymentForm, PaymentForm
@@ -248,5 +248,56 @@ def create_payout_request(request):
     return render(
         request,
         'payments/create_payout_request.html',
+        context
+    )
+
+
+@worker_required
+def worker_earnings_history(request):
+    """Show worker's earnings history from completed jobs."""
+
+    payments = (
+        Payment.objects
+        .filter(job__worker=request.user, payment_status='Verified')
+        .select_related('job', 'job__customer')
+        .order_by('-payment_date')
+    )
+
+    worker_profile = request.user.worker_profile
+    earnings_breakdown = worker_profile.sync_earnings_from_payments()
+
+    context = {
+        'payments': payments,
+        'total_earned': earnings_breakdown['total_earned'],
+        'pending_earnings': earnings_breakdown['pending'],
+        'available_earnings': earnings_breakdown['available'],
+        'withdrawn_earnings': earnings_breakdown['withdrawn'],
+    }
+
+    return render(
+        request,
+        'payments/worker_earnings_history.html',
+        context
+    )
+
+
+@admin_required
+def admin_transaction_history(request):
+    """Show admin transaction history for all platform transactions."""
+
+    payments = (
+        Payment.objects
+        .all()
+        .select_related('job', 'job__customer', 'job__worker')
+        .order_by('-payment_date')
+    )
+
+    context = {
+        'payments': payments,
+    }
+
+    return render(
+        request,
+        'dashboard/admin_transaction_history.html',
         context
     )

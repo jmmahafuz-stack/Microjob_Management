@@ -4,84 +4,700 @@
 {% block title %}Service Requests{% endblock %}
 
 {% block content %}
-<div class="container" style="margin-top: 100px; margin-bottom: 50px;">
-    <div class="row">
-        <div class="col-md-12">
-            <h1 style="margin-bottom: 30px;">Service Requests</h1>
-            
+<div class="container">
+    <!-- Header Section -->
+    <div class="request-page-header">
+        <div class="header-content">
+            <div>
+                <p class="section-kicker">REQUEST MANAGEMENT</p>
+                <h1>Service Requests</h1>
+                <p class="header-subtitle">Browse and manage service requests from customers and workers</p>
+            </div>
             {% if user.role == 'customer' %}
-                <div class="mb-3">
-                    <a href="{% url 'service_request_create' %}" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Create New Request
-                    </a>
-                </div>
+            <div class="header-buttons">
+                <a href="{% url 'service_request_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Request
+                </a>
+            </div>
             {% endif %}
-            
-            {% if service_requests %}
-                <div class="table-responsive">
-                    <table class="table table-hover">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Title</th>
-                                <th>Status</th>
-                                <th>Budget</th>
-                                <th>Date</th>
-                                <th>Applications</th>
-                                <th>Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for request in service_requests %}
-                                <tr>
-                                    <td>
-                                        <strong>{{ request.title }}</strong>
-                                        {% if request.service %}
-                                            <br><small class="text-muted">{{ request.service.name }}</small>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-{% if request.status == 'OPEN' %}info{% elif request.status == 'ASSIGNED' %}success{% elif request.status == 'COMPLETED' %}secondary{% else %}warning{% endif %}">
-                                            {{ request.get_status_display }}
-                                        </span>
-                                    </td>
-                                    <td>
+        </div>
+
+        {% if service_requests %}
+        <!-- Stats Row -->
+        <div class="request-stats-grid">
+            {% with open_count=service_requests|length %}
+                <div class="stat-box">
+                    <div class="stat-box__icon" style="background: #dbeafe; color: #2563eb;">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div>
+                        <p class="stat-box__label">Total Requests</p>
+                        <p class="stat-box__value">{{ service_requests|length }}</p>
+                    </div>
+                </div>
+            {% endwith %}
+            <div class="stat-box">
+                <div class="stat-box__icon" style="background: #cffafe; color: #0c4a6e;">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div>
+                    <p class="stat-box__label">Active</p>
+                    <p class="stat-box__value">{{ service_requests|length }}</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box__icon" style="background: #fef3c7; color: #d97706;">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <p class="stat-box__label">Applications</p>
+                    <p class="stat-box__value">{{ service_requests|length }}</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Filter Section -->
+    {% if service_requests %}
+    <div class="request-filters">
+        <div class="filter-group">
+            <input type="text" id="searchInput" placeholder="Search by title, service, or description..." class="filter-input">
+            <i class="fas fa-search filter-icon"></i>
+        </div>
+        <div class="filter-tags">
+            <button class="filter-tag active" data-filter="all">All Requests</button>
+            <button class="filter-tag" data-filter="open">Open</button>
+            <button class="filter-tag" data-filter="assigned">Assigned</button>
+            <button class="filter-tag" data-filter="in-progress">In Progress</button>
+            <button class="filter-tag" data-filter="completed">Completed</button>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if service_requests %}
+        <div class="request-list">
+            {% for request in service_requests %}
+                <article class="request-card" data-status="{{ request.status|lower }}">
+                    <!-- Card Header -->
+                    <div class="request-card__header">
+                        <div class="request-card__title-section">
+                            <div>
+                                <p class="request-card__label">Request</p>
+                                <h3 class="request-card__title">{{ request.title }}</h3>
+                                {% if request.service %}
+                                <p class="request-card__service">
+                                    <i class="fas fa-tag"></i> {{ request.service.name }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <span class="request-status-badge request-status-badge--{{ request.status|slugify|lower }}">
+                                <i class="fas fa-{% if request.status == 'OPEN' %}unlock{% elif request.status == 'ASSIGNED' %}check{% elif request.status == 'COMPLETED' %}check-circle{% else %}hourglass-half{% endif %}"></i>
+                                {{ request.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Card Body with 2-column layout -->
+                    <div class="request-card__body">
+                        <div class="request-card__left">
+                            <!-- Description -->
+                            <div class="request-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-align-left"></i> Description
+                                    </label>
+                                    <p class="info-value">{{ request.description|truncatewords:30|default:"No description provided" }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Budget -->
+                            <div class="request-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-money-bill-wave"></i> Budget
+                                    </label>
+                                    <p class="info-value budget-value">
                                         {% if request.budget_min and request.budget_max %}
                                             Rs. {{ request.budget_min }} - {{ request.budget_max }}
                                         {% elif request.budget_max %}
                                             up to Rs. {{ request.budget_max }}
                                         {% else %}
-                                            Not specified
+                                            <em>Not specified</em>
                                         {% endif %}
-                                    </td>
-                                    <td>
-                                        {{ request.preferred_date|date:"M d, Y" }}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-secondary">{{ request.application_count }}</span>
-                                    </td>
-                                    <td>
-                                        <a href="{% url 'service_request_detail' request.id %}" class="btn btn-sm btn-outline-primary">
-                                            View
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            {% else %}
-                <div class="alert alert-info">
-                    {% if user.role == 'customer' %}
-                        <p>You haven't created any service requests yet.</p>
-                        <a href="{% url 'service_request_create' %}" class="btn btn-primary">Create Your First Request</a>
-                    {% elif user.role == 'worker' %}
-                        <p>No open service requests at the moment.</p>
-                    {% else %}
-                        <p>No service requests available.</p>
-                    {% endif %}
-                </div>
-            {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="request-card__right">
+                            <!-- Date -->
+                            <div class="request-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-calendar"></i> Preferred Date
+                                    </label>
+                                    <p class="info-value">{{ request.preferred_date|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Applications -->
+                            <div class="request-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-users"></i> Applications
+                                    </label>
+                                    <p class="info-value apps-badge">
+                                        <span class="badge-count">{{ request.application_count|default:0 }}</span>
+                                        <span class="badge-text">{% if request.application_count == 1 %}Application{% else %}Applications{% endif %}</span>
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Posted Date -->
+                            <div class="request-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-history"></i> Posted On
+                                    </label>
+                                    <p class="info-value">{{ request.created_at|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card Footer with Actions -->
+                    <div class="request-card__footer">
+                        <div class="action-buttons">
+                            <a href="{% url 'service_request_detail' request.id %}" class="btn btn-primary btn-action-primary">
+                                <i class="fas fa-eye"></i> View Details
+                            </a>
+                            {% if user.role == 'customer' and request.status != 'COMPLETED' %}
+                                <a href="{% url 'service_request_detail' request.id %}" class="btn btn-secondary btn-action-secondary">
+                                    <i class="fas fa-edit"></i> Manage
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
         </div>
-    </div>
+    {% else %}
+        <div class="empty-state-container">
+            <div class="empty-state">
+                <div class="empty-state__icon">
+                    <i class="fas fa-inbox"></i>
+                </div>
+                <h3>No Service Requests</h3>
+                {% if user.role == 'customer' %}
+                    <p>You haven't created any service requests yet. Create your first request to find available workers!</p>
+                    <div class="empty-state__actions">
+                        <a href="{% url 'service_request_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create Request
+                        </a>
+                        <a href="{% url 'service_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-search"></i> Browse Services
+                        </a>
+                    </div>
+                {% elif user.role == 'worker' %}
+                    <p>No open service requests at the moment. Check back later for new opportunities!</p>
+                    <div class="empty-state__actions">
+                        <a href="{% url 'dashboard_home' %}" class="btn btn-primary">
+                            <i class="fas fa-home"></i> Back to Dashboard
+                        </a>
+                    </div>
+                {% else %}
+                    <p>No service requests available at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
 </div>
+
+<style>
+.request-page-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.header-content h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0.5rem 0 0.5rem 0;
+}
+
+.header-subtitle {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.section-kicker {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.header-buttons {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.request-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.stat-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-box__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-box__label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin: 0 0 0.25rem 0;
+    font-weight: 500;
+}
+
+.stat-box__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.request-filters {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.filter-group {
+    position: relative;
+}
+
+.filter-input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    border: 2px solid #e5e7eb;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.filter-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.filter-tags {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.filter-tag {
+    padding: 0.5rem 1rem;
+    border: 2px solid #e5e7eb;
+    background: white;
+    border-radius: 2rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    color: #6b7280;
+}
+
+.filter-tag:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+}
+
+.filter-tag.active {
+    background: #2563eb;
+    color: white;
+    border-color: #2563eb;
+}
+
+.request-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.request-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.875rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.request-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    transform: translateY(-2px);
+}
+
+.request-card__header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.request-card__title-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.request-card__label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin: 0 0 0.25rem 0;
+    letter-spacing: 0.05em;
+}
+
+.request-card__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.request-card__service {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0.5rem 0 0 0;
+}
+
+.request-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.request-status-badge--open {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.request-status-badge--assigned {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.request-status-badge--in-progress {
+    background: #cffafe;
+    color: #0c4a6e;
+}
+
+.request-status-badge--completed {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.request-card__body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.request-info-group {
+    margin-bottom: 1.25rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.05em;
+}
+
+.info-value {
+    font-size: 0.95rem;
+    color: #374151;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.budget-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+.apps-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+}
+
+.badge-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #dbeafe;
+    color: #1e40af;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.badge-text {
+    color: #6b7280;
+}
+
+.request-card__footer {
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.btn-action-primary {
+    flex: 1;
+    min-width: 150px;
+    padding: 0.75rem 1.5rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.btn-action-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-action-secondary {
+    padding: 0.75rem 1.5rem !important;
+    font-size: 0.9rem !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.5rem;
+    border: 2px solid #2563eb !important;
+}
+
+.empty-state-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 500px;
+    padding: 2rem;
+}
+
+.empty-state {
+    text-align: center;
+    max-width: 400px;
+}
+
+.empty-state__icon {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+    color: #6b7280;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.6;
+}
+
+.empty-state__actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .header-buttons {
+        width: 100%;
+    }
+
+    .header-buttons .btn {
+        width: 100%;
+    }
+
+    .request-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .request-card__body {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .request-card__title-section {
+        flex-direction: column;
+    }
+
+    .request-status-badge {
+        align-self: flex-start;
+    }
+
+    .filter-tags {
+        flex-wrap: wrap;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .btn-action-primary,
+    .btn-action-secondary {
+        width: 100% !important;
+        text-align: center;
+    }
+
+    .request-card {
+        padding: 1rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const filterTags = document.querySelectorAll('.filter-tag');
+    const searchInput = document.getElementById('searchInput');
+    const requestCards = document.querySelectorAll('.request-card');
+
+    function filterRequests() {
+        const activeFilter = document.querySelector('.filter-tag.active').dataset.filter;
+        const searchTerm = searchInput.value.toLowerCase();
+
+        requestCards.forEach(card => {
+            const status = card.dataset.status;
+            const text = card.textContent.toLowerCase();
+            
+            let statusMatch = activeFilter === 'all' || status.includes(activeFilter);
+            let searchMatch = text.includes(searchTerm);
+
+            if (statusMatch && searchMatch) {
+                card.style.display = '';
+                card.style.animation = 'fadeIn 0.3s ease';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    filterTags.forEach(tag => {
+        tag.addEventListener('click', function() {
+            filterTags.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            filterRequests();
+        });
+    });
+
+    if (searchInput) {
+        searchInput.addEventListener('input', filterRequests);
+    }
+});
+
+// Add fadeIn animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
+</script>
 {% endblock %}
