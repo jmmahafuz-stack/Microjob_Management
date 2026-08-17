@@ -1,21 +1,15 @@
 {% extends 'base.html' %}
-
+{% block title %}Edit Profile — MJMS{% endblock %}
 {% block content %}
-
-<h2>Edit Profile</h2>
-
-{% include 'partials/messages.html' %}
-
-<form method="POST" enctype="multipart/form-data">
-
-    {% csrf_token %}
-
-    {{ form.as_p }}
-
-    <button type="submit">
-        Save Changes
-    </button>
-
-</form>
-
+<div class="card">
+    <p class="section-kicker">Account</p>
+    <h1>Edit Profile</h1>
+    <p>Keep your contact information up to date.</p>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'profile' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}

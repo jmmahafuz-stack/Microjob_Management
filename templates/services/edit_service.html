@@ -1,19 +1,15 @@
 {% extends 'base.html' %}
-
+{% block title %}Edit Service — MJMS{% endblock %}
 {% block content %}
-
-<h2>Edit Service</h2>
-
-<form method="POST" enctype="multipart/form-data">
-
-    {% csrf_token %}
-
-    {{ form.as_p }}
-
-    <button type="submit">
-        Update Service
-    </button>
-
-</form>
-
+<div class="card">
+    <div class="booking-page__header">
+        <div><p class="section-kicker">Service Management</p><h1>Edit Service</h1><p>Update {{ service.name }}.</p></div>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Update Service</button>
+        <a href="{% url 'service_detail' service.pk %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}

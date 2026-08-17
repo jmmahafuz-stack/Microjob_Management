@@ -1,116 +1,43 @@
-<nav class="top-nav">
-    <a href="{% url 'home' %}" style="font-size: 1.3rem; font-weight: 700; margin-right: auto;">
-        MJMS
-    </a>
+<nav class="top-nav" aria-label="Primary navigation">
+    <div class="nav-inner">
+        <a href="{% url 'home' %}" class="brand">
+            <span class="brand-mark"><i class="fa-solid fa-handshake"></i></span>
+            <span>MJMS</span>
+        </a>
 
-    <a href="{% url 'home' %}">Home</a>
-    <a href="{% url 'service_list' %}">Services</a>
-    <a href="{% url 'about' %}">About</a>
-    <a href="{% url 'contact' %}">Contact</a>
+        <button class="nav-toggle" type="button" data-mobile-menu aria-label="Open navigation" aria-expanded="false">
+            <i class="fa-solid fa-bars"></i>
+        </button>
 
-    {% if user.is_authenticated %}
-        {% if user.role == 'admin' %}
-            <a href="{% url 'dashboard_home' %}">Dashboard</a>
-            <a href="{% url 'admin:index' %}">Admin</a>
+        <div class="nav-menu" data-nav-menu>
+            <div class="nav-links">
+                <a href="{% url 'home' %}"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="{% url 'service_list' %}"><i class="fa-solid fa-layer-group"></i> Services</a>
+                <a href="{% url 'about' %}"><i class="fa-solid fa-circle-info"></i> About</a>
+                <a href="{% url 'contact' %}"><i class="fa-solid fa-envelope"></i> Contact</a>
 
-        {% elif user.role == 'worker' %}
-            <!-- Worker Navigation -->
-            <a href="{% url 'worker_dashboard' %}">Dashboard</a>
-            <a href="{% url 'worker_my_jobs' %}">My Jobs</a>
-            <a href="{% url 'service_request_list' %}">Open Requests</a>
-            <a href="{% url 'payout_request_list' %}">Earnings</a>
-        {% else %}
-            <!-- Customer Navigation -->
-            <a href="{% url 'service_request_list' %}">My Bookings</a>
-            <a href="{% url 'payment_history' %}">Payments</a>
-        {% endif %}
+                {% if user.is_authenticated %}
+                    {% if user.role == 'admin' %}
+                        <a href="{% url 'dashboard_home' %}"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                        <a href="{% url 'admin:index' %}"><i class="fa-solid fa-shield-halved"></i> Admin</a>
+                    {% elif user.role == 'worker' %}
+                        <a href="{% url 'worker_dashboard' %}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                        <a href="{% url 'worker_my_jobs' %}"><i class="fa-solid fa-briefcase"></i> My Jobs</a>
+                        <a href="{% url 'service_request_list' %}"><i class="fa-solid fa-inbox"></i> Open Requests</a>
+                        <a href="{% url 'payout_request_list' %}"><i class="fa-solid fa-wallet"></i> Earnings</a>
+                    {% else %}
+                        <a href="{% url 'booking_list' %}"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
+                        <a href="{% url 'service_request_list' %}"><i class="fa-solid fa-list-check"></i> My Requests</a>
+                        <a href="{% url 'payment_history' %}"><i class="fa-solid fa-credit-card"></i> Payments</a>
+                    {% endif %}
 
-        <a href="{% url 'profile' %}">Profile</a>
-        <a href="{% url 'logout' %}">Logout</a>
-
-    {% else %}
-        <a href="{% url 'login' %}">Login</a>
-        <a href="{% url 'register' %}">Register</a>
-    {% endif %}
+                    <a href="{% url 'profile' %}"><i class="fa-solid fa-user"></i> Profile</a>
+                    <a href="{% url 'logout' %}" class="nav-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+                    <a href="{% url 'register' %}" class="nav-cta"><i class="fa-solid fa-user-plus"></i> Get Started</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 </nav>
-
-<style>
-    .nav-dropdown {
-        position: relative;
-        display: inline-block;
-    }
-
-    .nav-dropdown-toggle {
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-    }
-
-    .nav-dropdown-menu {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        background: var(--primary-dark, #0f172a);
-        min-width: 220px;
-        flex-direction: column;
-        gap: 0;
-        padding: 0.75rem 0;
-        border-radius: 6px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        z-index: 1000;
-        margin-top: 0.5rem;
-    }
-
-    .nav-dropdown:hover .nav-dropdown-menu {
-        display: flex;
-    }
-
-    .nav-dropdown-menu a {
-        padding: 0.75rem 1.25rem;
-        color: white;
-        text-decoration: none;
-        font-weight: 400;
-        font-size: 0.9rem;
-        border: none;
-        transition: all 0.2s ease;
-        display: block;
-        white-space: nowrap;
-    }
-
-    .nav-dropdown-menu a:hover {
-        background: rgba(255, 255, 255, 0.1);
-        padding-left: 1.5rem;
-        color: #e0e7ff;
-    }
-
-    .nav-dropdown-menu a:first-child {
-        border-radius: 6px 6px 0 0;
-    }
-
-    .nav-dropdown-menu a:last-child {
-        border-radius: 0 0 6px 6px;
-    }
-
-    @media (max-width: 768px) {
-        .nav-dropdown-menu {
-            position: static;
-            display: none;
-            background: rgba(0, 0, 0, 0.2);
-            min-width: auto;
-            padding: 0;
-            margin: 0;
-            box-shadow: none;
-        }
-
-        .nav-dropdown:hover .nav-dropdown-menu {
-            display: flex;
-        }
-
-        .nav-dropdown-menu a {
-            padding: 0.5rem 1rem;
-            font-size: 0.85rem;
-        }
-    }
-</style>

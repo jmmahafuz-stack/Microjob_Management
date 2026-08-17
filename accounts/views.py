@@ -1,192 +1,138 @@
-# Create your views here.
-from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import login, logout, update_session_auth_hash, authenticate
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
+from django.shortcuts import redirect, render
 
-from .models import CustomUser
 from .forms import (
-    RegisterForm,
+    CustomPasswordChangeForm,
     LoginForm,
     ProfileUpdateForm,
-    CustomPasswordChangeForm
+    RegisterForm,
 )
+from .models import CustomUser
 
 
 def _redirect_for_role(request):
-    if request.user.role == 'admin':
-        return redirect('dashboard_home')
-    if request.user.role == 'worker':
-        return redirect('worker_dashboard')
-    return redirect('home')
+    """Return the canonical landing page for the authenticated user's role."""
+    role_urls = {
+        "admin": "dashboard_home",
+        "worker": "worker_dashboard",
+        "customer": "home",
+    }
+    return redirect(role_urls.get(request.user.role, "home"))
 
 
 def register_view(request):
+    """Create a customer or worker account and send the user to login."""
     if request.user.is_authenticated:
         return _redirect_for_role(request)
 
-    if request.method == 'POST':
-        form = RegisterForm(request.POST, request.FILES)
+    form = RegisterForm(request.POST or None, request.FILES or None)
 
-        if form.is_valid():
-            form.save()
-            role_label = 'worker' if form.cleaned_data.get('role') == 'worker' else 'customer'
-            messages.success(request, f'{role_label.title()} account created successfully. Please login.')
-            return redirect('login')
-
-    else:
-        form = RegisterForm()
-
-    return render(request, 'accounts/register.html', {'form': form})
-
-
-def _ensure_demo_accounts():
-    """Create the known working demo accounts if they do not already exist."""
-    demo_users = [
-        ('admin', 'admin', 'Admin12345!'),
-        ('customer', 'customer', 'Customer12345!'),
-        ('worker', 'worker', 'Worker12345!'),
-        ('admin', 'testadmin', 'admin123'),
-        ('customer', 'testcustomer', 'password123'),
-        ('worker', 'testworker', 'password123'),
-    ]
-
-    for role, username, password in demo_users:
-        user, created = CustomUser.objects.get_or_create(
-            username=username,
-            defaults={
-                'role': role,
-                'email': f'{username}@example.com',
-                'is_staff': role == 'admin',
-                'is_superuser': role == 'admin',
-                'is_active': True,
-                'worker_status': 'APPROVED' if role == 'worker' else None,
-                'customer_status': 'ACTIVE' if role == 'customer' else None,
-            },
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        role_label = user.get_role_display()
+        messages.success(
+            request,
+            f"{role_label} account created successfully. Please log in.",
         )
-        if created or user.role != role:
-            user.role = role
-            user.email = user.email or f'{username}@example.com'
-            user.is_staff = role == 'admin'
-            user.is_superuser = role == 'admin'
-            user.is_active = True
-            if role == 'worker':
-                user.worker_status = 'APPROVED'
-            elif role == 'customer':
-                user.customer_status = 'ACTIVE'
-        user.set_password(password)
-        user.save()
+        return redirect("login")
+
+    return render(request, "accounts/register.html", {"form": form})
 
 
 def login_view(request):
+    """
+    Authenticate one browser/device session.
+
+    Django stores the authenticated user in the current browser's session.
+    A login from another phone/PC therefore does not replace this session.
+    """
     if request.user.is_authenticated:
         return _redirect_for_role(request)
 
-    _ensure_demo_accounts()
     form = LoginForm(request, data=request.POST or None)
 
-    if request.method == 'POST':
-        username_or_email = request.POST.get('username', '').strip()
-        password = request.POST.get('password', '')
+    if request.method == "POST" and form.is_valid():
+        user = form.get_user()
 
-        user = None
-        if username_or_email:
-            user = CustomUser.objects.filter(username__iexact=username_or_email).first()
-            if user is None:
-                user = CustomUser.objects.filter(email__iexact=username_or_email).first()
-            if user is not None:
-                username = user.username
-            else:
-                username = username_or_email
-            user = authenticate(request, username=username, password=password)
+        # Reject blocked accounts before creating an authenticated session.
+        if getattr(user, "is_blocked", False):
+            messages.error(request, "Your account is blocked. Please contact support.")
+            return render(request, "accounts/login.html", {"form": form})
 
-        if user is not None:
-            if user.role == 'admin':
-                user.is_staff = True
-                user.is_superuser = True
-                user.save(update_fields=['is_staff', 'is_superuser'])
-            else:
-                user.is_staff = False
-                user.is_superuser = False
-                user.save(update_fields=['is_staff', 'is_superuser'])
+        # Workers must be approved before they can enter the worker area.
+        if user.role == "worker" and user.worker_status != "APPROVED":
+            messages.warning(
+                request,
+                "Your worker account is waiting for admin approval.",
+            )
+            return render(request, "accounts/login.html", {"form": form})
 
-            if user.role == 'worker' and user.worker_status != 'APPROVED':
-                login(request, user)
-                messages.error(request, 'Your worker account is pending admin approval. You will be able to take service requests after approval.')
-                return redirect('home')
+        # Keep role/staff flags consistent with the CustomUser model.
+        if user.role == "admin":
+            user.is_staff = True
+            user.is_superuser = True
+            user.save(update_fields=["is_staff", "is_superuser"])
+        elif user.is_staff or user.is_superuser:
+            user.is_staff = False
+            user.is_superuser = False
+            user.save(update_fields=["is_staff", "is_superuser"])
 
-            if getattr(user, 'is_blocked', False):
-                login(request, user)
-                messages.error(request, 'Your worker account is blocked. Please contact support.')
-                return redirect('home')
+        # Django rotates the current session key when logging in.
+        # This affects only the browser/device making this request.
+        login(request, user)
+        messages.success(request, f"Welcome {user.first_name or user.username}!")
+        return _redirect_for_role(request)
 
-            login(request, user)
-            messages.success(request, f'Welcome {user.first_name or user.username}!')
-
-            if user.role == 'worker':
-                return redirect('worker_dashboard')
-            if user.role == 'admin':
-                return redirect('dashboard_home')
-            return redirect('home')
-
-        messages.error(request, 'Invalid username/email or password.')
-        return render(request, 'accounts/login.html', {'form': form})
-
-    return render(request, 'accounts/login.html', {'form': form})
+    return render(request, "accounts/login.html", {"form": form})
 
 
 @login_required
 def logout_view(request):
+    """Log out only the current browser/device session."""
     logout(request)
-    messages.success(request, 'Logged out successfully.')
-    return redirect('login')
+    messages.success(request, "Logged out successfully.")
+    return redirect("login")
 
 
 @login_required
 def profile_view(request):
-    if request.user.role == 'worker':
+    if request.user.role == "worker":
         from workers.models import WorkerProfile
+
         WorkerProfile.objects.get_or_create(user=request.user)
-    return render(request, 'accounts/profile.html')
+    return render(request, "accounts/profile.html")
 
 
 @login_required
 def edit_profile(request):
-    if request.method == 'POST':
-        form = ProfileUpdateForm(
-            request.POST,
-            request.FILES,
-            instance=request.user
-        )
+    form = ProfileUpdateForm(
+        request.POST or None,
+        request.FILES or None,
+        instance=request.user,
+    )
 
-        if form.is_valid():
-            form.save()
-            messages.success(request, 'Profile updated successfully.')
-            return redirect('profile')
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        messages.success(request, "Profile updated successfully.")
+        return redirect("profile")
 
-    else:
-        form = ProfileUpdateForm(instance=request.user)
-
-    return render(request, 'accounts/edit_profile.html', {'form': form})
+    return render(request, "accounts/edit_profile.html", {"form": form})
 
 
 @login_required
 def change_password(request):
-    if request.method == 'POST':
-        form = CustomPasswordChangeForm(request.user, request.POST)
+    form = CustomPasswordChangeForm(request.user, request.POST or None)
 
-        if form.is_valid():
-            user = form.save()
-            update_session_auth_hash(request, user)
-
-            messages.success(request, 'Password changed successfully.')
-            return redirect('profile')
-
-    else:
-        form = CustomPasswordChangeForm(request.user)
+    if request.method == "POST" and form.is_valid():
+        user = form.save()
+        update_session_auth_hash(request, user)
+        messages.success(request, "Password changed successfully.")
+        return redirect("profile")
 
     return render(
         request,
-        'accounts/change_password.html',
-        {'form': form}
+        "accounts/change_password.html",
+        {"form": form},
     )

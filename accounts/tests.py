@@ -81,9 +81,8 @@ class AuthenticationRoleTests(TestCase):
             follow=True,
         )
 
-        self.assertContains(response, 'pending verification')
+        self.assertContains(response, 'waiting for admin approval')
         self.assertNotIn('_auth_user_id', self.client.session)
-        self.assertTrue(CustomUser.objects.get(pk=worker_user.pk).is_authenticated)
 
     def test_verified_worker_is_redirected_to_worker_dashboard(self):
         worker_user = CustomUser.objects.create_user(
@@ -102,3 +101,48 @@ class AuthenticationRoleTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Dashboard')
         self.assertIn('_auth_user_id', self.client.session)
+
+    def test_customer_and_worker_can_stay_logged_in_on_separate_clients(self):
+        """A PC and a phone/browser must keep independent Django sessions."""
+        customer = CustomUser.objects.create_user(
+            username="sessioncustomer",
+            password="StrongPassword123",
+            role="customer",
+            customer_status="ACTIVE",
+        )
+        worker = CustomUser.objects.create_user(
+            username="sessionworker",
+            password="StrongPassword123",
+            role="worker",
+            worker_status="APPROVED",
+        )
+
+        from django.test import Client
+
+        pc = Client()
+        phone = Client()
+
+        self.assertTrue(pc.login(
+            username=customer.username,
+            password="StrongPassword123",
+        ))
+        self.assertTrue(phone.login(
+            username=worker.username,
+            password="StrongPassword123",
+        ))
+
+        self.assertEqual(
+            int(pc.session["_auth_user_id"]),
+            customer.pk,
+        )
+        self.assertEqual(
+            int(phone.session["_auth_user_id"]),
+            worker.pk,
+        )
+
+        # Logging out on the phone must not affect the PC session.
+        phone.logout()
+        self.assertEqual(
+            int(pc.session["_auth_user_id"]),
+            customer.pk,
+        )

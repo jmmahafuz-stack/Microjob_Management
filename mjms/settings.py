@@ -25,16 +25,25 @@ SECRET_KEY = 'django-insecure-t7v@s+ebxcay=3eo*ei2#etovn50poou8t)rumc^d@9ss#tm3@
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]', 'testserver', 'localhost:8000', '*.localhost', '*']
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:8000',
-    'http://127.0.0.1:8000',
-    'http://0.0.0.0:8000',
-    'http://[::1]:8000',
-]
-CSRF_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_SAMESITE = 'Lax'
+# Local-network development configuration.
+# Replace 192.168.0.196 if your PC receives a different LAN IP.
+ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1"]
 
+CSRF_TRUSTED_ORIGINS = [
+    "http://192.168.0.196:8000",
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+]
+
+# Explicit database-backed sessions keep authentication state independent
+# for each browser/device. These values are for HTTP/LAN development only.
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
+SESSION_COOKIE_NAME = "mjms_sessionid"
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_NAME = "mjms_csrftoken"
+CSRF_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SECURE = False
 
 # Application definition
 
@@ -73,7 +82,7 @@ ROOT_URLCONF = 'mjms.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR,"templates"],
+        'DIRS': [BASE_DIR / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

@@ -1,17 +1,19 @@
 {% extends 'base.html' %}
 
-{% block content %}
+{% block title %}MJMS — Find Trusted Local Professionals{% endblock %}
 
+{% block content %}
 <div class="container">
-    <!-- Hero Section with Search -->
     <section class="hero-section">
         <div class="hero-content">
-            <h1>Welcome to MJMS</h1>
-            <p>Connect with trusted, verified professionals for all your home maintenance needs</p>
+            <span class="auth-badge" style="background:rgba(255,255,255,.12);color:#dbeafe;border:1px solid rgba(255,255,255,.14);">
+                <i class="fa-solid fa-circle-check"></i> Trusted local service marketplace
+            </span>
+            <h1>Find the right professional for every job.</h1>
+            <p>Discover skilled workers, compare services, request jobs, track progress and manage payments — all from one simple platform.</p>
 
-            <!-- Quick Category Tags -->
             <div class="quick-categories">
-                <span class="category-label">Popular Categories:</span>
+                <span class="category-label">Popular services</span>
                 <div class="category-tags">
                     <a href="{% url 'service_list' %}?q=Plumbing" class="category-tag">🔧 Plumbing</a>
                     <a href="{% url 'service_list' %}?q=Electrical" class="category-tag">⚡ Electrical</a>
@@ -21,120 +23,67 @@
                 </div>
             </div>
 
-            <!-- CTA Buttons -->
             <div class="hero-cta">
-                <a href="{% url 'service_list' %}" class="btn btn-primary btn-lg">
-                    <i class="fas fa-search"></i> Browse Services
-                </a>
-
+                <a href="{% url 'service_list' %}" class="btn btn-primary btn-lg"><i class="fa-solid fa-magnifying-glass"></i> Browse Services</a>
                 {% if user.is_authenticated %}
                     {% if user.role == 'admin' %}
-                        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-tachometer-alt"></i> Go to Dashboard
-                        </a>
+                        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-primary btn-lg"><i class="fa-solid fa-chart-line"></i> Open Dashboard</a>
                     {% elif user.role == 'worker' %}
-                        <a href="{% url 'worker_dashboard' %}" class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-briefcase"></i> Go to My Jobs
-                        </a>
+                        <a href="{% url 'worker_dashboard' %}" class="btn btn-outline-primary btn-lg"><i class="fa-solid fa-briefcase"></i> My Workspace</a>
                     {% else %}
-                        <a href="{% url 'booking_list' %}" class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-calendar-check"></i> My Bookings
-                        </a>
+                        <a href="{% url 'booking_list' %}" class="btn btn-outline-primary btn-lg"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
                     {% endif %}
                 {% else %}
-                    <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg">
-                        <i class="fas fa-rocket"></i> Get Started
-                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg"><i class="fa-solid fa-user-plus"></i> Create Account</a>
                 {% endif %}
             </div>
         </div>
     </section>
 
-    <!-- Features Section -->
     <section class="features-section">
         <div class="section-header">
-            <h2>Why Choose MJMS?</h2>
-            <p>Your trusted platform for home services</p>
+            <span class="auth-badge"><i class="fa-solid fa-sparkles"></i> Built for real-world work</span>
+            <h2>Everything you need to get the job done</h2>
+            <p>MJMS brings customers, verified workers and job management into one connected workflow.</p>
         </div>
-
         <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">✓</div>
+            <article class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-user-shield"></i></div>
                 <h3>Verified Workers</h3>
-                <p>All professionals are thoroughly vetted and company-trained for quality assurance</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">🔒</div>
-                <h3>Secure Payments</h3>
-                <p>Safe and encrypted payment processing with multiple payment options</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">⭐</div>
-                <h3>Ratings & Reviews</h3>
-                <p>Transparent feedback system to help you make informed decisions</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">💬</div>
-                <h3>24/7 Support</h3>
-                <p>Round-the-clock customer support to assist with any issues</p>
-            </div>
+                <p>Worker approval and professional profiles help customers choose with confidence.</p>
+            </article>
+            <article class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <h3>Easy Booking</h3>
+                <p>Create requests, follow job status and keep booking information organized.</p>
+            </article>
+            <article class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-wallet"></i></div>
+                <h3>Payment Tracking</h3>
+                <p>Keep payments, invoices, earnings and payout requests in one place.</p>
+            </article>
+            <article class="feature-card">
+                <div class="feature-icon"><i class="fa-solid fa-star"></i></div>
+                <h3>Reviews & Support</h3>
+                <p>Ratings, complaints and notifications keep every interaction transparent.</p>
+            </article>
         </div>
     </section>
 
-    <!-- Services Preview -->
     <section class="services-preview">
         <div class="section-header">
-            <h2>Our Services</h2>
-            <p>Find skilled professionals for various home maintenance tasks</p>
+            <h2>Popular service categories</h2>
+            <p>Start with a category and find the right professional for your needs.</p>
         </div>
-
         <div class="services-preview-grid">
-            <a href="{% url 'service_list' %}?q=Plumbing" class="service-preview-card">
-                <div class="service-preview-icon">🔧</div>
-                <h4>Plumbing</h4>
-                <p>Repairs & installations</p>
-            </a>
-
-            <a href="{% url 'service_list' %}?q=Electrical" class="service-preview-card">
-                <div class="service-preview-icon">⚡</div>
-                <h4>Electrical</h4>
-                <p>Wiring & maintenance</p>
-            </a>
-
-            <a href="{% url 'service_list' %}?q=Carpentry" class="service-preview-card">
-                <div class="service-preview-icon">🪵</div>
-                <h4>Carpentry</h4>
-                <p>Furniture & doors</p>
-            </a>
-
-            <a href="{% url 'service_list' %}?q=Painting" class="service-preview-card">
-                <div class="service-preview-icon">🎨</div>
-                <h4>Painting</h4>
-                <p>Interior & exterior</p>
-            </a>
-
-            <a href="{% url 'service_list' %}?q=Cleaning" class="service-preview-card">
-                <div class="service-preview-icon">🧹</div>
-                <h4>Cleaning</h4>
-                <p>House & deep cleaning</p>
-            </a>
-
-            <a href="{% url 'service_list' %}?q=HVAC" class="service-preview-card">
-                <div class="service-preview-icon">❄️</div>
-                <h4>HVAC</h4>
-                <p>AC & heating systems</p>
-            </a>
+            <a href="{% url 'service_list' %}?q=Plumbing" class="service-preview-card"><div class="service-preview-icon">🔧</div><h4>Plumbing</h4><p>Repairs & installations</p></a>
+            <a href="{% url 'service_list' %}?q=Electrical" class="service-preview-card"><div class="service-preview-icon">⚡</div><h4>Electrical</h4><p>Wiring & maintenance</p></a>
+            <a href="{% url 'service_list' %}?q=Carpentry" class="service-preview-card"><div class="service-preview-icon">🪵</div><h4>Carpentry</h4><p>Furniture & doors</p></a>
+            <a href="{% url 'service_list' %}?q=Painting" class="service-preview-card"><div class="service-preview-icon">🎨</div><h4>Painting</h4><p>Interior & exterior</p></a>
+            <a href="{% url 'service_list' %}?q=Cleaning" class="service-preview-card"><div class="service-preview-icon">🧹</div><h4>Cleaning</h4><p>House & deep cleaning</p></a>
+            <a href="{% url 'service_list' %}?q=HVAC" class="service-preview-card"><div class="service-preview-icon">❄️</div><h4>HVAC</h4><p>AC & heating systems</p></a>
         </div>
-
-        <div class="services-preview-footer">
-            <a href="{% url 'service_list' %}" class="btn btn-primary">
-                View All Services
-            </a>
-        </div>
+        <div class="services-preview-footer"><a href="{% url 'service_list' %}" class="btn btn-primary">Explore All Services <i class="fa-solid fa-arrow-right"></i></a></div>
     </section>
 </div>
-
 {% endblock %}

@@ -1,86 +1,56 @@
 {% load static %}
-
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#163a56">
+    <meta name="description" content="MJMS - trusted local services, bookings, workers and payments.">
+    <title>{% block title %}MJMS — Micro Job Management System{% endblock %}</title>
 
-<title>MJMS - Micro Job Management System</title>
-
-<link rel="stylesheet" href="{% static 'css/professional.css' %}">
-<link rel="stylesheet" href="{% static 'css/style.css' %}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet" href="{% static 'css/professional.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mjms-overrides.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
 </head>
-
 <body>
-    {% if request.resolver_match.url_name != 'login' %}
-        {% include 'navbar.html' %}
-    {% endif %}
+    {% include 'navbar.html' %}
 
-    <main>
+    <main class="site-main">
         {% include 'partials/messages.html' %}
-
-        {% block content %}
-        {% endblock %}
+        {% block content %}{% endblock %}
     </main>
 
-    {% if request.resolver_match.url_name != 'login' %}
-        {% include 'footer.html' %}
-    {% endif %}
+    {% include 'footer.html' %}
 
     <script>
-        // Password visibility toggle functionality
-        document.addEventListener('DOMContentLoaded', function() {
-            const togglePasswordVisibility = function(input) {
-                if (input.type === 'password') {
-                    input.type = 'text';
-                } else {
-                    input.type = 'password';
-                }
-            };
+        document.addEventListener("DOMContentLoaded", function () {
+            const menuButton = document.querySelector("[data-mobile-menu]");
+            const menu = document.querySelector("[data-nav-menu]");
 
-            // Add toggle buttons to all password inputs
-            const passwordInputs = document.querySelectorAll('input[type="password"]');
-
-            passwordInputs.forEach(function(input) {
-                // Wrap the input in a password-field-wrapper if not already wrapped
-                if (!input.parentElement.classList.contains('password-field-wrapper')) {
-                    const wrapper = document.createElement('div');
-                    wrapper.className = 'password-field-wrapper';
-                    input.parentNode.insertBefore(wrapper, input);
-                    wrapper.appendChild(input);
-                }
-
-                // Create and add toggle button
-                const toggleBtn = document.createElement('button');
-
-                toggleBtn.type = 'button';
-                toggleBtn.className = 'password-toggle-btn hide';
-                toggleBtn.setAttribute(
-                    'aria-label',
-                    'Toggle password visibility'
-                );
-
-                toggleBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-
-                    togglePasswordVisibility(input);
-
-                    // Toggle button class
-                    if (input.type === 'text') {
-                        toggleBtn.classList.remove('hide');
-                        toggleBtn.classList.add('show');
-                    } else {
-                        toggleBtn.classList.remove('show');
-                        toggleBtn.classList.add('hide');
-                    }
+            if (menuButton && menu) {
+                menuButton.addEventListener("click", function () {
+                    const open = menu.classList.toggle("is-open");
+                    menuButton.setAttribute("aria-expanded", String(open));
                 });
+            }
 
-                input.parentNode.appendChild(toggleBtn);
+            document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    const input = document.getElementById(button.dataset.passwordToggle);
+                    if (!input) return;
+                    const visible = input.type === "text";
+                    input.type = visible ? "password" : "text";
+                    button.innerHTML = visible
+                        ? '<i class="fa-solid fa-eye"></i>'
+                        : '<i class="fa-solid fa-eye-slash"></i>';
+                    button.setAttribute("aria-label", visible ? "Show password" : "Hide password");
+                });
             });
         });
     </script>
+    {% block extra_js %}{% endblock %}
 </body>
-
 </html>

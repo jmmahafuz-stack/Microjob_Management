@@ -1,12 +1,15 @@
 {% extends 'base.html' %}
-
+{% block title %}Write Review — MJMS{% endblock %}
 {% block content %}
-<h2>Review</h2>
-
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Submit Review</button>
-</form>
-
+<div class="card">
+    <p class="section-kicker">Customer Experience</p>
+    <h1>Review Your Service</h1>
+    <p>Share your experience with {{ booking.worker.get_full_name|default:booking.worker.username }}.</p>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Submit Review</button>
+        <a href="{% url 'review_history' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
 {% endblock %}

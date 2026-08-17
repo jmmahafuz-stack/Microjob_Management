@@ -1,58 +1,69 @@
 {% extends 'base.html' %}
+{% block title %}Sign In — MJMS{% endblock %}
 
 {% block content %}
-<div class="facebook-login-container">
-    <!-- Left side: Branding -->
-    <div class="facebook-login-left">
-        <div class="facebook-branding">
-            <h1 class="facebook-logo">MJMS</h1>
-            <p class="facebook-tagline">Connect with trusted services</p>
-        </div>
-        <div class="facebook-features">
-            <div class="feature">
-                <span class="feature-icon">✓</span>
-                <p>Find skilled workers nearby</p>
-            </div>
-            <div class="feature">
-                <span class="feature-icon">✓</span>
-                <p>Book services instantly</p>
-            </div>
-            <div class="feature">
-                <span class="feature-icon">✓</span>
-                <p>Secure & verified professionals</p>
-            </div>
-            <div class="feature">
-                <span class="feature-icon">✓</span>
-                <p>24/7 customer support</p>
-            </div>
+<section class="auth-page">
+    <div class="auth-hero">
+        <span class="auth-badge"><i class="fa-solid fa-shield-halved"></i> Trusted service marketplace</span>
+        <h1>Welcome back to MJMS</h1>
+        <p>Sign in to manage bookings, jobs, payments and your professional profile.</p>
+        <div class="auth-benefits">
+            <div><i class="fa-solid fa-circle-check"></i><span>Verified local professionals</span></div>
+            <div><i class="fa-solid fa-circle-check"></i><span>Simple booking workflow</span></div>
+            <div><i class="fa-solid fa-circle-check"></i><span>Secure account sessions</span></div>
         </div>
     </div>
 
-    <!-- Right side: Login Form -->
-    <div class="facebook-login-right">
-        <div class="facebook-form-card">
-            {% include 'partials/messages.html' %}
+    <div class="auth-card auth-card--login">
+        <div class="auth-card__header">
+            <span class="section-kicker">Account access</span>
+            <h2>Sign in</h2>
+            <p>Use your username or email address.</p>
+        </div>
 
-            <form method="POST" class="facebook-form">
-                {% csrf_token %}
+        {% include 'partials/messages.html' %}
 
-                <div class="form-group">
-                    {{ form.username }}
-                    {{ form.username.errors }}
+        {% if form.non_field_errors %}
+            <div class="form-error-summary">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+
+            <div class="form-group">
+                {{ form.username.label_tag }}
+                {{ form.username }}
+                {{ form.username.errors }}
+            </div>
+
+            <div class="form-group">
+                <div class="form-label-row">
+                    {{ form.password.label_tag }}
                 </div>
-
-                <div class="form-group">
+                <div class="password-wrapper">
                     {{ form.password }}
-                    {{ form.password.errors }}
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-password-toggle="id_password"
+                        aria-label="Show password">
+                        <i class="fa-solid fa-eye"></i>
+                    </button>
                 </div>
+                {{ form.password.errors }}
+            </div>
 
-                <button type="submit" class="facebook-login-btn">Log In</button>
-            </form>
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In
+            </button>
+        </form>
 
-            <div class="facebook-divider">or</div>
-
-            <a href="{% url 'register' %}" class="facebook-signup-btn">Create New Account</a>
-        </div>
+        <div class="auth-divider"><span>New to MJMS?</span></div>
+        <a href="{% url 'register' %}" class="btn btn-secondary btn-block">
+            <i class="fa-solid fa-user-plus"></i> Create an Account
+        </a>
     </div>
-</div>
+</section>
 {% endblock %}

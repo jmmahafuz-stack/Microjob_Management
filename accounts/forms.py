@@ -130,15 +130,17 @@ class LoginForm(AuthenticationForm):
     username = forms.CharField(
         max_length=150,
         widget=forms.TextInput(attrs={
-            'class': 'facebook-input',
-            'placeholder': 'Email or username'
-        })
+            "class": "facebook-input",
+            "placeholder": "Email or username",
+            "autocomplete": "username",
+        }),
     )
     password = forms.CharField(
         widget=forms.PasswordInput(attrs={
-            'class': 'facebook-input',
-            'placeholder': 'Password'
-        })
+            "class": "facebook-input",
+            "placeholder": "Password",
+            "autocomplete": "current-password",
+        }),
     )
 
 
