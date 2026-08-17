@@ -1,5 +1,4 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -11,7 +10,8 @@ from .forms import ServiceForm
 
 
 def ensure_sample_services():
-    """Populate the service catalog with a few realistic examples when the database is empty."""
+    """Populate the service catalog with realistic examples when the database is empty."""
+
     if Service.objects.exists():
         return
 
@@ -64,36 +64,45 @@ def _get_related_workers(service):
         user__worker_status='APPROVED',
         service_category__icontains=service.category,
     )
+
     skill_matches = WorkerProfile.objects.filter(
         user__role='worker',
         user__worker_status='APPROVED',
         skills__icontains=service.category,
     )
+
     direct_matches = WorkerProfile.objects.filter(
         user__role='worker',
         user__worker_status='APPROVED',
         service=service,
     )
 
-    combined = (category_matches | skill_matches | direct_matches).distinct().select_related('user')[:4]
+    combined = (
+        category_matches |
+        skill_matches |
+        direct_matches
+    ).distinct().select_related('user')[:4]
+
     return combined
 
 
 def service_list(request):
     ensure_sample_services()
+
     search_query = request.GET.get('q', '').strip()
     category = request.GET.get('category', '')
     location = request.GET.get('location', '')
-    min_price = request.GET.get('min_price', '')
-    max_price = request.GET.get('max_price', '')
     min_rating = request.GET.get('min_rating', '')
     sort = request.GET.get('sort', '')
 
-    services = Service.objects.filter(is_available=True).annotate(
+    services = Service.objects.filter(
+        is_available=True
+    ).annotate(
         avg_rating=Avg('bookings__reviews__rating'),
         booking_count=Count('bookings')
     )
 
+    # Search
     if search_query:
         services = services.filter(
             Q(name__icontains=search_query) |
@@ -102,42 +111,69 @@ def service_list(request):
             Q(location__icontains=search_query)
         )
 
+    # Category filter
     if category:
-        services = services.filter(category=category)
+        services = services.filter(
+            category=category
+        )
 
+    # Location filter
     if location:
-        services = services.filter(location__icontains=location)
+        services = services.filter(
+            location__icontains=location
+        )
 
-    if min_price:
-        services = services.filter(price__gte=min_price)
-
-    if max_price:
-        services = services.filter(price__lte=max_price)
-
+    # Rating filter
     if min_rating:
-        services = services.filter(avg_rating__gte=min_rating)
+        services = services.filter(
+            avg_rating__gte=min_rating
+        )
 
-    if sort == 'price_asc':
-        services = services.order_by('price')
-    elif sort == 'price_desc':
-        services = services.order_by('-price')
-    elif sort == 'rating_desc':
+    # Sorting
+    if sort == 'rating_desc':
         services = services.order_by('-avg_rating')
+
     elif sort == 'popular':
         services = services.order_by('-booking_count')
-    else:
-        services = services.order_by('-featured', '-avg_rating', 'name')
 
-    categories = [choice[0] for choice in Service.SERVICE_CHOICES]
-    locations = Service.objects.filter(location__isnull=False).values_list('location', flat=True).distinct()
+    else:
+        services = services.order_by(
+            '-featured',
+            '-avg_rating',
+            'name'
+        )
+
+    categories = [
+        choice[0]
+        for choice in Service.SERVICE_CHOICES
+    ]
+
+    locations = (
+        Service.objects
+        .filter(location__isnull=False)
+        .values_list('location', flat=True)
+        .distinct()
+    )
+
     rating_options = [5, 4, 3, 2, 1]
 
     services = list(services)
+
+    # Find available workers for every service
     for service in services:
         service.related_workers = _get_related_workers(service)
 
-    featured_services = [service for service in services if service.featured][:4]
-    popular_services = sorted(services, key=lambda service: service.booking_count, reverse=True)[:4]
+    featured_services = [
+        service
+        for service in services
+        if service.featured
+    ][:4]
+
+    popular_services = sorted(
+        services,
+        key=lambda service: service.booking_count,
+        reverse=True
+    )[:4]
 
     return render(
         request,
@@ -146,14 +182,15 @@ def service_list(request):
             'services': services,
             'featured_services': featured_services,
             'popular_services': popular_services,
+
             'categories': categories,
             'locations': locations,
             'rating_options': rating_options,
+
             'search_query': search_query,
             'selected_category': category,
             'selected_location': location,
-            'min_price': min_price,
-            'max_price': max_price,
+
             'min_rating': min_rating,
             'sort': sort,
         }
@@ -161,8 +198,15 @@ def service_list(request):
 
 
 def service_detail(request, pk):
-    service = get_object_or_404(Service, pk=pk)
-    verified_workers = _get_related_workers(service)
+    service = get_object_or_404(
+        Service,
+        pk=pk
+    )
+
+    verified_workers = _get_related_workers(
+        service
+    )
+
     service.related_workers = verified_workers
 
     return render(
@@ -187,7 +231,10 @@ def create_service(request):
 
         if form.is_valid():
             form.save()
-            return redirect('service_list')
+
+            return redirect(
+                'service_list'
+            )
 
     else:
         form = ServiceForm()
@@ -195,14 +242,19 @@ def create_service(request):
     return render(
         request,
         'services/create_service.html',
-        {'form': form}
+        {
+            'form': form
+        }
     )
 
 
 @admin_required
 def edit_service(request, pk):
 
-    service = get_object_or_404(Service, pk=pk)
+    service = get_object_or_404(
+        Service,
+        pk=pk
+    )
 
     if request.method == 'POST':
 
@@ -214,10 +266,16 @@ def edit_service(request, pk):
 
         if form.is_valid():
             form.save()
-            return redirect('service_detail', pk=pk)
+
+            return redirect(
+                'service_detail',
+                pk=pk
+            )
 
     else:
-        form = ServiceForm(instance=service)
+        form = ServiceForm(
+            instance=service
+        )
 
     return render(
         request,
@@ -231,15 +289,29 @@ def edit_service(request, pk):
 
 @admin_required
 def delete_service(request, pk):
-    service = get_object_or_404(Service, pk=pk)
+
+    service = get_object_or_404(
+        Service,
+        pk=pk
+    )
 
     if request.method == 'POST':
+
         service.delete()
-        messages.success(request, 'Service deleted successfully.')
-        return redirect('service_list')
+
+        messages.success(
+            request,
+            'Service deleted successfully.'
+        )
+
+        return redirect(
+            'service_list'
+        )
 
     return render(
         request,
         'services/delete_service.html',
-        {'service': service}
+        {
+            'service': service
+        }
     )
