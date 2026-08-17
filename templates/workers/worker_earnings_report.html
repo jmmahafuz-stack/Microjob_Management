@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Worker Earnings Report</h2>
+    <p><strong>Period:</strong> {{ report_label }}</p>
+    <p><strong>From:</strong> {{ start_date }}</p>
+    <p><strong>Total Earnings:</strong> ৳{{ total_earnings|default:'0.00' }}</p>
+
+    <div style="margin: 20px 0; display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+        <a href="{% url 'worker_earnings_report' %}?period={{ period }}&download=pdf"
+           style="background: linear-gradient(135deg, #7c3aed, #2563eb); color: white; border: none; border-radius: 12px; padding: 12px 20px; font-weight: 700; text-decoration: none; box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25); display: inline-block;">
+            Download PDF
+        </a>
+        <a href="{% url 'worker_earnings_report' %}?period={{ period }}&download=excel"
+           style="background: linear-gradient(135deg, #0f766e, #14b8a6); color: white; border: none; border-radius: 12px; padding: 12px 18px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 16px rgba(20, 184, 166, 0.22); display: inline-block;">
+            Excel
+        </a>
+        <a href="{% url 'worker_earnings_report' %}?period={{ period }}&download=csv"
+           style="background: linear-gradient(135deg, #334155, #475569); color: white; border: none; border-radius: 12px; padding: 12px 18px; font-weight: 600; text-decoration: none; box-shadow: 0 8px 16px rgba(51, 65, 85, 0.22); display: inline-block;">
+            CSV
+        </a>
+        <a href="{% url 'worker_dashboard' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    {% if job_entries %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Customer</th>
+                    <th>Service</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in job_entries %}
+                <tr>
+                    <td>{{ entry.date }}</td>
+                    <td>{{ entry.customer }}</td>
+                    <td>{{ entry.service_title }}</td>
+                    <td>৳{{ entry.amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No completed jobs in this period yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

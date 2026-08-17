@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Admin Management</p>
+            <h2>User Management</h2>
+        </div>
+        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <form method="get" class="filter-form" style="margin-bottom: 20px;">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <select name="role" class="form-control" style="max-width:200px;">
+                <option value="all" {% if role_selected == 'all' %}selected{% endif %}>All users</option>
+                <option value="customer" {% if role_selected == 'customer' %}selected{% endif %}>Customers</option>
+                <option value="worker" {% if role_selected == 'worker' %}selected{% endif %}>Workers</option>
+                <option value="admin" {% if role_selected == 'admin' %}selected{% endif %}>Admins</option>
+            </select>
+            <input type="text" name="search" value="{{ search_query }}" placeholder="Search by name or email" class="form-control" style="max-width:280px;" />
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th>Block / Approval</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>
+                        <strong>{{ user.get_full_name|default:user.username }}</strong><br>
+                        <small>{{ user.email }}</small>
+                    </td>
+                    <td>{{ user.role|title }}</td>
+                    <td>
+                        {% if user.role == 'worker' %}
+                            {{ user.worker_status|default:'PENDING' }}
+                        {% elif user.role == 'customer' %}
+                            {{ user.customer_status|default:'ACTIVE' }}
+                        {% else %}
+                            Admin
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if user.role == 'worker' %}
+                            {% if user.worker_status == 'PENDING' %}
+                                <form method="post" action="{% url 'admin_user_action' user.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="approve_worker" />
+                                    <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                </form>
+                                <form method="post" action="{% url 'admin_user_action' user.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="reject_worker" />
+                                    <button type="submit" class="btn btn-warning btn-sm">Reject</button>
+                                </form>
+                            {% elif user.worker_status == 'APPROVED' %}
+                                <form method="post" action="{% url 'admin_user_action' user.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="block_worker" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Block</button>
+                                </form>
+                            {% elif user.worker_status == 'BLOCKED' %}
+                                <form method="post" action="{% url 'admin_user_action' user.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="unblock_worker" />
+                                    <button type="submit" class="btn btn-success btn-sm">Unblock</button>
+                                </form>
+                            {% else %}
+                                <span class="badge">{{ user.worker_status }}</span>
+                            {% endif %}
+                        {% elif user.role == 'customer' %}
+                            {% if user.customer_status == 'ACTIVE' %}
+                                <form method="post" action="{% url 'admin_user_action' user.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="block_customer" />
+                                    <button type="submit" class="btn btn-danger btn-sm">Block Customer</button>
+                                </form>
+                            {% else %}
+                                <form method="post" action="{% url 'admin_user_action' user.pk %}" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="action" value="unblock_customer" />
+                                    <button type="submit" class="btn btn-success btn-sm">Unblock Customer</button>
+                                </form>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

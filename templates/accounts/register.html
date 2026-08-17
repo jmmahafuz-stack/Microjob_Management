@@ -1,0 +1,350 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="auth-shell">
+    <div class="auth-card">
+        <div class="auth-card__header">
+            <h2>Create your account</h2>
+            <p>Pick a role and get started in a few simple steps.</p>
+        </div>
+
+        {% include 'partials/messages.html' %}
+
+        <form method="POST" enctype="multipart/form-data" class="auth-form">
+            {% csrf_token %}
+
+            <div class="form-grid">
+
+                <!-- Role -->
+                <div class="form-group form-group--full">
+                    {{ form.role.label_tag }}
+                    {{ form.role }}
+                    {{ form.role.errors }}
+                </div>
+
+                <!-- First Name -->
+                <div class="form-group">
+                    {{ form.first_name.label_tag }}
+                    {{ form.first_name }}
+                    {{ form.first_name.errors }}
+                </div>
+
+                <!-- Last Name -->
+                <div class="form-group">
+                    {{ form.last_name.label_tag }}
+                    {{ form.last_name }}
+                    {{ form.last_name.errors }}
+                </div>
+
+                <!-- Username -->
+                <div class="form-group">
+                    {{ form.username.label_tag }}
+                    {{ form.username }}
+                    {{ form.username.errors }}
+                </div>
+
+                <!-- Email -->
+                <div class="form-group">
+                    {{ form.email.label_tag }}
+                    {{ form.email }}
+                    {{ form.email.errors }}
+                </div>
+
+                <!-- Phone -->
+                <div class="form-group">
+                    {{ form.phone.label_tag }}
+                    {{ form.phone }}
+                    {{ form.phone.errors }}
+                </div>
+
+                <!-- Address -->
+                <div class="form-group form-group--full">
+                    {{ form.address.label_tag }}
+                    {{ form.address }}
+                    {{ form.address.errors }}
+                </div>
+
+                <!-- Preferred Contact Method -->
+                <div class="form-group">
+                    {{ form.preferred_contact_method.label_tag }}
+                    {{ form.preferred_contact_method }}
+                    {{ form.preferred_contact_method.errors }}
+                </div>
+
+                <!-- Receive Notifications -->
+                <div class="form-group notification-group">
+                    <label class="notification-label">
+                        {{ form.receive_notifications }}
+                        <span>{{ form.receive_notifications.label }}</span>
+                    </label>
+                    {{ form.receive_notifications.errors }}
+                </div>
+
+                <!-- Profile Picture -->
+                <div class="form-group">
+                    {{ form.profile_picture.label_tag }}
+                    {{ form.profile_picture }}
+                    {{ form.profile_picture.errors }}
+                </div>
+
+                <!-- Password -->
+                <div class="form-group form-group--full">
+                    {{ form.password1.label_tag }}
+
+                    <div class="password-wrapper">
+                        {{ form.password1 }}
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            onclick="togglePassword('id_password1', this)"
+                            aria-label="Show password">
+                            👁
+                        </button>
+                    </div>
+
+                    {{ form.password1.errors }}
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="form-group form-group--full">
+                    {{ form.password2.label_tag }}
+
+                    <div class="password-wrapper">
+                        {{ form.password2 }}
+                        <button
+                            type="button"
+                            class="password-toggle"
+                            onclick="togglePassword('id_password2', this)"
+                            aria-label="Show password">
+                            👁
+                        </button>
+                    </div>
+
+                    {{ form.password2.errors }}
+                </div>
+
+                <!-- Worker Fields -->
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_service.label_tag }}
+                    {{ form.worker_service }}
+                    {{ form.worker_service.errors }}
+                </div>
+
+                <div class="form-group form-group--full worker-field" data-worker-field>
+                    {{ form.worker_service_category.label_tag }}
+                    {{ form.worker_service_category }}
+                    {{ form.worker_service_category.errors }}
+                </div>
+
+                <div class="form-group form-group--full worker-field" data-worker-field>
+                    {{ form.worker_skills.label_tag }}
+                    {{ form.worker_skills }}
+                    {{ form.worker_skills.errors }}
+                </div>
+
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_experience.label_tag }}
+                    {{ form.worker_experience }}
+                    {{ form.worker_experience.errors }}
+                </div>
+
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_service_area.label_tag }}
+                    {{ form.worker_service_area }}
+                    {{ form.worker_service_area.errors }}
+                </div>
+
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_portfolio_link.label_tag }}
+                    {{ form.worker_portfolio_link }}
+                    {{ form.worker_portfolio_link.errors }}
+                </div>
+
+                <div class="form-group worker-field" data-worker-field>
+                    {{ form.worker_hourly_rate.label_tag }}
+                    {{ form.worker_hourly_rate }}
+                    {{ form.worker_hourly_rate.errors }}
+                </div>
+
+                <div class="form-group form-group--full worker-field" data-worker-field>
+                    {{ form.worker_bio.label_tag }}
+                    {{ form.worker_bio }}
+                    {{ form.worker_bio.errors }}
+                </div>
+
+            </div>
+
+            <button type="submit">Create account</button>
+        </form>
+
+        <p class="auth-switch">
+            Already have an account?
+            <a href="{% url 'login' %}">Login</a>
+        </p>
+    </div>
+</div>
+
+
+<style>
+
+/* =========================================
+   PASSWORD FIELD
+   ========================================= */
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 48px !important;
+    box-sizing: border-box;
+}
+
+.password-toggle {
+    position: absolute !important;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 36px !important;
+    height: 36px !important;
+
+    padding: 0 !important;
+    margin: 0 !important;
+
+    border: none !important;
+    background: transparent !important;
+
+    color: #1f527d;
+    cursor: pointer;
+
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 18px;
+    line-height: 1;
+
+    z-index: 5;
+}
+
+.password-toggle:hover {
+    background: transparent !important;
+    color: #143c5c;
+}
+
+
+/* =========================================
+   PREFERRED CONTACT + NOTIFICATIONS
+   ========================================= */
+
+.notification-group {
+    display: flex;
+    align-items: center;
+    min-height: 100%;
+}
+
+.notification-label {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+
+    cursor: pointer;
+    margin: 0 !important;
+
+    font-weight: 500;
+}
+
+.notification-label input[type="checkbox"] {
+    width: 16px !important;
+    height: 16px !important;
+
+    min-width: 16px !important;
+    min-height: 16px !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    appearance: auto !important;
+    accent-color: #1f527d;
+
+    cursor: pointer;
+}
+
+
+/* Make sure the notification checkbox does not
+   inherit the normal full-width input styling */
+.notification-group input[type="checkbox"] {
+    flex: 0 0 auto !important;
+}
+
+
+/* =========================================
+   WORKER FIELDS
+   ========================================= */
+
+.worker-field {
+    display: none;
+}
+
+</style>
+
+
+<script>
+
+/* =========================================
+   PASSWORD SHOW / HIDE
+   ========================================= */
+
+function togglePassword(fieldId, button) {
+    const field = document.getElementById(fieldId);
+
+    if (!field) {
+        return;
+    }
+
+    if (field.type === "password") {
+        field.type = "text";
+        button.textContent = "🙈";
+        button.setAttribute("aria-label", "Hide password");
+    } else {
+        field.type = "password";
+        button.textContent = "👁";
+        button.setAttribute("aria-label", "Show password");
+    }
+}
+
+
+/* =========================================
+   WORKER FIELD TOGGLE
+   ========================================= */
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    const toggleWorkerFields = function () {
+
+        const selectedRole =
+            document.querySelector('select[name="role"]')?.value || 'customer';
+
+        document.querySelectorAll('.worker-field').forEach(function (field) {
+
+            field.style.display =
+                selectedRole === 'worker' ? 'flex' : 'none';
+
+        });
+    };
+
+    const roleSelect = document.querySelector('select[name="role"]');
+
+    if (roleSelect) {
+        roleSelect.addEventListener('change', toggleWorkerFields);
+        toggleWorkerFields();
+    }
+
+});
+
+</script>
+
+{% endblock %}
