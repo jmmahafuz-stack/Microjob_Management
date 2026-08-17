@@ -1,0 +1,461 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <!-- Header Section -->
+    <div class="payment-page-header">
+        <div class="header-content">
+            <div>
+                <p class="section-kicker">FINANCIAL MANAGEMENT</p>
+                <h1>Payment History</h1>
+                <p class="header-subtitle">Track all your payments and transaction details</p>
+            </div>
+        </div>
+
+        {% if payments %}
+        <!-- Stats Row -->
+        <div class="payment-stats-grid">
+            {% with total=payments|length %}
+                <div class="stat-box">
+                    <div class="stat-box__icon" style="background: #dbeafe; color: #2563eb;">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div>
+                        <p class="stat-box__label">Total Payments</p>
+                        <p class="stat-box__value">{{ payments|length }}</p>
+                    </div>
+                </div>
+            {% endwith %}
+            <div class="stat-box">
+                <div class="stat-box__icon" style="background: #dcfce7; color: #16a34a;">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div>
+                    <p class="stat-box__label">Verified</p>
+                    <p class="stat-box__value">{{ payments|length }}</p>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box__icon" style="background: #fef3c7; color: #d97706;">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div>
+                    <p class="stat-box__label">Total Amount</p>
+                    <p class="stat-box__value">৳0</p>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if payments %}
+        <div class="payment-list">
+            {% for payment in payments %}
+                <article class="payment-card" data-status="{{ payment.payment_status|lower }}">
+                    <!-- Card Header -->
+                    <div class="payment-card__header">
+                        <div class="payment-card__title-section">
+                            <div>
+                                <p class="payment-card__label">Job</p>
+                                <h3 class="payment-card__title">{{ payment.job.title|default:"Service" }}</h3>
+                                {% if payment.job.service_request %}
+                                <p class="payment-card__service">
+                                    <i class="fas fa-tag"></i> {{ payment.job.service_request.title }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <span class="payment-status-badge payment-status-badge--{{ payment.payment_status|slugify }}">
+                                <i class="fas fa-{% if payment.payment_status == 'Pending' %}clock{% elif payment.payment_status == 'Verified' %}check-circle{% elif payment.payment_status == 'Failed' %}times-circle{% else %}undo{% endif %}"></i>
+                                {{ payment.payment_status }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Card Body with 2-column layout -->
+                    <div class="payment-card__body">
+                        <div class="payment-card__left">
+                            <!-- Amount Details -->
+                            <div class="payment-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-coins"></i> Amount Paid
+                                    </label>
+                                    <p class="info-value amount-primary">৳{{ payment.customer_amount }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Payment Method -->
+                            <div class="payment-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-mobile-alt"></i> Payment Method
+                                    </label>
+                                    <p class="info-value">{{ payment.payment_method }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Transaction ID -->
+                            {% if payment.transaction_id %}
+                            <div class="payment-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-hashtag"></i> Transaction ID
+                                    </label>
+                                    <p class="info-value">{{ payment.transaction_id }}</p>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="payment-card__right">
+                            <!-- Commission -->
+                            <div class="payment-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-percentage"></i> Commission
+                                    </label>
+                                    <p class="info-value">৳{{ payment.platform_commission }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Payment Date -->
+                            <div class="payment-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-calendar"></i> Date
+                                    </label>
+                                    <p class="info-value">{{ payment.payment_date|date:"M d, Y" }}</p>
+                                </div>
+                            </div>
+
+                            <!-- Receipt -->
+                            {% if payment.receipt %}
+                            <div class="payment-info-group">
+                                <div class="info-item">
+                                    <label class="info-label">
+                                        <i class="fas fa-file-pdf"></i> Receipt
+                                    </label>
+                                    <a href="{{ payment.receipt.url }}" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-download"></i> Download
+                                    </a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Card Footer with Link -->
+                    <div class="payment-card__footer">
+                        {% if payment.job %}
+                        <a href="{% url 'my_jobs' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-right"></i> View Job Details
+                        </a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state-container">
+            <div class="empty-state">
+                <div class="empty-state__icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <h3>No Payment History</h3>
+                <p>You haven't made any payments yet. Complete a job and make payment to see your payment history here.</p>
+                <div class="empty-state__actions">
+                    <a href="{% url 'my_bookings' %}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left"></i> Back to Bookings
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<style>
+.payment-page-header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+}
+
+.header-content h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0.5rem 0 0.5rem 0;
+}
+
+.header-subtitle {
+    color: #6b7280;
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.section-kicker {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #6b7280;
+    letter-spacing: 0.05em;
+    margin: 0;
+}
+
+.payment-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.stat-box {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.25rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.stat-box__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-box__label {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin: 0 0 0.25rem 0;
+    font-weight: 500;
+}
+
+.stat-box__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.payment-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.payment-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.875rem;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.payment-card:hover {
+    border-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    transform: translateY(-2px);
+}
+
+.payment-card__header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.payment-card__title-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.payment-card__label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin: 0 0 0.25rem 0;
+    letter-spacing: 0.05em;
+}
+
+.payment-card__title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.payment-card__service {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0.5rem 0 0 0;
+}
+
+.payment-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.payment-status-badge--pending {
+    background: #fef3c7;
+    color: #b45309;
+}
+
+.payment-status-badge--verified {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.payment-status-badge--failed {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.payment-status-badge--refunded {
+    background: #e0e7ff;
+    color: #3730a3;
+}
+
+.payment-card__body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.payment-info-group {
+    margin-bottom: 1.25rem;
+}
+
+.info-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    letter-spacing: 0.05em;
+}
+
+.info-value {
+    font-size: 0.95rem;
+    color: #374151;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.amount-primary {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #16a34a;
+}
+
+.payment-card__footer {
+    padding-top: 1rem;
+    border-top: 1px solid #f3f4f6;
+}
+
+.payment-card__footer .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.empty-state-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 500px;
+    padding: 2rem;
+}
+
+.empty-state {
+    text-align: center;
+    max-width: 400px;
+}
+
+.empty-state__icon {
+    font-size: 4rem;
+    color: #d1d5db;
+    margin-bottom: 1.5rem;
+}
+
+.empty-state h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+    color: #6b7280;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.6;
+}
+
+.empty-state__actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .payment-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .payment-card__body {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .payment-card__title-section {
+        flex-direction: column;
+    }
+
+    .payment-status-badge {
+        align-self: flex-start;
+    }
+
+    .payment-card {
+        padding: 1rem;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,198 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="payment-shell">
+    <div class="payment-card">
+        <div class="payment-card__header">
+            <div>
+                <p class="section-kicker">Request Payout</p>
+                <h2>Withdraw Your Earnings</h2>
+            </div>
+            <span class="payment-total">৳{{ available_earnings|floatformat:2 }}</span>
+        </div>
+
+        <div class="info-alert" style="background: #ecfdf5; border: 1px solid #a7f3d0; padding: 12px 14px; border-radius: 8px; margin-bottom: 18px;">
+            <strong>💚 Available to withdraw:</strong> ৳{{ available_earnings|floatformat:2 }}
+        </div>
+
+        <form method="post" class="payout-form">
+            {% csrf_token %}
+            
+            <!-- Amount Selection -->
+            <div class="form-group">
+                <label for="amount">Amount to Withdraw</label>
+                <div class="amount-input-group">
+                    <span class="currency-symbol">৳</span>
+                    <input 
+                        type="number" 
+                        id="amount" 
+                        name="amount" 
+                        placeholder="Enter amount"
+                        step="0.01"
+                        min="1"
+                        max="{{ available_earnings|floatformat:2 }}"
+                        required
+                        class="form-control"
+                    >
+                </div>
+                <small>Maximum: ৳{{ available_earnings|floatformat:2 }}</small>
+            </div>
+
+            <!-- Payout Method Selection -->
+            <div class="form-group">
+                <label for="payout_method">Payment Method</label>
+                <select id="payout_method" name="payout_method" required class="form-select" onchange="updatePayoutFields(this.value)">
+                    <option value="">Select payment method...</option>
+                    {% for method, label in payout_methods %}
+                        <option value="{{ method }}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Common Fields -->
+            <div class="form-group">
+                <label for="account_holder">Account Holder Name</label>
+                <input type="text" id="account_holder" name="account_holder" required class="form-control" placeholder="Full name">
+            </div>
+
+            <div class="form-group">
+                <label for="account_number">Account/Mobile Number</label>
+                <input type="text" id="account_number" name="account_number" required class="form-control" placeholder="Account or phone number">
+            </div>
+
+            <!-- Bank-Specific Fields (visible conditionally) -->
+            <div id="bank_fields" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bank_name">Bank Name</label>
+                        <input type="text" id="bank_name" name="bank_name" class="form-control" placeholder="e.g., Dutch-Bangla Bank">
+                    </div>
+                    <div class="form-group">
+                        <label for="branch">Branch</label>
+                        <input type="text" id="branch" name="branch" class="form-control" placeholder="e.g., Dhaka Main">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Terms & Conditions -->
+            <div class="form-group form-group--checkbox">
+                <input type="checkbox" id="terms" name="terms" required>
+                <label for="terms">
+                    I confirm that the payment details are correct. MJMS will process this payout within 2-3 business days.
+                </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary btn-block">
+                Submit Payout Request
+            </button>
+
+            <p class="text-center" style="margin-top: 12px; color: #64748b;">
+                <a href="{% url 'payout_request_list' %}">&larr; Back to earnings</a>
+            </p>
+        </form>
+
+        <!-- Info Section -->
+        <div class="info-box" style="margin-top: 24px; background: #fef3c7; border-left: 4px solid #f59e0b; padding: 14px; border-radius: 8px;">
+            <h4 style="margin-top: 0;">Important Information</h4>
+            <ul style="margin: 8px 0 0 20px; font-size: 0.9rem; line-height: 1.6;">
+                <li>Minimum payout amount: ৳100</li>
+                <li>Payouts are processed within 2-3 business days</li>
+                <li>Ensure your payment details are correct</li>
+                <li>For BKash/Nagad, use your registered number</li>
+                <li>Once processed, you'll receive a confirmation</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<style>
+.payout-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.amount-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.currency-symbol {
+    position: absolute;
+    left: 12px;
+    font-weight: 700;
+    color: #0f172a;
+    font-size: 1.1rem;
+}
+
+.amount-input-group input {
+    padding-left: 32px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+}
+
+.form-group--checkbox {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-top: 8px;
+}
+
+.form-group--checkbox input {
+    width: auto;
+    margin: 3px 0 0;
+}
+
+.form-group--checkbox label {
+    margin: 0;
+    font-size: 0.9rem;
+    color: #334155;
+    line-height: 1.5;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.info-alert {
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.info-box {
+    font-size: 0.9rem;
+}
+
+.info-box h4 {
+    font-size: 1rem;
+    color: #92400e;
+    margin-bottom: 8px;
+}
+
+.info-box ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.info-box li {
+    margin: 4px 0;
+}
+</style>
+
+<script>
+function updatePayoutFields(method) {
+    const bankFields = document.getElementById('bank_fields');
+    if (method === 'Bank Account') {
+        bankFields.style.display = 'block';
+    } else {
+        bankFields.style.display = 'none';
+    }
+}
+</script>
+{% endblock %}

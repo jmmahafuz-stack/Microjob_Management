@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-shell">
+    {% if user.role == 'admin' %}
+        <header class="admin-header">
+            <div>
+                <p class="eyebrow">Operations Overview</p>
+                <h1>Platform Administration</h1>
+            </div>
+            <div class="admin-header-actions">
+                <a href="{% url 'admin:index' %}" class="btn btn-primary">Admin Panel</a>
+                <a href="{% url 'admin_users_list' %}" class="btn btn-secondary">Manage Users</a>
+            </div>
+        </header>
+
+        <div class="admin-intro">
+            <p>Welcome admin. You oversee the marketplace, worker approvals, customer trust, service quality, and payment performance from one central dashboard.</p>
+            <p><strong>Admin workflow:</strong> Manage Users → Manage Services → Monitor Jobs → Manage Commission → Monitor Payments → Generate Reports</p>
+        </div>
+
+        <section class="stats-grid">
+            <article class="stat-card accent-blue">
+                <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                <div>
+                    <span>Customers</span>
+                    <strong>{{ total_customers }}</strong>
+                </div>
+            </article>
+            <article class="stat-card accent-green">
+                <div class="stat-icon"><i class="fa-solid fa-user-tie"></i></div>
+                <div>
+                    <span>Workers</span>
+                    <strong>{{ total_workers }}</strong>
+                </div>
+            </article>
+            <article class="stat-card accent-orange">
+                <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+                <div>
+                    <span>Pending Workers</span>
+                    <strong>{{ pending_workers }}</strong>
+                </div>
+            </article>
+            <article class="stat-card accent-purple">
+                <div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+                <div>
+                    <span>Service Requests</span>
+                    <strong>{{ service_requests }}</strong>
+                </div>
+            </article>
+            <article class="stat-card accent-indigo">
+                <div class="stat-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div>
+                    <span>Bookings</span>
+                    <strong>{{ bookings.count }}</strong>
+                </div>
+            </article>
+            <article class="stat-card accent-red">
+                <div class="stat-icon"><i class="fa-solid fa-xmark-circle"></i></div>
+                <div>
+                    <span>Cancelled Jobs</span>
+                    <strong>{{ cancelled_jobs }}</strong>
+                </div>
+            </article>
+            <article class="stat-card accent-pink">
+                <div class="stat-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div>
+                    <span>Complaints</span>
+                    <strong>{{ complaints.count }}</strong>
+                </div>
+            </article>
+            <article class="stat-card accent-cyan">
+                <div class="stat-icon"><i class="fa-solid fa-sack-dollar"></i></div>
+                <div>
+                    <span>Revenue</span>
+                    <strong>৳{{ platform_revenue|default:'0.00' }}</strong>
+                </div>
+            </article>
+        </section>
+
+        <section class="dashboard-grid admin-grid">
+            <div class="dashboard-card">
+                <h3>Completed Jobs</h3>
+                <p class="dashboard-number">{{ completed_jobs }}</p>
+                <small>Successful job outcomes</small>
+            </div>
+            <div class="dashboard-card">
+                <h3>Cancelled Jobs</h3>
+                <p class="dashboard-number">{{ cancelled_jobs }}</p>
+                <small>Jobs requiring follow-up</small>
+            </div>
+            <div class="dashboard-card">
+                <h3>Paid Transactions</h3>
+                <p class="dashboard-number">{{ paid_transactions }}</p>
+                <small>Verified payments</small>
+            </div>
+            <div class="dashboard-card">
+                <h3>Platform Revenue</h3>
+                <p class="dashboard-number">৳{{ platform_revenue|default:'0.00' }}</p>
+                <small>Commission collected</small>
+            </div>
+            <div class="dashboard-card">
+                <h3>Worker Earnings</h3>
+                <p class="dashboard-number">৳{{ worker_earnings|default:'0.00' }}</p>
+                <small>Gross payout value</small>
+            </div>
+            <div class="dashboard-card">
+                <h3>Avg Rating</h3>
+                <p class="dashboard-number">{{ avg_rating|floatformat:1 }}</p>
+                <small>Marketplace quality</small>
+            </div>
+        </section>
+
+        <section class="admin-panel-grid">
+            <div class="panel-card analytics-card">
+                <div class="panel-header">
+                    <h3>Performance summary</h3>
+                    <span>Recent business health</span>
+                </div>
+                <div class="analytics-grid">
+                    <div class="metric-box">
+                        <h4>Daily</h4>
+                        <p><strong>Revenue:</strong> ৳{{ report_daily.revenue|default:'0.00' }}</p>
+                        <p><strong>Jobs:</strong> {{ report_daily.jobs }}</p>
+                    </div>
+                    <div class="metric-box">
+                        <h4>Monthly</h4>
+                        <p><strong>Revenue:</strong> ৳{{ report_monthly.revenue|default:'0.00' }}</p>
+                        <p><strong>Jobs:</strong> {{ report_monthly.jobs }}</p>
+                    </div>
+                    <div class="metric-box">
+                        <h4>Yearly</h4>
+                        <p><strong>Revenue:</strong> ৳{{ report_yearly.revenue|default:'0.00' }}</p>
+                        <p><strong>Jobs:</strong> {{ report_yearly.jobs }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="panel-card quick-actions">
+                <div class="panel-header">
+                    <h3>Quick actions</h3>
+                    <span>Priority workflow</span>
+                </div>
+                <div class="dashboard-links">
+                    <span><i class="fa-solid fa-user-gear"></i> Manage Users</span>
+                    <span><i class="fa-solid fa-list"></i> Manage Services</span>
+                    <span><i class="fa-solid fa-clipboard-list"></i> Monitor Jobs</span>
+                    <span><i class="fa-solid fa-percent"></i> Manage Commission</span>
+                    <span><i class="fa-solid fa-sack-dollar"></i> Monitor Payments</span>
+                    <span><i class="fa-solid fa-file-lines"></i> Generate Reports</span>
+                </div>
+            </aside>
+        </section>
+    {% elif user.role == 'worker' %}
+        <div class="card dashboard-shell-card">
+            <h3>Worker Dashboard</h3>
+            <p>Completed jobs: {{ completed_jobs }}</p>
+            <p>Total earnings: {{ total_earnings }}</p>
+            <p>Average rating: {{ average_rating }}</p>
+        </div>
+    {% else %}
+        <div class="card dashboard-shell-card">
+            <h3>Customer Dashboard</h3>
+            <p><strong>Process:</strong> Select Service → Select Worker → Request Work → Wait → Pay</p>
+            <p>Your bookings: {{ bookings.count }}</p>
+            <p><a href="{% url 'booking_history' %}">View all bookings</a></p>
+
+            {% if bookings %}
+                <h4>Recent bookings</h4>
+                <ul>
+                    {% for booking in bookings|slice:':3' %}
+                        <li>
+                            <a href="{% url 'booking_detail' booking.pk %}">{{ booking.service.name }} - {{ booking.status }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <p>Your complaints: {{ complaints.count }}</p>
+            <p><a href="{% url 'complaint_history' %}">View Complaints</a></p>
+            <p><a href="{% url 'review_history' %}">View Reviews</a></p>
+            <p><a href="{% url 'payment_history' %}">View Payments</a></p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

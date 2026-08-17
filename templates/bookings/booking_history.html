@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Booking History</h2>
+
+    {% if bookings %}
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:1px solid #e2e8f0; text-align:left;">
+                    <th style="padding:10px 8px;">Service</th>
+                    <th style="padding:10px 8px;">Date</th>
+                    <th style="padding:10px 8px;">Status</th>
+                    <th style="padding:10px 8px;">Worker</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                    <tr style="border-bottom:1px solid #f1f5f9;">
+                        <td style="padding:10px 8px;"><a href="{% url 'booking_detail' booking.pk %}">{{ booking.service.name }}</a></td>
+                        <td style="padding:10px 8px;">{{ booking.booking_date }}</td>
+                        <td style="padding:10px 8px;">{{ booking.status }}</td>
+                        <td style="padding:10px 8px;">{% if booking.worker %}{{ booking.worker.get_full_name|default:booking.worker.username }}{% else %}Unassigned{% endif %}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty-state">No booking history available.</p>
+    {% endif %}
+
+    <div class="dashboard-links" style="margin-top:16px;">
+        <a href="{% url 'booking_list' %}">Back to Bookings</a>
+    </div>
+</div>
+{% endblock %}

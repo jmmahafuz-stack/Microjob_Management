@@ -1,0 +1,244 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Worker Dashboard</p>
+            <h2>My Earnings & Payouts</h2>
+        </div>
+    </div>
+
+    <!-- Earnings Breakdown -->
+    <div class="earnings-breakdown">
+        <div class="earnings-card earnings-card--pending">
+            <div class="earnings-card__icon">⏳</div>
+            <div>
+                <span class="earnings-label">Pending Earnings</span>
+                <p class="earnings-amount">৳{{ pending_earnings|floatformat:2 }}</p>
+                <small>Awaiting payment verification from customers</small>
+            </div>
+        </div>
+
+        <div class="earnings-card earnings-card--available">
+            <div class="earnings-card__icon">💰</div>
+            <div>
+                <span class="earnings-label">Available for Withdrawal</span>
+                <p class="earnings-amount">৳{{ available_earnings|floatformat:2 }}</p>
+                <small>Ready to request payout</small>
+            </div>
+        </div>
+
+        <div class="earnings-card earnings-card--withdrawn">
+            <div class="earnings-card__icon">✓</div>
+            <div>
+                <span class="earnings-label">Already Withdrawn</span>
+                <p class="earnings-amount">৳{{ withdrawn_earnings|floatformat:2 }}</p>
+                <small>Total amount received</small>
+            </div>
+        </div>
+
+        <div class="earnings-card earnings-card--total">
+            <div class="earnings-card__icon">📊</div>
+            <div>
+                <span class="earnings-label">Total Earnings</span>
+                <p class="earnings-amount">৳{{ total_earned|floatformat:2 }}</p>
+                <small>From all completed jobs</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Request Payout Button -->
+    {% if available_earnings > 0 %}
+        <div style="margin: 24px 0; text-align: center;">
+            <a href="{% url 'create_payout_request' %}" class="btn btn-primary btn-lg">
+                Request Payout (৳{{ available_earnings|floatformat:2 }})
+            </a>
+        </div>
+    {% else %}
+        <div style="background: #fee2e2; border: 1px solid #fca5a5; padding: 12px 16px; border-radius: 8px; color: #b91c1c;">
+            <strong>No available earnings</strong> — Earnings become available once customer payments are verified by admin.
+        </div>
+    {% endif %}
+
+    <!-- Payout Requests History -->
+    <h3>Payout Request History</h3>
+    {% if payout_requests %}
+        <div class="payout-requests-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount Requested</th>
+                        <th>Approved Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in payout_requests %}
+                        <tr>
+                            <td>{{ request.created_at|date:"M d, Y" }}</td>
+                            <td>৳{{ request.requested_amount|floatformat:2 }}</td>
+                            <td>
+                                {% if request.approved_amount %}
+                                    ৳{{ request.approved_amount|floatformat:2 }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>{{ request.payout_method }}</td>
+                            <td>
+                                <span class="payout-status payout-status--{{ request.status|lower }}">
+                                    {{ request.status }}
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="empty-state">No payout requests yet. Your earnings will appear here once you request a payout.</p>
+    {% endif %}
+
+    <!-- How It Works Section -->
+    <div class="info-box" style="margin-top: 24px; background: #f0f9ff; border-left: 4px solid #0c63e4; padding: 16px; border-radius: 8px;">
+        <h4>How Earnings Work</h4>
+        <ul style="margin: 8px 0 0 20px; line-height: 1.8;">
+            <li><strong>When you complete a job:</strong> Earnings appear as "Pending" while customer payment is being verified</li>
+            <li><strong>After payment is verified:</strong> Earnings move to "Available for Withdrawal" (minus 10% platform commission)</li>
+            <li><strong>Request a payout:</strong> Submit a withdrawal request with your preferred payment method</li>
+            <li><strong>Admin processes:</strong> We process payouts within 2-3 business days</li>
+            <li><strong>Money received:</strong> You'll get an update once the money is in your account</li>
+        </ul>
+    </div>
+</div>
+
+<style>
+.earnings-breakdown {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.earnings-card {
+    display: flex;
+    gap: 14px;
+    padding: 16px;
+    border-radius: 12px;
+    background: white;
+    border: 2px solid #e2e8f0;
+    align-items: center;
+}
+
+.earnings-card--pending {
+    border-color: #fed7aa;
+    background: #fffbeb;
+}
+
+.earnings-card--available {
+    border-color: #86efac;
+    background: #f0fdf4;
+}
+
+.earnings-card--withdrawn {
+    border-color: #86efac;
+    background: #f0fdf4;
+}
+
+.earnings-card--total {
+    border-color: #93c5fd;
+    background: #eff6ff;
+}
+
+.earnings-card__icon {
+    font-size: 2rem;
+    flex-shrink: 0;
+}
+
+.earnings-label {
+    display: block;
+    color: #64748b;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+}
+
+.earnings-amount {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.earnings-card small {
+    display: block;
+    color: #64748b;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+.payout-requests-table {
+    overflow-x: auto;
+    margin-bottom: 20px;
+}
+
+.payout-requests-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.payout-requests-table th,
+.payout-requests-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.payout-requests-table th {
+    background: #f8fbff;
+    font-weight: 700;
+    color: #1f4e79;
+}
+
+.payout-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.payout-status--requested {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.payout-status--approved {
+    background: #dbeafe;
+    color: #0c63e4;
+}
+
+.payout-status--processed {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.payout-status--rejected {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.info-box h4 {
+    margin-top: 0;
+    color: #0f172a;
+}
+
+.info-box ul li {
+    margin-bottom: 6px;
+}
+</style>
+{% endblock %}

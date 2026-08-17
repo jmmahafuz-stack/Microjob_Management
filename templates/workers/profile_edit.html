@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="card">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">My Profile</p>
+            <h2>Edit Your Professional Profile</h2>
+        </div>
+    </div>
+
+    {% include 'partials/messages.html' %}
+
+    <form method="POST" style="max-width: 600px;">
+        {% csrf_token %}
+
+        <!-- Personal Information -->
+        <fieldset style="border: none; padding: 0; margin-bottom: 24px;">
+            <legend style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">Personal Information</legend>
+
+            <div style="margin-bottom: 16px;">
+                <label for="first_name" style="display: block; margin-bottom: 4px; font-weight: 500;">First Name</label>
+                <input type="text" id="first_name" name="first_name" value="{{ worker.first_name }}" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="last_name" style="display: block; margin-bottom: 4px; font-weight: 500;">Last Name</label>
+                <input type="text" id="last_name" name="last_name" value="{{ worker.last_name }}" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+        </fieldset>
+
+        <!-- Professional Information -->
+        <fieldset style="border: none; padding: 0; margin-bottom: 24px;">
+            <legend style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">Professional Information</legend>
+
+            <div style="margin-bottom: 16px;">
+                <label for="service" style="display: block; margin-bottom: 4px; font-weight: 500;">Service You Offer</label>
+                <select id="service" name="service" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                    <option value="">-- Select a Service --</option>
+                    {% for service in services %}
+                        <option value="{{ service.pk }}" {% if profile.service.pk == service.pk %}selected{% endif %}>{{ service.name }} ({{ service.category }})</option>
+                    {% endfor %}
+                </select>
+                <small style="color: #64748b; display: block; margin-top: 4px;">Choose the primary service you offer</small>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="service_category" style="display: block; margin-bottom: 4px; font-weight: 500;">Service Category (if not selected above)</label>
+                <input type="text" id="service_category" name="service_category" value="{{ profile.service_category }}" placeholder="e.g., Cleaning, Repair, etc." style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                <small style="color: #64748b; display: block; margin-top: 4px;">Describe the type of work you do</small>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="bio" style="display: block; margin-bottom: 4px; font-weight: 500;">Professional Bio</label>
+                <textarea id="bio" name="bio" rows="4" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">{{ profile.bio }}</textarea>
+                <small style="color: #64748b; display: block; margin-top: 4px;">Tell customers about yourself and your experience</small>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="skills" style="display: block; margin-bottom: 4px; font-weight: 500;">Skills</label>
+                <input type="text" id="skills" name="skills" value="{{ profile.skills }}" placeholder="e.g., Plumbing, Electrical, Carpentry" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                <small style="color: #64748b; display: block; margin-top: 4px;">Comma-separated list of your skills</small>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="experience_years" style="display: block; margin-bottom: 4px; font-weight: 500;">Years of Experience</label>
+                <input type="number" id="experience_years" name="experience_years" value="{{ profile.experience_years }}" min="0" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="service_area" style="display: block; margin-bottom: 4px; font-weight: 500;">Service Area</label>
+                <input type="text" id="service_area" name="service_area" value="{{ profile.service_area }}" placeholder="e.g., Dhaka City" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                <small style="color: #64748b; display: block; margin-top: 4px;">Where do you operate or travel to?</small>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="languages" style="display: block; margin-bottom: 4px; font-weight: 500;">Languages</label>
+                <input type="text" id="languages" name="languages" value="{{ profile.languages }}" placeholder="e.g., Bengali, English" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label for="hourly_rate" style="display: block; margin-bottom: 4px; font-weight: 500;">Hourly Rate (৳)</label>
+                <input type="number" id="hourly_rate" name="hourly_rate" value="{{ profile.hourly_rate }}" step="0.01" min="0" placeholder="e.g., 500" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                <small style="color: #64748b; display: block; margin-top: 4px;">Your standard hourly rate</small>
+            </div>
+        </fieldset>
+
+        <!-- Actions -->
+        <div style="display: flex; gap: 12px; margin-top: 24px;">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <a href="{% url 'worker_dashboard' %}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

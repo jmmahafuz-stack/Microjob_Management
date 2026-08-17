@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="services-page">
+
+    <div class="services-hero">
+        <div>
+            <h2>Find trusted services near you</h2>
+            <p>Discover verified providers for home repairs, beauty, cleaning, and more.</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <form method="get" class="services-filter-section">
+            <div class="filter-header">
+                <h3><i class="fas fa-sliders-h"></i> Filter & Search</h3>
+            </div>
+
+            <div class="filter-container">
+                <div class="filter-group search-group">
+                    <label for="search">Search Services</label>
+
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search"></i>
+                        <input
+                            type="text"
+                            id="search"
+                            name="q"
+                            placeholder="Search services, skills, or professionals..."
+                            value="{{ search_query }}"
+                        >
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="category">Category</label>
+                        <select id="category" name="category" class="form-select">
+                            <option value="">All categories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}" {% if selected_category == cat %}selected{% endif %}>
+                                    {{ cat }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="location">Location</label>
+                        <select id="location" name="location" class="form-select">
+                            <option value="">Any location</option>
+                            {% for loc in locations %}
+                                <option value="{{ loc }}" {% if selected_location == loc %}selected{% endif %}>
+                                    {{ loc }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="min_rating">Minimum Rating</label>
+                        <select id="min_rating" name="min_rating" class="form-select">
+                            <option value="">Any rating</option>
+                            {% for rating in rating_options %}
+                                <option value="{{ rating }}" {% if min_rating == rating|stringformat:'s' %}selected{% endif %}>
+                                    {{ rating }}+ stars
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="min_price">Min Price (৳)</label>
+                        <input
+                            type="number"
+                            id="min_price"
+                            name="min_price"
+                            placeholder="0"
+                            step="0.01"
+                            value="{{ min_price }}"
+                            class="form-control"
+                        >
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="max_price">Max Price (৳)</label>
+                        <input
+                            type="number"
+                            id="max_price"
+                            name="max_price"
+                            placeholder="99999"
+                            step="0.01"
+                            value="{{ max_price }}"
+                            class="form-control"
+                        >
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="sort">Sort By</label>
+                        <select id="sort" name="sort" class="form-select">
+                            <option value="">Recommended</option>
+                            <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>
+                                Price: Low to High
+                            </option>
+                            <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>
+                                Price: High to Low
+                            </option>
+                            <option value="rating_desc" {% if sort == 'rating_desc' %}selected{% endif %}>
+                                Highest Rated
+                            </option>
+                            <option value="popular" {% if sort == 'popular' %}selected{% endif %}>
+                                Most Popular
+                            </option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Apply Filters
+                    </button>
+
+                    <a href="{% url 'service_list' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-redo"></i> Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="container">
+
+        {% if featured_services %}
+        <section class="services-section">
+            <div class="section-heading">
+                <h3>Featured services</h3>
+            </div>
+
+            <div class="service-grid">
+                {% for service in featured_services %}
+                    <article class="service-card">
+                        {% if service.image %}
+                            <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                        {% endif %}
+
+                        <div class="service-card__body">
+                            <span class="service-badge">Featured</span>
+
+                            <h4>{{ service.name }}</h4>
+
+                            <p class="service-category">
+                                {{ service.category }}
+                            </p>
+
+                            <p class="service-meta">
+                                ⭐ {{ service.average_rating|floatformat:1 }}
+                            </p>
+
+                            {% if service.related_workers %}
+                                <div style="margin:10px 0 0; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; font-size:0.9rem;">
+                                    <strong>Available workers</strong>
+
+                                    <div class="worker-card-list" style="margin-top:8px; grid-template-columns:1fr; gap:8px;">
+                                        {% for worker_profile in service.related_workers %}
+                                            <a
+                                                href="{% url 'worker_profile_detail' worker_profile.pk %}"
+                                                class="worker-card"
+                                                style="min-height:auto; padding:8px 10px;"
+                                            >
+                                                {% if worker_profile.user.profile_picture %}
+                                                    <img
+                                                        src="{{ worker_profile.user.profile_picture.url }}"
+                                                        alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}"
+                                                        class="worker-card__image"
+                                                        style="width:34px; height:34px;"
+                                                    >
+                                                {% else %}
+                                                    <div
+                                                        class="worker-card__avatar worker-card__image"
+                                                        style="width:34px; height:34px; font-size:0.8rem;"
+                                                    >
+                                                        👷
+                                                    </div>
+                                                {% endif %}
+
+                                                <div class="worker-card__meta">
+                                                    <p class="worker-card__name" style="font-size:0.84rem;">
+                                                        {{ worker_profile.user.get_full_name|default:worker_profile.user.username }}
+                                                    </p>
+
+                                                    <p class="worker-card__detail" style="margin:0;">
+                                                        {{ worker_profile.skills }}
+                                                    </p>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <div class="service-footer">
+                                <strong>৳{{ service.price }}</strong>
+                                <a href="{% url 'service_detail' service.id %}">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if popular_services %}
+        <section class="services-section">
+            <div class="section-heading">
+                <h3>Popular services</h3>
+            </div>
+
+            <div class="service-grid">
+                {% for service in popular_services %}
+                    <article class="service-card">
+                        {% if service.image %}
+                            <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                        {% endif %}
+
+                        <div class="service-card__body">
+                            <span class="service-badge popular">Popular</span>
+
+                            <h4>{{ service.name }}</h4>
+
+                            <p class="service-category">
+                                {{ service.category }}
+                            </p>
+
+                            <p class="service-meta">
+                                Bookings: {{ service.bookings.count }}
+                            </p>
+
+                            {% if service.related_workers %}
+                                <div style="margin:10px 0 0; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; font-size:0.9rem;">
+                                    <strong>Available workers</strong>
+
+                                    <div class="worker-card-list" style="margin-top:8px; grid-template-columns:1fr; gap:8px;">
+                                        {% for worker_profile in service.related_workers %}
+                                            <a
+                                                href="{% url 'worker_profile_detail' worker_profile.pk %}"
+                                                class="worker-card"
+                                                style="min-height:auto; padding:8px 10px;"
+                                            >
+                                                {% if worker_profile.user.profile_picture %}
+                                                    <img
+                                                        src="{{ worker_profile.user.profile_picture.url }}"
+                                                        alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}"
+                                                        class="worker-card__image"
+                                                        style="width:34px; height:34px;"
+                                                    >
+                                                {% else %}
+                                                    <div
+                                                        class="worker-card__avatar worker-card__image"
+                                                        style="width:34px; height:34px; font-size:0.8rem;"
+                                                    >
+                                                        👷
+                                                    </div>
+                                                {% endif %}
+
+                                                <div class="worker-card__meta">
+                                                    <p class="worker-card__name" style="font-size:0.84rem;">
+                                                        {{ worker_profile.user.get_full_name|default:worker_profile.user.username }}
+                                                    </p>
+
+                                                    <p class="worker-card__detail" style="margin:0;">
+                                                        {{ worker_profile.skills }}
+                                                    </p>
+                                                </div>
+                                            </a>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                            <div class="service-footer">
+                                <strong>৳{{ service.price }}</strong>
+                                <a href="{% url 'service_detail' service.id %}">
+                                    View Details
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <section class="services-section">
+            <div class="section-heading">
+                <h3>All services</h3>
+            </div>
+
+            <div class="service-list">
+                {% for service in services %}
+                    <article class="service-list-item">
+                        {% if service.image %}
+                            <img src="{{ service.image.url }}" alt="{{ service.name }}">
+                        {% endif %}
+
+                        <div class="service-list-item__body">
+                            <h4>{{ service.name }}</h4>
+
+                            <p class="service-category">
+                                {{ service.category }}
+                            </p>
+
+                            <p>
+                                {{ service.description|truncatewords:20 }}
+                            </p>
+
+                            <div class="service-meta-row">
+                                <span>📍 {{ service.location|default:'Any' }}</span>
+                                <span>⭐ {{ service.average_rating|floatformat:1 }}</span>
+                            </div>
+                        </div>
+
+                        <div class="service-list-item__price">
+                            <strong>৳{{ service.price }}</strong>
+
+                            <a href="{% url 'service_detail' service.id %}">
+                                View Details
+                            </a>
+                        </div>
+
+                        {% if service.related_workers %}
+                            <div style="margin-top:10px; padding:8px 10px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; font-size:0.9rem;">
+                                <strong>👷 Available workers</strong>
+
+                                <div class="worker-card-list" style="margin-top:8px; grid-template-columns:1fr; gap:8px;">
+                                    {% for worker_profile in service.related_workers %}
+                                        <a
+                                            href="{% url 'worker_profile_detail' worker_profile.pk %}"
+                                            class="worker-card"
+                                            style="min-height:auto; padding:8px 10px;"
+                                        >
+                                            {% if worker_profile.user.profile_picture %}
+                                                <img
+                                                    src="{{ worker_profile.user.profile_picture.url }}"
+                                                    alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}"
+                                                    class="worker-card__image"
+                                                    style="width:34px; height:34px;"
+                                                >
+                                            {% else %}
+                                                <div
+                                                    class="worker-card__avatar worker-card__image"
+                                                    style="width:34px; height:34px; font-size:0.8rem;"
+                                                >
+                                                    👷
+                                                </div>
+                                            {% endif %}
+
+                                            <div class="worker-card__meta">
+                                                <p class="worker-card__name" style="font-size:0.84rem;">
+                                                    {{ worker_profile.user.get_full_name|default:worker_profile.user.username }}
+                                                </p>
+
+                                                <p class="worker-card__detail" style="margin:0;">
+                                                    {{ worker_profile.skills }}
+                                                </p>
+                                            </div>
+                                        </a>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </article>
+
+                {% empty %}
+                    <p class="empty-state">No services available.</p>
+                {% endfor %}
+            </div>
+        </section>
+
+    </div>
+</div>
+{% endblock %}

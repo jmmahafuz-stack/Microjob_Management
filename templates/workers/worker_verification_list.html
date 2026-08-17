@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Worker Verification</h2>
+
+    {% if workers %}
+        <ul>
+            {% for worker in workers %}
+                <li>
+                    <strong>{{ worker.user.username }}</strong> - Training: {{ worker.training_status }} | Verification: {{ worker.verification_status }} | Badge: {{ worker.badge_label }}
+                    <a href="{% url 'verify_worker' worker.pk %}">Manage</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No workers found.</p>
+    {% endif %}
+</div>
+{% endblock %}
