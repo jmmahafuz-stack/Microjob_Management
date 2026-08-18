@@ -1088,6 +1088,16 @@ input[type="button"]:hover {
     font-weight: 800;
 }
 
+.services-page .service-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: .5rem .85rem;
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
 .services-page .service-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -1123,6 +1133,17 @@ input[type="button"]:hover {
     grid-column: 1 / -1;
     display: flex;
     justify-content: flex-end;
+}
+
+.services-page .service-list-item > div:last-child {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+    margin-top: .25rem !important;
+}
+
+.services-page .service-list-item > div:last-child .worker-card-list {
+    width: 100%;
 }
 
 @media (max-width: 640px) {
