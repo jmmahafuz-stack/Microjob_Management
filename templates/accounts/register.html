@@ -1,930 +1,178 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+{% endblock %}
 
 {% block content %}
-<div class="register-wrapper">
+<section class="auth-page auth-page--register">
     <!-- Left Side: Branding & Info -->
-    <div class="register-info">
-        <div class="info-content">
-            <h1>Join Our Community</h1>
-            <p class="subtitle">Connect with skilled professionals or find services you need</p>
+    <div class="auth-hero">
+        <div>
+            <span class="auth-badge"><i class="fa-solid fa-shield-halved"></i> Trusted service marketplace</span>
+            <h1>Join MJMS today</h1>
+            <p>Get started in less than 2 minutes</p>
             
-            <div class="benefits">
+            <div class="auth-benefits">
                 <div class="benefit-item">
-                    <span class="benefit-icon">✓</span>
-                    <div>
-                        <h4>For Customers</h4>
-                        <p>Find trusted professionals for any job</p>
-                    </div>
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>For Customers: Find trusted professionals</span>
                 </div>
                 <div class="benefit-item">
-                    <span class="benefit-icon">✓</span>
-                    <div>
-                        <h4>For Workers</h4>
-                        <p>Grow your business and connect with customers</p>
-                    </div>
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>For Workers: Grow your business</span>
                 </div>
                 <div class="benefit-item">
-                    <span class="benefit-icon">✓</span>
-                    <div>
-                        <h4>Secure & Safe</h4>
-                        <p>Verified profiles and secure transactions</p>
-                    </div>
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Verified & Secure</span>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Right Side: Registration Form -->
-    <div class="register-form-container">
-        <div class="register-card">
-            <div class="register-header">
-                <h2>Create Account</h2>
-                <p>Get started in just a few steps</p>
+    <div class="auth-card auth-card--register">
+        <div class="auth-card__header">
+            <h2>Create Account</h2>
+            <p>Select your role and fill in your details</p>
+        </div>
+
+        {% include 'partials/messages.html' %}
+
+        <form method="POST" class="register-form" id="registerForm">
+            {% csrf_token %}
+
+            <!-- Role Selection -->
+            <div class="form-section">
+                <label class="form-label">I am a:</label>
+                <div class="role-selector">
+                    {% for value, label in form.role.field.choices %}
+                    <div class="role-option">
+                        <input type="radio" name="role" value="{{ value }}" id="role_{{ value }}" 
+                               {% if form.role.value == value %}checked{% endif %} 
+                               onchange="toggleWorkerFields()">
+                        <label for="role_{{ value }}" class="role-label">
+                            <span class="role-icon">{% if value == 'worker' %}💼{% else %}👤{% endif %}</span>
+                            {{ label }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if form.role.errors %}<span class="error-message">{{ form.role.errors }}</span>{% endif %}
             </div>
 
-            {% include 'partials/messages.html' %}
-
-            <form method="POST" enctype="multipart/form-data" class="register-form" id="registerForm">
-                {% csrf_token %}
-
-                <!-- Role Selection Section -->
-                <div class="form-section">
-                    <h3 class="section-title">I want to register as:</h3>
-                    <div class="role-selector">
-                        {% for value, label in form.role.field.choices %}
-                        <div class="role-option">
-                            <input type="radio" name="role" value="{{ value }}" id="role_{{ value }}" 
-                                   {% if form.role.value == value %}checked{% endif %} 
-                                   onchange="updateRoleDescription(this)">
-                            <label for="role_{{ value }}" class="role-label">
-                                <span class="role-icon">{% if value == 'worker' %}👨‍💼{% else %}👤{% endif %}</span>
-                                <span class="role-text">{{ label }}</span>
-                            </label>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <div id="roleDescription" class="role-description"></div>
-                </div>
-
-                <!-- Basic Information Section -->
-                <div class="form-section">
-                    <h3 class="section-title">Basic Information</h3>
-                    
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
-                            {{ form.first_name }}
-                            {% if form.first_name.errors %}<span class="error-message">{{ form.first_name.errors }}</span>{% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
-                            {{ form.last_name }}
-                            {% if form.last_name.errors %}<span class="error-message">{{ form.last_name.errors }}</span>{% endif %}
-                        </div>
-                    </div>
-
+            <!-- Basic Information -->
+            <div class="form-section">
+                <div class="form-row">
                     <div class="form-group">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-                        {{ form.username }}
-                        <span class="form-help">Choose a unique username for your account</span>
-                        {% if form.username.errors %}<span class="error-message">{{ form.username.errors }}</span>{% endif %}
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}<span class="error-message">{{ form.first_name.errors.0 }}</span>{% endif %}
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-                            {{ form.email }}
-                            {% if form.email.errors %}<span class="error-message">{{ form.email.errors }}</span>{% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
-                            {{ form.phone }}
-                            {% if form.phone.errors %}<span class="error-message">{{ form.phone.errors }}</span>{% endif %}
-                        </div>
-                    </div>
-
                     <div class="form-group">
-                        <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
-                        {{ form.address }}
-                        {% if form.address.errors %}<span class="error-message">{{ form.address.errors }}</span>{% endif %}
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}<span class="error-message">{{ form.last_name.errors.0 }}</span>{% endif %}
                     </div>
                 </div>
 
-                <!-- Preferences Section -->
-                <div class="form-section preferences-section">
-                    <h3 class="section-title preferences-title">Preferences</h3>
-                    
-                    <div class="form-row preferences-row">
-                        <div class="form-group preferences-group">
-                            <label for="{{ form.preferred_contact_method.id_for_label }}" class="form-label preferences-label">Contact Method</label>
-                            {{ form.preferred_contact_method }}
-                            {% if form.preferred_contact_method.errors %}<span class="error-message">{{ form.preferred_contact_method.errors }}</span>{% endif %}
-                        </div>
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<span class="error-message">{{ form.email.errors.0 }}</span>{% endif %}
+                </div>
 
-                        <div class="form-group checkbox-group preferences-checkbox">
-                            <label class="checkbox-label">
-                                {{ form.receive_notifications }}
-                                <span>Notifications</span>
-                            </label>
-                            {% if form.receive_notifications.errors %}<span class="error-message">{{ form.receive_notifications.errors }}</span>{% endif %}
-                        </div>
+                <div class="form-group">
+                    <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}<span class="error-message">{{ form.phone.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                    <div class="password-wrapper">
+                        {{ form.password1 }}
+                        <button type="button" class="password-toggle" onclick="togglePassword('id_password1', this)">👁</button>
+                    </div>
+                    {% if form.password1.errors %}<span class="error-message">{{ form.password1.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                    <div class="password-wrapper">
+                        {{ form.password2 }}
+                        <button type="button" class="password-toggle" onclick="togglePassword('id_password2', this)">👁</button>
+                    </div>
+                    {% if form.password2.errors %}<span class="error-message">{{ form.password2.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <!-- Worker Section (shown only for workers) -->
+            <div class="form-section worker-section is-hidden">
+                <h3 class="section-title">💼 Professional Information</h3>
+
+                <div class="form-group">
+                    <label for="{{ form.worker_categories.id_for_label }}" class="form-label">Work Category</label>
+                    {{ form.worker_categories }}
+                    <span class="form-help">Select your main work category</span>
+                    {% if form.worker_categories.errors %}<span class="error-message">{{ form.worker_categories.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.worker_experience.id_for_label }}" class="form-label">Years Experience</label>
+                        {{ form.worker_experience }}
+                        {% if form.worker_experience.errors %}<span class="error-message">{{ form.worker_experience.errors.0 }}</span>{% endif %}
                     </div>
                 </div>
 
-                <!-- Profile Picture Section -->
-                <div class="form-section">
-                    <h3 class="section-title">Profile Photo</h3>
-                    
-                    <div class="form-group">
-                        <div class="file-upload-wrapper">
-                            {{ form.profile_picture }}
-                            <span class="file-upload-label">📷 Click to upload or drag and drop</span>
-                        </div>
-                        <span class="form-help">PNG, JPG up to 5MB</span>
-                        {% if form.profile_picture.errors %}<span class="error-message">{{ form.profile_picture.errors }}</span>{% endif %}
-                    </div>
+                <div class="form-group">
+                    <label for="{{ form.worker_skills.id_for_label }}" class="form-label">Skills</label>
+                    {{ form.worker_skills }}
+                    <span class="form-help">Comma-separated (e.g., Plumbing, Repairs)</span>
+                    {% if form.worker_skills.errors %}<span class="error-message">{{ form.worker_skills.errors.0 }}</span>{% endif %}
                 </div>
 
-                <!-- Security Section -->
-                <div class="form-section">
-                    <h3 class="section-title">Security</h3>
-                    
-                    <div class="form-group">
-                        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-                        <div class="password-wrapper">
-                            {{ form.password1 }}
-                            <button type="button" class="password-toggle" onclick="togglePassword('id_password1', this)" aria-label="Show password">👁</button>
-                        </div>
-                        <span class="form-help">At least 8 characters with uppercase, lowercase, and numbers</span>
-                        {% if form.password1.errors %}<span class="error-message">{{ form.password1.errors }}</span>{% endif %}
-                    </div>
-
-                    <div class="form-group">
-                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-                        <div class="password-wrapper">
-                            {{ form.password2 }}
-                            <button type="button" class="password-toggle" onclick="togglePassword('id_password2', this)" aria-label="Show password">👁</button>
-                        </div>
-                        {% if form.password2.errors %}<span class="error-message">{{ form.password2.errors }}</span>{% endif %}
-                    </div>
+                <div class="form-group">
+                    <label for="{{ form.worker_service_area.id_for_label }}" class="form-label">Service Area</label>
+                    {{ form.worker_service_area }}
+                    {% if form.worker_service_area.errors %}<span class="error-message">{{ form.worker_service_area.errors.0 }}</span>{% endif %}
                 </div>
 
-                <!-- Worker-Specific Section -->
-                <div class="form-section worker-section" style="display: none;">
-                    <h3 class="section-title">🏢 Professional Details</h3>
-
-                    <div class="form-group">
-                        <label for="{{ form.worker_categories.id_for_label }}" class="form-label">Work Categories</label>
-                        <div class="categories-wrapper">
-                            {{ form.worker_categories }}
-                        </div>
-                        <span class="form-help">Select all the categories you work with</span>
-                        {% if form.worker_categories.errors %}<span class="error-message">{{ form.worker_categories.errors }}</span>{% endif %}
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="{{ form.worker_service.id_for_label }}" class="form-label">Service Offered</label>
-                            {{ form.worker_service }}
-                            {% if form.worker_service.errors %}<span class="error-message">{{ form.worker_service.errors }}</span>{% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label for="{{ form.worker_service_category.id_for_label }}" class="form-label">Category</label>
-                            {{ form.worker_service_category }}
-                            {% if form.worker_service_category.errors %}<span class="error-message">{{ form.worker_service_category.errors }}</span>{% endif %}
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="{{ form.worker_experience.id_for_label }}" class="form-label">Experience (Years)</label>
-                            {{ form.worker_experience }}
-                            {% if form.worker_experience.errors %}<span class="error-message">{{ form.worker_experience.errors }}</span>{% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label for="{{ form.worker_hourly_rate.id_for_label }}" class="form-label">Hourly Rate</label>
-                            {{ form.worker_hourly_rate }}
-                            {% if form.worker_hourly_rate.errors %}<span class="error-message">{{ form.worker_hourly_rate.errors }}</span>{% endif %}
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="{{ form.worker_skills.id_for_label }}" class="form-label">Skills</label>
-                        {{ form.worker_skills }}
-                        <span class="form-help">Comma-separated list of your skills</span>
-                        {% if form.worker_skills.errors %}<span class="error-message">{{ form.worker_skills.errors }}</span>{% endif %}
-                    </div>
-
-                    <div class="form-group">
-                        <label for="{{ form.worker_service_area.id_for_label }}" class="form-label">Service Area</label>
-                        {{ form.worker_service_area }}
-                        {% if form.worker_service_area.errors %}<span class="error-message">{{ form.worker_service_area.errors }}</span>{% endif %}
-                    </div>
-
-                    <div class="form-group">
-                        <label for="{{ form.worker_bio.id_for_label }}" class="form-label">About You</label>
-                        {{ form.worker_bio }}
-                        <span class="form-help">Tell customers about yourself and your experience</span>
-                        {% if form.worker_bio.errors %}<span class="error-message">{{ form.worker_bio.errors }}</span>{% endif %}
-                    </div>
+                <div class="form-group">
+                    <label for="{{ form.worker_nid_number.id_for_label }}" class="form-label">NID Number</label>
+                    {{ form.worker_nid_number }}
+                    <span class="form-help">Enter your national ID number for verification</span>
+                    {% if form.worker_nid_number.errors %}<span class="error-message">{{ form.worker_nid_number.errors.0 }}</span>{% endif %}
                 </div>
 
-                <!-- Submit Button -->
-                <div class="form-actions">
-                    <button type="submit" class="btn-primary">Create Account</button>
+                <div class="form-group">
+                    <label for="{{ form.worker_bio.id_for_label }}" class="form-label">About You</label>
+                    {{ form.worker_bio }}
+                    <span class="form-help">Brief description of your services</span>
+                    {% if form.worker_bio.errors %}<span class="error-message">{{ form.worker_bio.errors.0 }}</span>{% endif %}
                 </div>
+            </div>
 
-                <!-- Login Link -->
-                <p class="login-switch">
-                    Already have an account? <a href="{% url 'login' %}">Sign in here</a>
-                </p>
-            </form>
-        </div>
+            <!-- Submit Button -->
+            <div class="form-actions">
+                <button type="submit" class="btn-primary btn-register">Create Account</button>
+            </div>
+
+            <!-- Login Link -->
+            <p class="login-switch">
+                Already have an account? <a href="{% url 'login' %}">Sign in</a>
+            </p>
+        </form>
     </div>
-</div>
+</section>
 
-<style>
-/* ===================================
-   REGISTRATION PAGE STYLES - PROFESSIONAL
-   =================================== */
+{% endblock %}
 
-:root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --accent-color: #06b6d4;
-    --success-color: #10b981;
-    --error-color: #ef4444;
-    --warning-color: #f59e0b;
-    --background-color: #f8fafc;
-    --surface-color: #ffffff;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-    --border-radius: 10px;
-    --transition: all 0.2s ease;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-.register-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    background: linear-gradient(180deg, #f4f7fb 0%, #eef4ff 100%);
-    padding: 40px 20px;
-}
-
-/* ===== LEFT PANEL ===== */
-.register-info {
-    display: none;
-}
-
-.info-content {
-    display: none;
-}
-
-.subtitle {
-    display: none;
-}
-
-.benefits {
-    display: none;
-}
-
-/* ===== RIGHT PANEL ===== */
-.register-form-container {
-    width: 100%;
-    max-width: 640px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    background: transparent;
-    overflow: visible;
-    min-height: auto;
-}
-
-.register-card {
-    background: #ffffff;
-    border: 1px solid #e5eaf2;
-    border-radius: 18px;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
-    padding: 0;
-    width: 100%;
-    max-width: 700px;
-    overflow: hidden;
-}
-
-.register-header {
-    text-align: center;
-    margin: 0;
-    padding: 22px 24px 18px;
-    background: linear-gradient(180deg, #ffffff 0%, #f4f7ff 100%);
-    border-bottom: 1px solid #e7ebf3;
-}
-
-.register-header h2 {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #1d2736;
-    margin-bottom: 6px;
-    letter-spacing: -0.03em;
-}
-
-.register-header p {
-    color: #5b6777;
-    font-size: 0.95rem;
-    margin: 0;
-}
-
-.register-form {
-    padding: 20px 20px 18px;
-}
-
-/* ===== FORM SECTIONS ===== */
-.form-section {
-    margin-bottom: 18px;
-    padding: 15px 16px;
-    background: #ffffff;
-    border: 1px solid #edf1f5;
-    border-radius: 12px;
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
-}
-
-.form-section:last-of-type {
-    margin-bottom: 18px;
-}
-
-.section-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 12px;
-    padding-bottom: 0;
-    border-bottom: none;
-}
-
-.preferences-section {
-    margin-bottom: 16px;
-}
-
-.preferences-title {
-    font-size: 0.95rem;
-    margin-bottom: 12px;
-}
-
-/* ===== FORM LAYOUT ===== */
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 0;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 14px;
-}
-
-.worker-section .form-row,
-.worker-section .form-group {
-    margin-bottom: 12px;
-}
-
-.form-group:last-child {
-    margin-bottom: 0;
-}
-
-.preferences-row {
-    gap: 12px;
-}
-
-.preferences-group {
-    margin-bottom: 0;
-}
-
-.form-label {
-    font-weight: 700;
-    color: #334155;
-    margin-bottom: 7px;
-    font-size: 0.8rem;
-}
-
-.preferences-label {
-    font-size: 0.85rem;
-    margin-bottom: 4px;
-}
-
-/* ===== FORM INPUTS ===== */
-.register-form input[type="text"],
-.register-form input[type="email"],
-.register-form input[type="password"],
-.register-form input[type="number"],
-.register-form input[type="tel"],
-.register-form select,
-.register-form textarea {
-    width: 100%;
-    padding: 11px 12px;
-    border: 1px solid #d7dfe9;
-    border-radius: 10px;
-    font-size: 0.92rem;
-    font-family: inherit;
-    color: #1f2937;
-    background: #ffffff;
-    transition: var(--transition);
-    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
-}
-
-.register-form input[type="text"]:focus,
-.register-form input[type="email"]:focus,
-.register-form input[type="password"]:focus,
-.register-form input[type="number"]:focus,
-.register-form input[type="tel"]:focus,
-.register-form select:focus,
-.register-form textarea:focus {
-    outline: none;
-    border-color: #1877f2;
-    box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.12);
-    background: white;
-}
-
-.register-form textarea {
-    resize: vertical;
-    min-height: 90px;
-}
-
-/* ===== ROLE SELECTOR ===== */
-.role-selector {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 10px;
-}
-
-.role-option {
-    position: relative;
-}
-
-.role-option input[type="radio"] {
-    display: none;
-}
-
-.role-label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    border: 1px solid #dfe3eb;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: var(--transition);
-    background: #ffffff;
-    font-weight: 600;
-    color: #334155;
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
-}
-
-.role-option input[type="radio"]:checked + .role-label {
-    border-color: #1877f2;
-    background: #eef5ff;
-    color: #0b57d0;
-    box-shadow: inset 0 0 0 1px rgba(24, 119, 242, 0.12);
-}
-
-.role-icon {
-    font-size: 1.4rem;
-}
-
-.role-description {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    padding: 8px 0 0 0;
-    min-height: 20px;
-    font-style: italic;
-}
-
-/* ===== PASSWORD FIELD ===== */
-.password-wrapper {
-    position: relative;
-    width: 100%;
-}
-
-.password-wrapper input {
-    padding-right: 40px;
-}
-
-.password-toggle {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
-    padding: 0;
-    margin: 0;
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    font-size: 16px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-    z-index: 10;
-}
-
-.password-toggle:hover {
-    opacity: 0.7;
-}
-
-/* ===== CHECKBOXES ===== */
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-}
-
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.checkbox-group .checkbox-label input[type="checkbox"] {
-    width: 12px;
-    height: 12px;
-    min-width: 12px;
-    cursor: pointer;
-    accent-color: var(--primary-color);
-    border: 1.5px solid var(--border-color);
-    border-radius: 3px;
-    transition: var(--transition);
-    flex-shrink: 0;
-}
-
-.checkbox-group .checkbox-label input[type="checkbox"]:hover {
-    border-color: var(--primary-color);
-}
-
-.checkbox-group .checkbox-label input[type="checkbox"]:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.preferences-checkbox .checkbox-label {
-    gap: 6px;
-    font-size: 0.85rem;
-}
-
-/* ===== CATEGORIES ===== */
-.categories-wrapper {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 6px;
-    padding: 8px;
-    background: #f9fbff;
-    border: 1px solid #e5edf8;
-    border-radius: 10px;
-    max-height: 180px;
-    overflow-y: auto;
-    box-sizing: border-box;
-    line-height: 1.2;
-}
-
-.categories-wrapper label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-weight: 500;
-    font-size: 0.92rem;
-    cursor: pointer;
-    margin: 0;
-    padding: 7px 10px;
-    background: #ffffff;
-    border: 1px solid #edf2f7;
-    border-radius: 8px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    min-width: 0;
-    line-height: 1.3;
-    color: #1f2937;
-}
-
-.categories-wrapper input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-    min-width: 15px;
-    cursor: pointer;
-    accent-color: #1877f2;
-    margin: 0;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    transition: var(--transition);
-    flex-shrink: 0;
-    vertical-align: middle;
-}
-
-.categories-wrapper input[type="checkbox"]:hover {
-    border-color: #1877f2;
-}
-
-.categories-wrapper input[type="checkbox"]:checked {
-    background-color: #1877f2;
-    border-color: #1877f2;
-}
-
-/* ===== FILE UPLOAD ===== */
-.file-upload-wrapper {
-    position: relative;
-    border: 2px dashed var(--border-color);
-    border-radius: var(--border-radius);
-    padding: 24px;
-    text-align: center;
-    cursor: pointer;
-    transition: var(--transition);
-    background: rgba(0, 0, 0, 0.02);
-}
-
-.file-upload-wrapper:hover {
-    border-color: var(--primary-color);
-    background: rgba(37, 99, 235, 0.05);
-}
-
-.file-upload-wrapper input[type="file"] {
-    display: none;
-}
-
-.file-upload-label {
-    display: block;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-/* ===== HELP TEXT & ERRORS ===== */
-.form-help {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-top: 5px;
-    font-style: italic;
-}
-
-.error-message {
-    display: block;
-    color: var(--error-color);
-    font-size: 0.75rem;
-    margin-top: 4px;
-    font-weight: 500;
-}
-
-/* ===== BUTTON ===== */
-.form-actions {
-    margin-top: 28px;
-    margin-bottom: 16px;
-}
-
-.btn-primary {
-    width: 100%;
-    padding: 13px 24px;
-    background: linear-gradient(180deg, #1e73e8 0%, #165ed7 100%);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: var(--transition);
-    box-shadow: 0 8px 18px rgba(30, 115, 232, 0.18);
-    text-transform: none;
-    letter-spacing: 0;
-}
-
-.btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(24, 119, 242, 0.28);
-}
-
-.btn-primary:active {
-    transform: translateY(0);
-}
-
-/* ===== LOGIN LINK ===== */
-.login-switch {
-    text-align: center;
-    color: #667085;
-    font-size: 0.92rem;
-    margin: 0;
-    padding-top: 8px;
-}
-
-.login-switch a {
-    color: #1877f2;
-    text-decoration: none;
-    font-weight: 700;
-    transition: var(--transition);
-}
-
-.login-switch a:hover {
-    color: var(--accent-color);
-}
-
-/* ===== WORKER SECTION ===== */
-.worker-section {
-    display: none;
-    margin-top: 22px;
-    padding: 18px 16px 8px;
-    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-    border: 1px solid #e7edf7;
-    border-radius: 14px;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 1024px) {
-    .register-wrapper {
-        grid-template-columns: 1fr;
-    }
-
-    .register-info {
-        display: none;
-    }
-
-    .register-card {
-        max-width: 100%;
-    }
-}
-
-@media (max-width: 768px) {
-    .register-card {
-        padding: 35px 25px;
-    }
-
-    .register-header {
-        margin-bottom: 24px;
-    }
-
-    .register-header h2 {
-        font-size: 1.4rem;
-    }
-
-    .form-row {
-        grid-template-columns: 1fr;
-        gap: 0;
-    }
-
-    .role-selector {
-        grid-template-columns: 1fr;
-    }
-
-    .btn-primary {
-        padding: 11px 20px;
-        font-size: 0.9rem;
-    }
-
-    .register-form input[type="text"],
-    .register-form input[type="email"],
-    .register-form input[type="password"],
-    .register-form input[type="number"],
-    .register-form input[type="tel"],
-    .register-form select,
-    .register-form textarea {
-        padding: 10px 12px;
-        font-size: 0.88rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .register-wrapper {
-        min-height: auto;
-    }
-
-    .register-form-container {
-        padding: 20px 10px;
-        min-height: auto;
-    }
-
-    .register-card {
-        padding: 25px 20px;
-        border-radius: 8px;
-    }
-
-    .register-header h2 {
-        font-size: 1.2rem;
-    }
-
-    .section-title {
-        font-size: 0.95rem;
-    }
-}
-</style>
-
-<script>
-function togglePassword(fieldId, button) {
-    const field = document.getElementById(fieldId);
-    if (!field) return;
-
-    if (field.type === "password") {
-        field.type = "text";
-        button.textContent = "🙈";
-        button.setAttribute("aria-label", "Hide password");
-    } else {
-        field.type = "password";
-        button.textContent = "👁";
-        button.setAttribute("aria-label", "Show password");
-    }
-}
-
-function updateRoleDescription(radioButton) {
-    const description = document.getElementById('roleDescription');
-    const descriptions = {
-        customer: "Looking for skilled professionals to complete your tasks and projects",
-        worker: "Ready to showcase your skills and connect with customers who need your services"
-    };
-    description.textContent = descriptions[radioButton.value] || '';
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    const selectedRole = document.querySelector('input[name="role"]:checked');
-    if (selectedRole) {
-        updateRoleDescription(selectedRole);
-    }
-
-    const toggleWorkerFields = function () {
-        const selectedRole = document.querySelector('input[name="role"]:checked')?.value || 'customer';
-        const workerSection = document.querySelector('.worker-section');
-        
-        if (selectedRole === 'worker') {
-            workerSection.style.display = 'block';
-        } else {
-            workerSection.style.display = 'none';
-        }
-    };
-
-    const roleRadios = document.querySelectorAll('input[name="role"]');
-    roleRadios.forEach(radio => {
-        radio.addEventListener('change', function() {
-            updateRoleDescription(this);
-            toggleWorkerFields();
-        });
-    });
-
-    toggleWorkerFields();
-
-    const fileInput = document.querySelector('input[type="file"]');
-    if (fileInput) {
-        const wrapper = fileInput.closest('.file-upload-wrapper');
-        wrapper.addEventListener('click', () => fileInput.click());
-        
-        fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                const fileName = this.files[0].name;
-                const label = wrapper.querySelector('.file-upload-label');
-                label.textContent = '✓ ' + fileName;
-                wrapper.style.borderColor = 'var(--success-color)';
-            }
-        });
-
-        wrapper.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            wrapper.style.borderColor = 'var(--primary-color)';
-            wrapper.style.background = 'rgba(37, 99, 235, 0.1)';
-        });
-
-        wrapper.addEventListener('dragleave', () => {
-            wrapper.style.borderColor = 'var(--border-color)';
-            wrapper.style.background = 'rgba(0, 0, 0, 0.02)';
-        });
-
-        wrapper.addEventListener('drop', (e) => {
-            e.preventDefault();
-            if (e.dataTransfer.files.length > 0) {
-                fileInput.files = e.dataTransfer.files;
-                fileInput.dispatchEvent(new Event('change'));
-            }
-        });
-    }
-});
-</script>
-
+{% block extra_js %}
+    <script src="{% static 'js/register.js' %}"></script>
 {% endblock %}

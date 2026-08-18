@@ -57,6 +57,12 @@ class WorkerProfile(models.Model):
     skills = models.TextField(blank=True, help_text="Comma-separated skills")
     experience_years = models.PositiveIntegerField(default=0)
     service_area = models.CharField(max_length=150, blank=True, null=True)
+    nid_number = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True,
+        help_text="National ID number"
+    )
     languages = models.CharField(max_length=150, blank=True, null=True)
     id_verification_document = models.FileField(upload_to='worker_documents/', blank=True, null=True)
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)

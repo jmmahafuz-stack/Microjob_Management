@@ -1,0 +1,152 @@
+/* =====================================================
+   ADMIN USER MANAGEMENT
+   File: static/css/admin.css
+   Purpose: Shared styles for admin user and profile pages
+   ===================================================== */
+
+.admin-user-filter {
+    margin-bottom: 20px;
+}
+
+.admin-user-filter__controls {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.admin-user-filter__role {
+    max-width: 200px;
+}
+
+.admin-user-filter__search {
+    max-width: 280px;
+}
+
+.admin-user-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-users-list .table-responsive {
+    overflow: visible;
+}
+
+.admin-users-list .table {
+    display: block;
+}
+
+.admin-users-list .table thead,
+.admin-users-list .table tbody {
+    display: block;
+}
+
+.admin-users-list .table thead tr {
+    display: grid;
+    grid-template-columns: minmax(220px, 1.5fr) minmax(100px, 0.7fr) minmax(120px, 0.8fr) minmax(280px, 2fr);
+    gap: 16px;
+    align-items: center;
+}
+
+.admin-users-list .table tbody {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.admin-users-list .table tbody tr {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--border-color, #dee2e6);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.admin-users-list .table tbody td {
+    display: block;
+    padding: 0;
+    border: 0;
+}
+
+.admin-users-list .table tbody td::before {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-secondary, #6c757d);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.admin-users-list .table tbody td:nth-child(2)::before {
+    content: "Role";
+}
+
+.admin-users-list .table tbody td:nth-child(3)::before {
+    content: "Status";
+}
+
+.admin-users-list .table tbody td:nth-child(4)::before {
+    content: "Actions";
+}
+
+.admin-action-form {
+    display: inline;
+}
+
+.admin-profile-avatar {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+}
+
+.admin-users-list .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.admin-users-list .badge,
+.admin-profile .badge {
+    display: inline-block;
+    padding: 0.35em 0.65em;
+    border-radius: 0.25rem;
+}
+
+.admin-profile .card {
+    box-shadow: 0 0 1px rgba(0, 0, 0, 0.125);
+}
+
+.admin-profile .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.admin-profile .gap-2 {
+    gap: 0.5rem;
+}
+
+.admin-profile table.table-sm th {
+    width: 40%;
+    font-weight: 600;
+}
+
+@media (max-width: 600px) {
+    .admin-user-filter__role,
+    .admin-user-filter__search {
+        max-width: none;
+        width: 100%;
+    }
+
+    .admin-users-list .table thead {
+        display: none;
+    }
+
+    .admin-users-list .table tbody {
+        grid-template-columns: 1fr;
+    }
+}

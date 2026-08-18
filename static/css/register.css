@@ -1,0 +1,287 @@
+/* =====================================================
+   REGISTRATION PAGE STYLES
+   File: static/css/register.css
+   Purpose: Styles for accounts/register.html
+   ===================================================== */
+
+/* -----------------------------------------
+   1. Page layout and overall container
+   ----------------------------------------- */
+.auth-page--register {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 500px);
+}
+
+.auth-card--register {
+    max-width: 500px;
+    width: 100%;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding: 1.5rem;
+}
+
+/* -----------------------------------------
+   2. Left-side hero/branding section
+   ----------------------------------------- */
+.auth-page--register .auth-hero {
+    padding: 2rem 1.5rem;
+}
+
+.auth-page--register .auth-hero h1 {
+    font-size: 1.75rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-page--register .auth-hero p {
+    font-size: 0.95rem;
+    margin-bottom: 1.5rem;
+}
+
+.auth-page--register .auth-benefits {
+    gap: 0.75rem;
+}
+
+.auth-page--register .benefit-item {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-size: 0.9rem;
+}
+
+.auth-page--register .benefit-item i {
+    color: var(--success-color);
+    flex-shrink: 0;
+}
+
+/* -----------------------------------------
+   3. Form header and title block
+   ----------------------------------------- */
+.auth-card--register .auth-card__header {
+    margin-bottom: 1.5rem;
+}
+
+.auth-card--register .auth-card__header h2 {
+    font-size: 1.5rem;
+    margin: 0 0 0.5rem;
+}
+
+.auth-card--register .auth-card__header p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* -----------------------------------------
+   4. Form sections and reusable field styles
+   ----------------------------------------- */
+.auth-card--register .form-section {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1rem;
+    background: #fff;
+    margin-bottom: 0.75rem;
+}
+
+.auth-card--register .section-title {
+    margin: 0 0 0.8rem;
+    font-size: 0.95rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.auth-card--register .form-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.auth-card--register .form-group {
+    margin-bottom: 0.75rem;
+}
+
+.auth-card--register .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.auth-card--register .form-label {
+    display: block;
+    margin-bottom: 0.35rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.auth-card--register input:not([type=radio]):not([type=checkbox]),
+.auth-card--register select,
+.auth-card--register textarea {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    font-size: 0.9rem;
+}
+
+.auth-card--register .form-help {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.auth-card--register .error-message {
+    display: block;
+    color: #dc3545;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+/* -----------------------------------------
+   5. Role selection section
+   ----------------------------------------- */
+.auth-card--register .role-selector {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.auth-card--register .role-option input {
+    position: absolute;
+    opacity: 0;
+}
+
+.auth-card--register .role-label {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 0.85rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.auth-card--register .role-option input:checked + .role-label {
+    border-color: var(--primary-color);
+    background: rgba(31, 78, 121, 0.08);
+    font-weight: 600;
+}
+
+.auth-card--register .role-icon {
+    font-size: 1.2rem;
+}
+
+/* -----------------------------------------
+   6. Password field styling and toggles
+   ----------------------------------------- */
+.auth-card--register .password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.auth-card--register .password-toggle {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    font-size: 1rem;
+}
+
+/* -----------------------------------------
+   7. Worker-only section styles
+   ----------------------------------------- */
+.auth-card--register .categories-wrapper {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.auth-card--register .categories-wrapper input[type="checkbox"] {
+    width: auto;
+    margin-right: 0.4rem;
+}
+
+.auth-card--register .categories-wrapper label {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    font-size: 0.9rem;
+}
+
+.auth-card--register .worker-section {
+    border-color: var(--primary-color);
+    background: rgba(31, 78, 121, 0.02);
+}
+
+.auth-card--register .is-hidden {
+    display: none;
+}
+
+/* -----------------------------------------
+   8. Submit action and login link
+   ----------------------------------------- */
+.auth-card--register .form-actions {
+    margin: 1rem 0 0.75rem;
+}
+
+.auth-card--register .btn-register {
+    width: 100%;
+    padding: 0.75rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: var(--primary-color);
+    color: white;
+    transition: background 0.2s ease;
+}
+
+.auth-card--register .btn-register:hover {
+    background: var(--primary-dark, #1a3a52);
+}
+
+.auth-card--register .login-switch {
+    text-align: center;
+    font-size: 0.9rem;
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.auth-card--register .login-switch a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-card--register .login-switch a:hover {
+    text-decoration: underline;
+}
+
+/* -----------------------------------------
+   9. Responsive adjustments for smaller screens
+   ----------------------------------------- */
+@media (max-width: 1024px) {
+    .auth-page--register {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-page--register .auth-hero {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .auth-card--register {
+        max-width: none;
+        max-height: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .auth-card--register .form-row,
+    .auth-card--register .role-selector {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-card--register {
+        padding: 1rem;
+    }
+}

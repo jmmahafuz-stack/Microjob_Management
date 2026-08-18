@@ -3,7 +3,7 @@ Admin Dashboard Views for comprehensive analytics and reporting.
 Shows payments, workers, jobs, earnings, payouts, and more.
 """
 
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -203,6 +203,52 @@ def admin_user_action(request, user_id):
             messages.success(request, f'{user.username} has been unblocked as a customer.')
 
     return redirect('admin_users_list')
+
+
+@staff_member_required
+def admin_view_user_profile(request, user_id):
+    """View user profile (worker or customer) from admin dashboard."""
+    user = get_object_or_404(CustomUser, pk=user_id)
+    
+    context = {
+        'user': user,
+        'is_worker': user.role == 'worker',
+        'is_customer': user.role == 'customer',
+    }
+    
+    if user.role == 'worker':
+        # Get worker profile details
+        worker_profile = getattr(user, 'worker_profile', None)
+        context['worker_profile'] = worker_profile
+        
+        # Get worker stats
+        if worker_profile:
+            completed_jobs = Job.objects.filter(
+                worker=user,
+                status='COMPLETED'
+            ).count()
+            
+            avg_rating = Review.objects.filter(
+                booking__worker=user
+            ).aggregate(avg_rating=Avg('rating'))['avg_rating']
+            
+            context['completed_jobs'] = completed_jobs
+            context['avg_rating'] = avg_rating or 0
+    
+    elif user.role == 'customer':
+        # Get customer stats
+        total_jobs = Job.objects.filter(customer=user).count()
+        completed_jobs = Job.objects.filter(customer=user, status='COMPLETED').count()
+        
+        avg_rating_given = Review.objects.filter(
+            booking__customer=user
+        ).aggregate(avg_rating=Avg('rating'))['avg_rating']
+        
+        context['total_jobs'] = total_jobs
+        context['completed_jobs'] = completed_jobs
+        context['avg_rating_given'] = avg_rating_given or 0
+    
+    return render(request, 'dashboard/admin_view_profile.html', context)
 
 
 @staff_member_required
