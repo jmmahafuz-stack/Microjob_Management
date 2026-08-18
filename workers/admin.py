@@ -70,6 +70,7 @@ class WorkerProfileAdmin(admin.ModelAdmin):
         'withdrawn_earnings',
         'worker_email',
         'worker_approval_status',
+        'worker_categories',
     )
     
     fieldsets = (
@@ -80,7 +81,6 @@ class WorkerProfileAdmin(admin.ModelAdmin):
             'fields': (
                 'profession',
                 'categories',
-                'worker_categories',
                 'bio',
                 'skills',
                 'experience_years',

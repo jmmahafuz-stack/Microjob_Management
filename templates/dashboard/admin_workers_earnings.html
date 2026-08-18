@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Finance</p>
+            <h2>Worker Earnings</h2>
+        </div>
+        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Worker</th>
+                    <th>Profession</th>
+                    <th>Completed Jobs</th>
+                    <th>Average Rating</th>
+                    <th>Total Earnings</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for worker in workers %}
+                <tr>
+                    <td>{{ worker.get_full_name|default:worker.username }}</td>
+                    <td>{{ worker.worker_profile.profession|default:'- ' }}</td>
+                    <td>{{ worker.completed_jobs|default:0 }}</td>
+                    <td>{{ worker.avg_rating|default:0|floatformat:1 }}</td>
+                    <td>৳{{ worker.worker_profile.total_earnings|default:'0.00' }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5">No workers found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -27,10 +27,10 @@ DEBUG = True
 
 # Local-network development configuration.
 # Replace 192.168.0.196 if your PC receives a different LAN IP.
-ALLOWED_HOSTS = ["*", "localhost", "127.0.0.1"]
+ALLOWED_HOSTS = ["192.168.0.195", "localhost", "127.0.0.1"]
 
 CSRF_TRUSTED_ORIGINS = [
-    "http://192.168.0.196:8000",
+    "http://192.168.0.195:8000",
     "http://localhost:8000",
     "http://127.0.0.1:8000",
 ]

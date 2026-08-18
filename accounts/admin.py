@@ -1,10 +1,25 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 from .models import CustomUser
 from notifications.utils import NotificationManager
+from complaints.models import Complaint
+from notifications.models import Notification
+from reviews.models import Review
+
+# Keep the admin panel focused on business-critical management screens.
+def unregister_if_registered(model):
+    if admin.site.is_registered(model):
+        admin.site.unregister(model)
+
+
+unregister_if_registered(Group)
+unregister_if_registered(Notification)
+unregister_if_registered(Complaint)
+unregister_if_registered(Review)
 
 
 class CustomUserCreationForm(UserCreationForm):

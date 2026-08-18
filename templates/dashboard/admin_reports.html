@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Reports</p>
+            <h2>Generate Reports</h2>
+        </div>
+        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="dashboard-grid admin-grid" style="margin-top:20px;">
+        <div class="dashboard-card">
+            <h3>Payments Report</h3>
+            <p class="dashboard-number">CSV / Excel</p>
+            <a href="{% url 'admin_report_download' 'payment' %}?format=excel" class="btn btn-primary btn-sm">Download</a>
+        </div>
+        <div class="dashboard-card">
+            <h3>Worker Report</h3>
+            <p class="dashboard-number">Performance</p>
+            <a href="{% url 'admin_report_download' 'worker' %}?format=excel" class="btn btn-primary btn-sm">Download</a>
+        </div>
+        <div class="dashboard-card">
+            <h3>Job Report</h3>
+            <p class="dashboard-number">Operations</p>
+            <a href="{% url 'admin_report_download' 'job' %}?format=excel" class="btn btn-primary btn-sm">Download</a>
+        </div>
+        <div class="dashboard-card">
+            <h3>Financial Report</h3>
+            <p class="dashboard-number">Commission</p>
+            <a href="{% url 'admin_report_download' 'financial' %}?format=excel" class="btn btn-primary btn-sm">Download</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

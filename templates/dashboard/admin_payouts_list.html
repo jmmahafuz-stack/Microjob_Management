@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Admin Operations</p>
+            <h2>Payout Requests</h2>
+        </div>
+        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Worker</th>
+                    <th>Requested</th>
+                    <th>Status</th>
+                    <th>Method</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payout in payouts %}
+                <tr>
+                    <td>#{{ payout.id }}</td>
+                    <td>{{ payout.worker.get_full_name|default:payout.worker.username }}</td>
+                    <td>৳{{ payout.requested_amount }}</td>
+                    <td>{{ payout.status }}</td>
+                    <td>{{ payout.payout_method }}</td>
+                    <td>{{ payout.created_at }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">No payout requests found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

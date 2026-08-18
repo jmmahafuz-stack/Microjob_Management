@@ -162,12 +162,12 @@
                     <span>Priority workflow</span>
                 </div>
                 <div class="dashboard-links">
-                    <span><i class="fa-solid fa-user-gear"></i> Manage Users</span>
-                    <span><i class="fa-solid fa-list"></i> Manage Services</span>
-                    <span><i class="fa-solid fa-clipboard-list"></i> Monitor Jobs</span>
-                    <span><i class="fa-solid fa-percent"></i> Manage Commission</span>
-                    <span><i class="fa-solid fa-sack-dollar"></i> Monitor Payments</span>
-                    <span><i class="fa-solid fa-file-lines"></i> Generate Reports</span>
+                    <a href="{% url 'admin_users_list' %}"><i class="fa-solid fa-user-gear"></i> Manage Users</a>
+                    <a href="{% url 'service_list' %}"><i class="fa-solid fa-list"></i> Manage Services</a>
+                    <a href="{% url 'admin_jobs_list' %}"><i class="fa-solid fa-clipboard-list"></i> Monitor Jobs</a>
+                    <a href="{% url 'admin_payouts_list' %}"><i class="fa-solid fa-percent"></i> Manage Commission</a>
+                    <a href="{% url 'admin_payments_list' %}"><i class="fa-solid fa-sack-dollar"></i> Monitor Payments</a>
+                    <a href="{% url 'admin_reports' %}"><i class="fa-solid fa-file-lines"></i> Generate Reports</a>
                 </div>
             </aside>
         </section>
