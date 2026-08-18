@@ -35,6 +35,12 @@
             <legend style="font-size: 1.1rem; font-weight: 600; margin-bottom: 16px;">Professional Information</legend>
 
             <div style="margin-bottom: 16px;">
+                <label for="profession" style="display: block; margin-bottom: 4px; font-weight: 500;">Profession</label>
+                <input type="text" id="profession" name="profession" value="{{ profile.profession }}" placeholder="e.g., Electrician, Plumber, Cleaner" required style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
+                <small style="color: #64748b; display: block; margin-top: 4px;">This is the type of worker customers will see on your profile.</small>
+            </div>
+
+            <div style="margin-bottom: 16px;">
                 <label for="service" style="display: block; margin-bottom: 4px; font-weight: 500;">Service You Offer</label>
                 <select id="service" name="service" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
                     <option value="">-- Select a Service --</option>

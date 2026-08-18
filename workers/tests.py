@@ -8,9 +8,31 @@ from accounts.models import CustomUser
 from bookings.models import Job, JobApplication, ServiceRequest
 from services.models import Service
 from workers.models import WorkerProfile
+from services.models import Category
 
 
 class WorkerRegistrationTests(TestCase):
+    def test_public_worker_profile_shows_profession_and_categories(self):
+        category = Category.objects.create(name='Electrical', is_active=True)
+        user = CustomUser.objects.create_user(
+            username='visibleworker',
+            email='visibleworker@example.com',
+            password='StrongPassword123',
+            role='worker',
+        )
+        profile = WorkerProfile.objects.create(
+            user=user,
+            profession='Electrician',
+            verification_status='Approved',
+        )
+        profile.categories.add(category)
+
+        response = self.client.get(reverse('worker_profile_detail', args=[profile.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Electrician')
+        self.assertContains(response, 'Electrical')
+
     def test_worker_registration_creates_pending_profile(self):
         response = self.client.post(
             reverse('register'),

@@ -31,6 +31,18 @@
         <h3>Worker Status</h3>
         <p><strong>Verification:</strong> {{ user.worker_profile.verification_status|default:'Pending' }}</p>
         <p><strong>Training:</strong> {{ user.worker_profile.training_status|default:'Pending' }}</p>
+        <p><strong>Profession:</strong> {{ user.worker_profile.profession|default:'Not set' }}</p>
+        <p><strong>Category:</strong>
+            {% if user.worker_profile.categories.all %}
+                {% for category in user.worker_profile.categories.all %}{{ category.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            {% elif user.worker_profile.service_category %}
+                {{ user.worker_profile.service_category }}
+            {% elif user.worker_profile.service %}
+                {{ user.worker_profile.service.category }}
+            {% else %}
+                Not set
+            {% endif %}
+        </p>
         <p><strong>Hourly rate:</strong> ৳{{ user.worker_profile.hourly_rate|default:'0.00' }}</p>
         <p><strong>Service area:</strong> {{ user.worker_profile.service_area|default:'Not set' }}</p>
     </div>

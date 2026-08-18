@@ -337,6 +337,7 @@ def worker_profile_edit(request):
         worker.save()
         
         # Update profile
+        profile.profession = request.POST.get('profession', profile.profession).strip()
         profile.bio = request.POST.get('bio', profile.bio)
         profile.skills = request.POST.get('skills', profile.skills)
         profile.experience_years = int(request.POST.get('experience_years', profile.experience_years))
