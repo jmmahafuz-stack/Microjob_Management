@@ -203,6 +203,11 @@ class ServiceRequestCreateForm(forms.ModelForm):
 
 class JobApplicationForm(forms.ModelForm):
     """Form for workers to apply for a service request"""
+    agreed_to_schedule = forms.BooleanField(
+        required=True,
+        label="I agree to the customer's requested date and time"
+    )
+
     class Meta:
         model = JobApplication
         fields = [
@@ -210,6 +215,7 @@ class JobApplicationForm(forms.ModelForm):
             'estimated_duration',
             'proposal_message',
             'can_start_date',
+            'agreed_to_schedule',
         ]
         widgets = {
             'proposed_price': forms.NumberInput(attrs={
@@ -232,7 +238,15 @@ class JobApplicationForm(forms.ModelForm):
                 'type': 'date',
                 'class': 'form-input'
             }),
+            'agreed_to_schedule': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
         }
+
+    def __init__(self, *args, **kwargs):
+        self.service_request = kwargs.pop('service_request', None)
+        self.worker = kwargs.pop('worker', None)
+        super().__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -240,6 +254,54 @@ class JobApplicationForm(forms.ModelForm):
         
         if proposed_price and proposed_price <= 0:
             raise forms.ValidationError("Proposed price must be greater than 0.")
+
+        if (
+            cleaned_data.get('agreed_to_schedule')
+            and self.service_request
+            and cleaned_data.get('can_start_date') != self.service_request.preferred_date
+        ):
+            raise forms.ValidationError(
+                "To agree to the customer's schedule, your start date must match the preferred date."
+            )
+
+        if self.service_request and cleaned_data.get('agreed_to_schedule'):
+            scheduled_date = self.service_request.preferred_date
+            requested_start = self.service_request.preferred_time_start
+            requested_end = self.service_request.preferred_time_end
+            worker = self.worker or self.instance.worker
+            assigned_jobs = Job.objects.filter(
+                worker=worker,
+                scheduled_date=scheduled_date,
+                status__in=['CONFIRMED', 'IN_PROGRESS'],
+            ) if worker else Job.objects.none()
+
+            for existing_job in assigned_jobs:
+                existing_start = existing_job.scheduled_time_start
+                existing_end = existing_job.scheduled_time_end
+                has_overlap = False
+
+                if requested_start and existing_start:
+                    if requested_end and existing_end:
+                        has_overlap = (
+                            requested_start < existing_end
+                            and requested_end > existing_start
+                        )
+                    elif requested_end:
+                        has_overlap = requested_start < existing_job.get_estimated_end_time()
+                    else:
+                        has_overlap = requested_start < existing_job.get_estimated_end_time()
+                elif not requested_start or not existing_start:
+                    has_overlap = True
+
+                if has_overlap:
+                    existing_time = existing_start.strftime('%I:%M %p') if existing_start else 'unspecified time'
+                    if existing_end:
+                        existing_time += f" - {existing_end.strftime('%I:%M %p')}"
+                    raise forms.ValidationError(
+                        f"You are already assigned to another job at this time: "
+                        f"{existing_job.title} on {existing_job.scheduled_date:%b %d, %Y} "
+                        f"({existing_time}). Please choose a different job time."
+                    )
         
         return cleaned_data
 

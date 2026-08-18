@@ -19,7 +19,9 @@ class Complaint(models.Model):
     booking = models.ForeignKey(
         Booking,
         on_delete=models.CASCADE,
-        related_name='complaints'
+        related_name='complaints',
+        null=True,
+        blank=True,
     )
     subject = models.CharField(max_length=200)
     description = models.TextField()

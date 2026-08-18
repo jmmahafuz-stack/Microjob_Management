@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db import models
 
-from bookings.models import Booking
+from bookings.models import Booking, Job
 
 
 class Review(models.Model):
@@ -19,6 +19,15 @@ class Review(models.Model):
         Booking,
         on_delete=models.CASCADE,
         related_name='reviews'
+        , null=True,
+        blank=True,
+    )
+    job = models.ForeignKey(
+        Job,
+        on_delete=models.CASCADE,
+        related_name='reviews',
+        null=True,
+        blank=True,
     )
     rating = models.PositiveSmallIntegerField()
     comment = models.TextField(blank=True, null=True)

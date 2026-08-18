@@ -139,6 +139,18 @@
                 </div>
             {% endif %}
 
+            {% if not payment_completed and job.status != 'CANCELLED' %}
+                <div class="mb-4">
+                    <a href="{% url 'job_messages' job.id %}" class="btn btn-info btn-lg text-white">
+                        <i class="fas fa-comments"></i> Message {% if request.user == job.customer %}Worker{% else %}Customer{% endif %}
+                    </a>
+                </div>
+            {% elif payment_completed %}
+                <div class="alert alert-secondary mb-4">
+                    Messaging is closed because this service has been paid for.
+                </div>
+            {% endif %}
+
             {% if request.user == job.customer and job.status != 'COMPLETED' and job.status != 'CANCELLED' %}
                 <div class="mb-4">
                     <a href="{% url 'cancel_job' job.id %}" class="btn btn-danger btn-lg">

@@ -72,6 +72,11 @@
                     <h5 class="mb-0">Send Message</h5>
                 </div>
                 <div class="card-body">
+                    {% if payment_completed %}
+                        <div class="alert alert-secondary mb-0">
+                            Messaging is closed because payment has been completed for this service.
+                        </div>
+                    {% else %}
                     <form method="post">
                         {% csrf_token %}
                         
@@ -95,6 +100,7 @@
                             </a>
                         </div>
                     </form>
+                    {% endif %}
                 </div>
             </div>
         </div>

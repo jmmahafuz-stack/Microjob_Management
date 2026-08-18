@@ -47,7 +47,9 @@
                         <strong>Waiting for work start</strong>
                         <div>
                             <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Details</a>
-                            <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-primary">Message</a>
+                            {% if not job.payment_completed %}
+                                <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-primary">Message</a>
+                            {% endif %}
                         </div>
                     </div>
                 </article>
@@ -78,7 +80,9 @@
                         <strong>Worker is completing the service</strong>
                         <div>
                             <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Details</a>
-                            <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-primary">Message</a>
+                            {% if not job.payment_completed %}
+                                <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-primary">Message</a>
+                            {% endif %}
                         </div>
                     </div>
                 </article>
@@ -106,10 +110,12 @@
                         <div><span class="meta-label">Date</span><p>{{ job.updated_at|date:"M d, Y" }}</p></div>
                     </div>
                     <div class="booking-card__footer">
-                        <strong>Pay after service is completed</strong>
+                        <strong>{% if job.payment_completed %}Payment completed{% else %}Pay after service is completed{% endif %}</strong>
                         <div>
                             <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Details</a>
-                            <a href="{% url 'make_payment' job.pk %}" class="btn btn-success">Pay Now</a>
+                            {% if not job.payment_completed %}
+                                <a href="{% url 'make_payment' job.pk %}" class="btn btn-success">Pay Now</a>
+                            {% endif %}
                         </div>
                     </div>
                 </article>

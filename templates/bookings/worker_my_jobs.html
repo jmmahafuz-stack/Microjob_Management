@@ -121,10 +121,12 @@
                 </p>
 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
-                    <a href="{% url 'job_messages' app.service_request.pk %}" 
+                    {% if app.service_request.job and app.service_request.job.status != 'CANCELLED' %}
+                    <a href="{% url 'job_messages' app.service_request.job.pk %}" 
                        style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
                         💬 Contact Customer
                     </a>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

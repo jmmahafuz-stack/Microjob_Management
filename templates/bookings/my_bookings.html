@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container">
+<div class="container workflow-page workflow-page--bookings">
     <!-- Header Section -->
     <div class="booking-page-header">
         <div class="header-content">
@@ -55,6 +55,65 @@
         </div>
         {% endif %}
     </div>
+
+    {% if accepted_jobs %}
+        <section style="margin-bottom: 2rem;">
+            <h3 style="color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                Accepted Services
+            </h3>
+            <div class="booking-list">
+                {% for job in accepted_jobs %}
+                    <article class="booking-card">
+                        <div class="booking-card__header">
+                            <div>
+                                <p class="booking-card__label">Accepted service</p>
+                                <h4>{{ job.title }}</h4>
+                            </div>
+                            <span class="booking-status-pill booking-status-pill--{{ job.status|lower }}">
+                                {{ job.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="booking-card__meta">
+                            <div>
+                                <span class="meta-label">Worker</span>
+                                <p>{{ job.worker.get_full_name|default:job.worker.username }}</p>
+                            </div>
+                            <div>
+                                <span class="meta-label">Scheduled</span>
+                                <p>
+                                    {{ job.scheduled_date|date:"M d, Y" }}
+                                    {% if job.scheduled_time_start %}
+                                        at {{ job.scheduled_time_start|time:"g:i A" }}
+                                        {% if job.scheduled_time_end %}- {{ job.scheduled_time_end|time:"g:i A" }}{% endif %}
+                                    {% endif %}
+                                </p>
+                            </div>
+                            <div>
+                                <span class="meta-label">Price</span>
+                                <p>Rs. {{ job.final_price }}</p>
+                            </div>
+                        </div>
+                        <p class="mb-3">{{ job.description|truncatewords:30 }}</p>
+                        <div class="booking-card__footer">
+                            <strong>{% if job.payment_completed %}Payment completed{% else %}Service details{% endif %}</strong>
+                            <div>
+                                <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Details</a>
+                                {% if job.status == 'COMPLETED' and not job.payment_completed %}
+                                    <a href="{% url 'make_payment' job.pk %}" class="btn btn-success">Pay Now</a>
+                                {% endif %}
+                                {% if job.status == 'COMPLETED' %}
+                                    <a href="{% url 'create_job_review' job.pk %}" class="btn btn-outline-primary">Rate Worker</a>
+                                {% endif %}
+                                {% if not job.payment_completed %}
+                                    <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-primary">Message Worker</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
 
     <!-- Filter Section -->
     {% if bookings %}

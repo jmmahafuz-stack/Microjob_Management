@@ -74,6 +74,15 @@
                         <strong>Can Start Date:</strong><br>
                         {{ application.can_start_date|date:"M d, Y" }}
                     </div>
+
+                    <div class="mb-3">
+                        <strong>Schedule Agreement:</strong><br>
+                        {% if application.agreed_to_schedule %}
+                            <span class="text-success"><i class="fas fa-check-circle"></i> Agrees to your requested date and time</span>
+                        {% else %}
+                            <span class="text-warning">Worker has not agreed to the requested schedule</span>
+                        {% endif %}
+                    </div>
                     
                     <div class="mb-3">
                         <strong>Proposal Message:</strong>

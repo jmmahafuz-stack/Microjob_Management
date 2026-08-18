@@ -3,13 +3,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 import django.utils.timezone
 
 from accounts.decorators import admin_required, customer_required, worker_required
 from services.models import Service
 from workers.models import WorkerProfile
 from notifications.models import Notification
+from payments.models import Payment
 
 from .forms import (
     BookingCreateForm,
@@ -70,11 +71,24 @@ def booking_list(request):
 def my_bookings(request):
     """Show customer's all bookings"""
     bookings = Booking.objects.filter(customer=request.user).select_related('worker', 'service').order_by('-created_at')
+    verified_payment = Payment.objects.filter(
+        job=OuterRef('pk'),
+        payment_status='Verified',
+    )
+    accepted_jobs = Job.objects.filter(
+        customer=request.user,
+        status__in=['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'],
+    ).annotate(
+        payment_completed=Exists(verified_payment)
+    ).select_related('worker', 'service_request').order_by('-created_at')
     
     return render(
         request,
         'bookings/my_bookings.html',
-        {'bookings': bookings}
+        {
+            'bookings': bookings,
+            'accepted_jobs': accepted_jobs,
+        }
     )
 
 
@@ -82,9 +96,16 @@ def my_bookings(request):
 @customer_required
 def my_jobs(request):
     """Show the customer's side of the request → accept → work → complete → pay lifecycle."""
-    confirmed_jobs = Job.objects.filter(customer=request.user, status='CONFIRMED').select_related('worker', 'service_request').order_by('-created_at')
-    active_jobs = Job.objects.filter(customer=request.user, status='IN_PROGRESS').select_related('worker', 'service_request').order_by('-created_at')
-    completed_jobs = Job.objects.filter(customer=request.user, status='COMPLETED').select_related('worker', 'service_request').order_by('-created_at')
+    verified_payment = Payment.objects.filter(
+        job=OuterRef('pk'),
+        payment_status='Verified',
+    )
+    job_queryset = Job.objects.annotate(
+        payment_completed=Exists(verified_payment)
+    ).select_related('worker', 'service_request').order_by('-created_at')
+    confirmed_jobs = job_queryset.filter(customer=request.user, status='CONFIRMED')
+    active_jobs = job_queryset.filter(customer=request.user, status='IN_PROGRESS')
+    completed_jobs = job_queryset.filter(customer=request.user, status='COMPLETED')
 
     context = {
         'confirmed_jobs': confirmed_jobs,
@@ -600,7 +621,11 @@ def job_application_create(request, service_request_id):
         return redirect('service_request_detail', pk=service_request.pk)
     
     if request.method == 'POST':
-        form = JobApplicationForm(request.POST)
+        form = JobApplicationForm(
+            request.POST,
+            service_request=service_request,
+            worker=request.user,
+        )
         if form.is_valid():
             application = form.save(commit=False)
             application.service_request = service_request
@@ -616,7 +641,11 @@ def job_application_create(request, service_request_id):
             messages.success(request, 'Application submitted successfully!')
             return redirect('service_request_detail', pk=service_request.pk)
     else:
-        form = JobApplicationForm()
+        form = JobApplicationForm(
+            service_request=service_request,
+            worker=request.user,
+            initial={'can_start_date': service_request.preferred_date}
+        )
     
     context = {
         'form': form,
@@ -652,6 +681,8 @@ def job_application_review(request, pk):
                     proposed_price=application.proposed_price,
                     estimated_duration=application.estimated_duration,
                     scheduled_date=application.can_start_date,
+                    scheduled_time_start=application.service_request.preferred_time_start,
+                    scheduled_time_end=application.service_request.preferred_time_end,
                     location=application.service_request.location,
                     address=application.service_request.address,
                 )
@@ -712,7 +743,14 @@ def job_detail(request, pk):
         messages.error(request, 'You do not have permission to view this job.')
         return redirect('service_request_list')
 
-    context = {'job': job}
+    payment_completed = Payment.objects.filter(
+        job=job,
+        payment_status='Verified',
+    ).exists()
+    context = {
+        'job': job,
+        'payment_completed': payment_completed,
+    }
     return render(request, 'bookings/job_detail.html', context)
 
 
@@ -925,6 +963,14 @@ def job_messages(request, pk):
     if request.user != job.customer and request.user != job.worker:
         messages.error(request, 'You do not have permission to view job messages.')
         return redirect('home')
+
+    payment_completed = Payment.objects.filter(
+        job=job,
+        payment_status='Verified',
+    ).exists()
+    if payment_completed:
+        messages.info(request, 'Messaging is closed because payment has been completed for this service.')
+        return redirect('job_detail', pk=job.pk)
     
     # Get all messages for this job
     job_messages = BookingMessage.objects.filter(job=job).order_by('created_at')
@@ -957,6 +1003,7 @@ def job_messages(request, pk):
     context = {
         'job': job,
         'messages': job_messages,
+        'payment_completed': payment_completed,
     }
     return render(request, 'bookings/job_messages.html', context)
 

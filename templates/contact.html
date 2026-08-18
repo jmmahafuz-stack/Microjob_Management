@@ -30,34 +30,24 @@
         </div>
     </section>
 
-    <!-- Contact Form -->
-    <section class="section" style="max-width: 700px; margin-left: auto; margin-right: auto;">
-        <h2 style="text-align: center; margin-bottom: 2rem;">Send us a Message</h2>
-        <form method="POST" style="background: white; padding: 2rem; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label>Name</label>
-                <input type="text" name="name" required>
-            </div>
-
-            <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" required>
-            </div>
-
-            <div class="form-group">
-                <label>Subject</label>
-                <input type="text" name="subject" required>
-            </div>
-
-            <div class="form-group">
-                <label>Message</label>
-                <textarea name="message" required></textarea>
-            </div>
-
-            <button type="submit" class="btn" style="width: 100%; padding: 1rem;">Send Message</button>
-        </form>
+    <!-- Support action -->
+    <section class="section contact-support-panel" style="max-width: 700px; margin-left: auto; margin-right: auto;">
+        <h2>Need help?</h2>
+        <p>Customers and workers can send a complaint or support message directly to the admin team.</p>
+        {% if user.is_authenticated %}
+            {% if user.role == 'customer' or user.role == 'worker' %}
+            <a href="{% url 'contact_admin' %}" class="btn btn-primary">
+                <i class="fas fa-comments"></i> Message Us
+            </a>
+            <a href="{% url 'complaint_history' %}" class="btn btn-outline-primary">
+                <i class="fas fa-clock-rotate-left"></i> View My Messages
+            </a>
+            {% else %}
+                <p>Support messages are available from customer and worker accounts.</p>
+            {% endif %}
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-primary">Log in to Message Support</a>
+        {% endif %}
     </section>
 
     <!-- FAQ Section -->

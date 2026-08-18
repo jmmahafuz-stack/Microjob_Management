@@ -32,6 +32,19 @@
                             <strong>Preferred Date:</strong> {{ service_request.preferred_date|date:"M d, Y" }}
                         </div>
                     </div>
+                    {% if service_request.preferred_time_start or service_request.preferred_time_end %}
+                        <div class="mt-2">
+                            <strong>Preferred Time:</strong>
+                            {% if service_request.preferred_time_start %}
+                                {{ service_request.preferred_time_start|time:"g:i A" }}
+                            {% else %}
+                                Any time
+                            {% endif %}
+                            {% if service_request.preferred_time_end %}
+                                - {{ service_request.preferred_time_end|time:"g:i A" }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
             </div>
             
@@ -98,6 +111,18 @@
                             <small class="form-text text-muted">
                                 Explain why you're the best choice for this job. Highlight your experience, approach, and how you'll deliver quality work.
                             </small>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            {{ form.agreed_to_schedule }}
+                            <label for="{{ form.agreed_to_schedule.id_for_label }}" class="form-check-label">
+                                {{ form.agreed_to_schedule.label }}
+                            </label>
+                            {% if form.agreed_to_schedule.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.agreed_to_schedule.errors.0 }}
+                                </div>
+                            {% endif %}
                         </div>
                         
                         {% if form.non_field_errors %}

@@ -271,6 +271,10 @@ class JobApplication(models.Model):
     
     # Availability
     can_start_date = models.DateField(help_text="When you can start working")
+    agreed_to_schedule = models.BooleanField(
+        default=False,
+        help_text="Worker agrees to the customer's requested date and time"
+    )
     
     # Worker stats at time of application
     worker_rating_at_application = models.DecimalField(
