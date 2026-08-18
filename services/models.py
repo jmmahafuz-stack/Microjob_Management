@@ -61,11 +61,9 @@ class Service(models.Model):
 
     @property
     def average_rating(self):
-        """Calculate average rating from worker reviews for this service"""
+        """Calculate average rating from customer reviews for this service"""
         from reviews.models import Review
-        from bookings.models import Job
-        jobs = Job.objects.filter(service_request__service=self)
-        return Review.objects.filter(booking__job__in=jobs).aggregate(avg=Avg('rating'))['avg'] or 0
+        return Review.objects.filter(booking__service=self).aggregate(avg=Avg('rating'))['avg'] or 0
     
     @property
     def workers_for_this_service(self):
