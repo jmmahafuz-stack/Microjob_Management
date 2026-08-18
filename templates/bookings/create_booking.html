@@ -44,6 +44,7 @@
                             {% endif %}
                             <div class="worker-card__meta">
                                 <p class="worker-card__name">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
+                                <p class="worker-card__detail">Profession: {{ worker_profile.profession|default:'Not specified' }}</p>
                                 <p class="worker-card__detail">Skills: {{ worker_profile.skills }}</p>
                                 <p class="worker-card__detail">Experience: {{ worker_profile.experience|default:'Not specified' }}</p>
                             </div>

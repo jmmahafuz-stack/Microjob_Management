@@ -139,10 +139,13 @@ class RegisterForm(UserCreationForm):
 
             if user.role == 'worker':
                 profile, _ = WorkerProfile.objects.get_or_create(user=user)
+                selected_category = self.cleaned_data.get('worker_categories')
                 # Worker registration no longer requires a specific service, text category,
                 # or hourly rate. Workers can manage those details later from their profile.
                 profile.service = None
                 profile.service_category = ''
+                if selected_category:
+                    profile.profession = selected_category.name
                 profile.skills = self.cleaned_data.get('worker_skills') or profile.skills
                 profile.experience_years = self.clean_worker_experience()
                 profile.service_area = self.cleaned_data.get('worker_service_area') or profile.service_area
@@ -153,7 +156,6 @@ class RegisterForm(UserCreationForm):
                 profile.save()
                 
                 # Add selected category
-                selected_category = self.cleaned_data.get('worker_categories')
                 if selected_category:
                     profile.categories.set([selected_category])
 

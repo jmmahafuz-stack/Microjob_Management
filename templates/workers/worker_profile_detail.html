@@ -11,7 +11,7 @@
             {% endif %}
             <div>
                 <h2 style="margin:0 0 6px;">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</h2>
-                <p style="margin:0; color:#475569;">{{ worker_profile.profession|default:'Skilled professional' }}</p>
+                <p style="margin:0; color:#475569;"><strong>Profession:</strong> {{ worker_profile.profession|default:'Skilled professional' }}</p>
                 <p style="margin:6px 0 0; color:#475569;">
                     <strong>Categories:</strong>
                     {% if categories %}

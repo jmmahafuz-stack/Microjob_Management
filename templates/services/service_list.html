@@ -239,6 +239,13 @@
                                             class="worker-card__detail"
                                             style="margin:0;"
                                         >
+                                            Profession: {{ worker_profile.profession|default:'Not specified' }}
+                                        </p>
+
+                                        <p
+                                            class="worker-card__detail"
+                                            style="margin:0;"
+                                        >
                                             {{ worker_profile.skills }}
                                         </p>
 
@@ -374,6 +381,13 @@
                                             style="font-size:0.84rem;"
                                         >
                                             {{ worker_profile.user.get_full_name|default:worker_profile.user.username }}
+                                        </p>
+
+                                        <p
+                                            class="worker-card__detail"
+                                            style="margin:0;"
+                                        >
+                                            Profession: {{ worker_profile.profession|default:'Not specified' }}
                                         </p>
 
                                         <p
@@ -533,6 +547,13 @@
                                         style="font-size:0.84rem;"
                                     >
                                         {{ worker_profile.user.get_full_name|default:worker_profile.user.username }}
+                                    </p>
+
+                                    <p
+                                        class="worker-card__detail"
+                                        style="margin:0;"
+                                    >
+                                        Profession: {{ worker_profile.profession|default:'Not specified' }}
                                     </p>
 
                                     <p

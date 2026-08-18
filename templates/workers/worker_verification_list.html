@@ -8,7 +8,7 @@
         <ul>
             {% for worker in workers %}
                 <li>
-                    <strong>{{ worker.user.username }}</strong> - Training: {{ worker.training_status }} | Verification: {{ worker.verification_status }} | Badge: {{ worker.badge_label }}
+                    <strong>{{ worker.user.username }}</strong> - Profession: {{ worker.profession|default:'Not set' }} | Training: {{ worker.training_status }} | Verification: {{ worker.verification_status }} | Badge: {{ worker.badge_label }}
                     <a href="{% url 'verify_worker' worker.pk %}">Manage</a>
                 </li>
             {% endfor %}

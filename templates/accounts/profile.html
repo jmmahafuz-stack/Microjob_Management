@@ -23,6 +23,9 @@
     <div class="profile-details">
         <p><strong>Email:</strong> {{ user.email }}</p>
         <p><strong>Phone:</strong> {{ user.phone }}</p>
+        {% if user.role == 'worker' %}
+            <p><strong>Profession / Work category:</strong> {{ user.worker_profile.profession|default:'Not set' }}</p>
+        {% endif %}
         <p><strong>Address:</strong> {{ user.address }}</p>
     </div>
 
