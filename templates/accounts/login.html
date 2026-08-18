@@ -1,6 +1,47 @@
 {% extends 'base.html' %}
 {% block title %}Sign In — MJMS{% endblock %}
 
+{% block extra_css %}
+<style>
+    .auth-card--login .password-wrapper {
+        position: relative;
+        width: 100%;
+    }
+
+    .auth-card--login .password-wrapper input {
+        width: 100%;
+        padding-right: 44px;
+        box-sizing: border-box;
+    }
+
+    .auth-card--login .password-toggle {
+        position: absolute;
+        top: 50%;
+        right: 4px;
+        display: grid;
+        width: 36px;
+        height: 36px;
+        padding: 0;
+        margin: 0;
+        transform: translateY(-50%);
+        place-items: center;
+        box-sizing: border-box;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: #64748b;
+        cursor: pointer;
+        font-size: 0.95rem;
+    }
+
+    .auth-card--login .password-toggle:hover,
+    .auth-card--login .password-toggle:focus-visible {
+        background: #e8f2fb;
+        color: #1f4e79;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <section class="auth-page">
     <div class="auth-hero">
