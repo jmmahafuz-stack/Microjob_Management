@@ -88,9 +88,9 @@ def worker_dashboard(request):
     if worker_profile.service:
         relevant_services = relevant_services.filter(pk=worker_profile.service.pk)
     elif worker_profile.service_category:
-        relevant_services = relevant_services.filter(category__icontains=worker_profile.service_category)
+        relevant_services = relevant_services.filter(category__name__icontains=worker_profile.service_category)
     elif worker_profile.categories.exists():
-        relevant_services = relevant_services.filter(category__in=[c.name for c in worker_profile.categories.all()])
+        relevant_services = relevant_services.filter(category__in=worker_profile.categories.all())
     else:
         relevant_services = relevant_services.none()
 
@@ -207,12 +207,14 @@ def worker_earnings_report(request):
 def worker_profile_detail(request, pk):
     worker_profile = get_object_or_404(WorkerProfile, pk=pk)
     reviews = Review.objects.filter(worker=worker_profile.user).select_related('customer')
+    categories = worker_profile.categories.all()
 
     return render(
         request,
         'workers/worker_profile_detail.html',
         {
             'worker_profile': worker_profile,
+            'categories': categories,
             'reviews': reviews,
         }
     )

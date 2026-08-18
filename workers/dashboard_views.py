@@ -96,9 +96,9 @@ def worker_dashboard(request):
     if profile.service:
         available_services = available_services.filter(pk=profile.service.pk)
     elif profile.service_category:
-        available_services = available_services.filter(category__icontains=profile.service_category)
+        available_services = available_services.filter(category__name__icontains=profile.service_category)
     elif profile.categories.exists():
-        available_services = available_services.filter(category__in=[c.name for c in profile.categories.all()])
+        available_services = available_services.filter(category__in=profile.categories.all())
     else:
         available_services = available_services.none()
     

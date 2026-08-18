@@ -11,7 +11,17 @@
             {% endif %}
             <div>
                 <h2 style="margin:0 0 6px;">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</h2>
-                <p style="margin:0; color:#475569;">{{ worker_profile.service_category|default:'Skilled professional' }}</p>
+                <p style="margin:0; color:#475569;">
+                    {% if worker_profile.service %}
+                        {{ worker_profile.service.name }}
+                    {% elif worker_profile.service_category %}
+                        {{ worker_profile.service_category }}
+                    {% elif categories %}
+                        {% for category in categories %}{{ category.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                    {% else %}
+                        Skilled professional
+                    {% endif %}
+                </p>
                 <p style="margin:4px 0 0; color:#4f46e5; font-weight:600;">Verified: {{ worker_profile.verification_status }}</p>
             </div>
         </div>
@@ -23,7 +33,7 @@
             </div>
             <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:12px;">
                 <div style="font-size:0.8rem; color:#64748b;">Experience</div>
-                <div style="font-weight:600; margin-top:2px;">{{ worker_profile.experience|default:'Not specified' }}</div>
+                <div style="font-weight:600; margin-top:2px;">{{ worker_profile.experience_years|default:0 }} years</div>
             </div>
             <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:12px;">
                 <div style="font-size:0.8rem; color:#64748b;">Service area</div>

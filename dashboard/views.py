@@ -36,6 +36,17 @@ def dashboard_home(request):
         paid_transactions = paid_payments.count()
         avg_rating = Review.objects.aggregate(avg=Avg('rating'))['avg'] or 0
 
+        trade_counts = []
+        for category in ['Electrical', 'Plumbing', 'Cleaning', 'Carpentry']:
+            count = WorkerProfile.objects.filter(
+                categories__name=category,
+                user__worker_status='APPROVED',
+                user__is_blocked=False,
+            ).distinct().count()
+            trade_counts.append({'name': category, 'count': count})
+
+        blocked_workers = CustomUser.objects.filter(role='worker', is_blocked=True).count()
+
         today = timezone.now().date()
         daily_start = today - timedelta(days=1)
         monthly_start = today.replace(day=1)
@@ -70,6 +81,8 @@ def dashboard_home(request):
             'cancelled_jobs': cancelled_jobs,
             'paid_transactions': paid_transactions,
             'avg_rating': avg_rating,
+            'trade_counts': trade_counts,
+            'blocked_workers': blocked_workers,
             'report_daily': report_daily,
             'report_monthly': report_monthly,
             'report_yearly': report_yearly,

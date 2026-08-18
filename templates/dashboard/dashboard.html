@@ -111,6 +111,26 @@
             </div>
         </section>
 
+        <section class="panel-card" style="margin-top: 24px;">
+            <div class="panel-header">
+                <h3>Approved workers by trade</h3>
+                <span>{{ blocked_workers }} blocked</span>
+            </div>
+            <div class="analytics-grid">
+                {% for trade in trade_counts %}
+                    <div class="metric-box">
+                        <h4>{{ trade.name }}</h4>
+                        <p><strong>{{ trade.count }}</strong> approved worker(s)</p>
+                    </div>
+                {% empty %}
+                    <div class="metric-box">
+                        <h4>No trades</h4>
+                        <p><strong>0</strong> approved worker(s)</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </section>
+
         <section class="admin-panel-grid">
             <div class="panel-card analytics-card">
                 <div class="panel-header">

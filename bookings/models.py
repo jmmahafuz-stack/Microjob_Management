@@ -309,8 +309,14 @@ class JobApplication(models.Model):
             try:
                 profile = self.worker.worker_profile
                 service = self.service_request.service
-                category_names = set(profile.categories.values_list('name', flat=True))
-                matches = (profile.service_id == service.id or service.category in category_names or (profile.service_category and profile.service_category.lower() in service.category.lower()) or (profile.profession and profile.profession.lower() in service.category.lower()))
+                category_ids = set(profile.categories.values_list('id', flat=True))
+                category_name = (service.category.name if service.category else '').lower()
+                matches = (
+                    profile.service_id == service.id
+                    or service.category_id in category_ids
+                    or (profile.service_category and profile.service_category.lower() in category_name)
+                    or (profile.profession and profile.profession.lower() in category_name)
+                )
                 if not matches:
                     raise ValidationError('This job is outside your registered profession/category.')
             except AttributeError:

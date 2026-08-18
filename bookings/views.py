@@ -495,14 +495,14 @@ def service_request_list(request):
         if not profile:
             messages.error(request, 'Please create your worker profile and profession first.')
             return redirect('worker_profile_edit')
-        allowed_categories = list(profile.categories.values_list('name', flat=True))
+        allowed_categories = list(profile.categories.all())
         service_filter = __import__('django.db.models', fromlist=['Q']).Q(service__category__in=allowed_categories)
         if profile.service_id:
             service_filter |= __import__('django.db.models', fromlist=['Q']).Q(service=profile.service)
         if profile.service_category:
-            service_filter |= __import__('django.db.models', fromlist=['Q']).Q(service__category__icontains=profile.service_category)
+            service_filter |= __import__('django.db.models', fromlist=['Q']).Q(service__category__name__icontains=profile.service_category)
         if profile.profession:
-            service_filter |= __import__('django.db.models', fromlist=['Q']).Q(service__category__icontains=profile.profession)
+            service_filter |= __import__('django.db.models', fromlist=['Q']).Q(service__category__name__icontains=profile.profession)
         service_requests = ServiceRequest.objects.filter(status='OPEN').filter(service_filter).exclude(
             customer__username__istartswith=demo_test_user_prefixes[0]
         ).exclude(
@@ -564,8 +564,14 @@ def job_application_create(request, service_request_id):
         messages.error(request, 'Create your worker profile first.')
         return redirect('worker_profile_edit')
     service = service_request.service
-    categories = set(profile.categories.values_list('name', flat=True))
-    matches = (profile.service_id == service.id or service.category in categories or (profile.service_category and profile.service_category.lower() in service.category.lower()) or (profile.profession and profile.profession.lower() in service.category.lower()))
+    category_ids = set(profile.categories.values_list('id', flat=True))
+    category_name = (service.category.name if service.category else '').lower()
+    matches = (
+        profile.service_id == service.id
+        or service.category_id in category_ids
+        or (profile.service_category and profile.service_category.lower() in category_name)
+        or (profile.profession and profile.profession.lower() in category_name)
+    )
     if not matches:
         messages.error(request, 'This request is not in your profession or service category.')
         return redirect('service_request_list')
