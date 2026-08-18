@@ -488,9 +488,22 @@ def service_request_list(request):
     if request.user.role == 'customer':
         service_requests = ServiceRequest.objects.filter(customer=request.user)
     elif request.user.role == 'worker':
-        service_requests = ServiceRequest.objects.filter(
-            status__in=['OPEN', 'REVIEWING', 'ASSIGNED']
-        ).exclude(
+        if request.user.worker_status != 'APPROVED':
+            messages.error(request, 'Your worker account is pending admin approval. You cannot take jobs yet.')
+            return redirect('worker_dashboard')
+        profile = getattr(request.user, 'worker_profile', None)
+        if not profile:
+            messages.error(request, 'Please create your worker profile and profession first.')
+            return redirect('worker_profile_edit')
+        allowed_categories = list(profile.categories.values_list('name', flat=True))
+        service_filter = __import__('django.db.models', fromlist=['Q']).Q(service__category__in=allowed_categories)
+        if profile.service_id:
+            service_filter |= __import__('django.db.models', fromlist=['Q']).Q(service=profile.service)
+        if profile.service_category:
+            service_filter |= __import__('django.db.models', fromlist=['Q']).Q(service__category__icontains=profile.service_category)
+        if profile.profession:
+            service_filter |= __import__('django.db.models', fromlist=['Q']).Q(service__category__icontains=profile.profession)
+        service_requests = ServiceRequest.objects.filter(status='OPEN').filter(service_filter).exclude(
             customer__username__istartswith=demo_test_user_prefixes[0]
         ).exclude(
             customer__username__istartswith=demo_test_user_prefixes[1]
@@ -542,6 +555,20 @@ def service_request_detail(request, pk):
 def job_application_create(request, service_request_id):
     """Worker applies for a service request"""
     service_request = get_object_or_404(ServiceRequest, pk=service_request_id)
+
+    if request.user.worker_status != 'APPROVED':
+        messages.error(request, 'Your account must be approved by an admin before you can accept jobs.')
+        return redirect('worker_dashboard')
+    profile = getattr(request.user, 'worker_profile', None)
+    if not profile:
+        messages.error(request, 'Create your worker profile first.')
+        return redirect('worker_profile_edit')
+    service = service_request.service
+    categories = set(profile.categories.values_list('name', flat=True))
+    matches = (profile.service_id == service.id or service.category in categories or (profile.service_category and profile.service_category.lower() in service.category.lower()) or (profile.profession and profile.profession.lower() in service.category.lower()))
+    if not matches:
+        messages.error(request, 'This request is not in your profession or service category.')
+        return redirect('service_request_list')
 
     if service_request.status != 'OPEN':
         messages.info(request, 'This request is no longer accepting applications.')
@@ -814,6 +841,10 @@ def job_accept(request, pk):
     if job.worker != request.user:
         messages.error(request, 'You can only accept jobs assigned to you.')
         return redirect('worker_my_jobs')
+
+    if request.user.worker_status != 'APPROVED':
+        messages.error(request, 'Admin approval is required before accepting jobs.')
+        return redirect('worker_dashboard')
 
     if job.status != 'CONFIRMED':
         messages.info(request, 'This job is not waiting for acceptance.')

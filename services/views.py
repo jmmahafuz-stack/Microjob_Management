@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from accounts.decorators import admin_required
 from workers.models import WorkerProfile
 
-from .models import Service
+from .models import Service, Category
 from .forms import ServiceForm
 
 
@@ -15,10 +15,15 @@ def ensure_sample_services():
     if Service.objects.exists():
         return
 
+    # Ensure categories exist
+    plumbing_cat, _ = Category.objects.get_or_create(name='Plumbing')
+    electrical_cat, _ = Category.objects.get_or_create(name='Electrical')
+    cleaning_cat, _ = Category.objects.get_or_create(name='Cleaning')
+
     sample_services = [
         {
             'name': 'Plumbing Repair',
-            'category': 'Plumbing',
+            'category': plumbing_cat,
             'description': 'Fast repair for leaks, pipe replacement, and faucet installation.',
             'price': '1200.00',
             'image': 'service_images/images_1.jpg',
@@ -29,7 +34,7 @@ def ensure_sample_services():
         },
         {
             'name': 'Electrical Wiring',
-            'category': 'Electrical',
+            'category': electrical_cat,
             'description': 'Safe electrical diagnostics, rewiring, and installation work.',
             'price': '1500.00',
             'image': 'service_images/images_2.jpg',
@@ -40,7 +45,7 @@ def ensure_sample_services():
         },
         {
             'name': 'Home Cleaning',
-            'category': 'Electrical',
+            'category': cleaning_cat,
             'description': 'Routine house cleaning and deep-clean services for busy households.',
             'price': '900.00',
             'image': 'service_images/images_3.jpg',
@@ -59,28 +64,25 @@ def ensure_sample_services():
 
 
 def _get_related_workers(service):
+    """Get workers that match the service's category."""
+    # Get workers approved in this service's category
     category_matches = WorkerProfile.objects.filter(
         user__role='worker',
         user__worker_status='APPROVED',
-        service_category__icontains=service.category,
+        categories=service.category,
     )
 
+    # Also include workers with relevant skills
     skill_matches = WorkerProfile.objects.filter(
         user__role='worker',
         user__worker_status='APPROVED',
-        skills__icontains=service.category,
+        skills__icontains=service.category.name,
     )
 
-    direct_matches = WorkerProfile.objects.filter(
-        user__role='worker',
-        user__worker_status='APPROVED',
-        service=service,
-    )
-
+    # Combine and get unique workers
     combined = (
         category_matches |
-        skill_matches |
-        direct_matches
+        skill_matches
     ).distinct().select_related('user')[:4]
 
     return combined
@@ -107,14 +109,14 @@ def service_list(request):
         services = services.filter(
             Q(name__icontains=search_query) |
             Q(description__icontains=search_query) |
-            Q(category__icontains=search_query) |
+            Q(category__name__icontains=search_query) |
             Q(location__icontains=search_query)
         )
 
     # Category filter
     if category:
         services = services.filter(
-            category=category
+            category__name=category
         )
 
     # Location filter
@@ -143,10 +145,8 @@ def service_list(request):
             'name'
         )
 
-    categories = [
-        choice[0]
-        for choice in Service.SERVICE_CHOICES
-    ]
+    # Get all active categories for the filter dropdown
+    categories = list(Category.objects.filter(is_active=True).values_list('name', flat=True))
 
     locations = (
         Service.objects

@@ -1,11 +1,10 @@
 from django.contrib import admin
-
-# Register your models here.
-
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.forms import UserChangeForm, UserCreationForm
 from django.core.exceptions import ValidationError
+from django.utils.html import format_html
 from .models import CustomUser
+from notifications.utils import NotificationManager
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -50,15 +49,87 @@ class CustomUserAdmin(UserAdmin):
         if obj.role == 'worker' and not change:
             obj.worker_status = 'PENDING'
 
+        # Check if worker status changed and send notification
+        if change and obj.role == 'worker':
+            old_obj = CustomUser.objects.get(pk=obj.pk)
+            if old_obj.worker_status != obj.worker_status:
+                if obj.worker_status == 'APPROVED':
+                    NotificationManager.notify_worker_approved(obj)
+                elif obj.worker_status == 'REJECTED':
+                    NotificationManager.notify_worker_rejected(obj)
+
         super().save_model(request, obj, form, change)
+    
+    def worker_status_badge(self, obj):
+        """Display worker status with color badge"""
+        if obj.role != 'worker':
+            return '-'
+        
+        colors = {
+            'PENDING': '#FFC107',   # Yellow
+            'APPROVED': '#28A745',  # Green
+            'REJECTED': '#DC3545',  # Red
+            'BLOCKED': '#6C757D',   # Gray
+        }
+        color = colors.get(obj.worker_status, '#6C757D')
+        return format_html(
+            '<span style="background-color: {}; color: white; padding: 3px 10px; border-radius: 3px;">{}</span>',
+            color,
+            obj.get_worker_status_display()
+        )
+    worker_status_badge.short_description = 'Worker Status'
+    
+    def actions_for_workers(self, request, queryset):
+        """Custom actions for worker management"""
+        # This will be implemented in list view
+        pass
+    
+    actions = ['approve_workers', 'reject_workers', 'block_users', 'unblock_users']
+    
+    def approve_workers(self, request, queryset):
+        """Admin action to approve pending workers"""
+        workers = queryset.filter(role='worker', worker_status='PENDING')
+        count = 0
+        for worker in workers:
+            worker.worker_status = 'APPROVED'
+            worker.save()
+            NotificationManager.notify_worker_approved(worker)
+            count += 1
+        self.message_user(request, f'{count} worker(s) approved successfully.')
+    approve_workers.short_description = "Approve selected workers"
+    
+    def reject_workers(self, request, queryset):
+        """Admin action to reject pending workers"""
+        workers = queryset.filter(role='worker', worker_status='PENDING')
+        count = 0
+        for worker in workers:
+            worker.worker_status = 'REJECTED'
+            worker.save()
+            NotificationManager.notify_worker_rejected(worker)
+            count += 1
+        self.message_user(request, f'{count} worker(s) rejected.')
+    reject_workers.short_description = "Reject selected workers"
+    
+    def block_users(self, request, queryset):
+        """Admin action to block users"""
+        count = queryset.update(is_blocked=True)
+        self.message_user(request, f'{count} user(s) blocked.')
+    block_users.short_description = "Block selected users"
+    
+    def unblock_users(self, request, queryset):
+        """Admin action to unblock users"""
+        count = queryset.update(is_blocked=False)
+        self.message_user(request, f'{count} user(s) unblocked.')
+    unblock_users.short_description = "Unblock selected users"
+    
     list_display = (
         'username',
         'email',
         'role',
-        'worker_status',
+        'worker_status_badge',
         'customer_status',
         'is_blocked',
-        'is_staff',
+        'created_at',
     )
 
     list_filter = (
@@ -67,6 +138,7 @@ class CustomUserAdmin(UserAdmin):
         'customer_status',
         'is_blocked',
         'is_staff',
+        'created_at',
     )
 
     fieldsets = UserAdmin.fieldsets + (

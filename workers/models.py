@@ -47,6 +47,12 @@ class WorkerProfile(models.Model):
     )
     
     # Professional information
+    profession = models.CharField(
+        max_length=100, 
+        blank=False, 
+        null=False,
+        help_text='Primary profession, e.g. Electrician (Required)'
+    )
     bio = models.TextField(blank=True, null=True)
     skills = models.TextField(blank=True, help_text="Comma-separated skills")
     experience_years = models.PositiveIntegerField(default=0)

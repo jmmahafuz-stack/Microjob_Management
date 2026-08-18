@@ -27,19 +27,22 @@ class Category(models.Model):
 
 
 class Service(models.Model):
-    SERVICE_CHOICES = [
-        ('Electrical', 'Electrical'),
-        ('Plumbing', 'Plumbing'),
-        ('Carpentry', 'Carpentry'),
-        ('AC Repair', 'AC Repair'),
-    ]
+    """
+    Service model with ForeignKey to Category.
+    Each service belongs to exactly one category (e.g., Electrical, Plumbing, etc.)
+    """
 
     name = models.CharField(max_length=100)
-    category = models.CharField(max_length=50, choices=SERVICE_CHOICES)
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='services',
+        help_text='The category this service belongs to'
+    )
     description = models.TextField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     image = models.ImageField(upload_to='service_images/')
-    duration = models.CharField(max_length=50)
+    duration = models.CharField(max_length=50, help_text='Estimated duration (e.g., "2 hours")')
     location = models.CharField(max_length=100, blank=True, null=True)
     featured = models.BooleanField(default=False)
     is_available = models.BooleanField(default=True)
@@ -48,14 +51,36 @@ class Service(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ['category__name', 'name']
+        indexes = [
+            models.Index(fields=['category', 'is_available']),
+        ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.category.name})"
 
     @property
     def average_rating(self):
-        return self.bookings.aggregate(avg=Avg('reviews__rating'))['avg'] or 0
+        """Calculate average rating from worker reviews for this service"""
+        from reviews.models import Review
+        from bookings.models import Job
+        jobs = Job.objects.filter(service_request__service=self)
+        return Review.objects.filter(booking__job__in=jobs).aggregate(avg=Avg('rating'))['avg'] or 0
+    
+    @property
+    def workers_for_this_service(self):
+        """Get all approved workers who offer this service category"""
+        from workers.models import WorkerProfile
+        from accounts.models import CustomUser
+        
+        # Get workers matching this category
+        workers = CustomUser.objects.filter(
+            role='worker',
+            worker_status='APPROVED',
+            is_blocked=False,
+            worker_profile__categories=self.category
+        ).distinct()
+        return workers
 
     def get_absolute_url(self):
         return reverse('service_detail', kwargs={'pk': self.pk})

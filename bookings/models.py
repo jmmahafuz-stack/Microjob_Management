@@ -303,8 +303,18 @@ class JobApplication(models.Model):
     def clean(self):
         if self.worker_id and self.worker.role != 'worker':
             raise ValidationError('Only workers can apply for jobs.')
-        if self.worker_id and self.worker.is_blocked:
-            raise ValidationError('Blocked workers cannot apply for jobs.')
+        if self.worker_id and (self.worker.is_blocked or self.worker.worker_status != 'APPROVED'):
+            raise ValidationError('Only admin-approved workers can apply for jobs.')
+        if self.worker_id:
+            try:
+                profile = self.worker.worker_profile
+                service = self.service_request.service
+                category_names = set(profile.categories.values_list('name', flat=True))
+                matches = (profile.service_id == service.id or service.category in category_names or (profile.service_category and profile.service_category.lower() in service.category.lower()) or (profile.profession and profile.profession.lower() in service.category.lower()))
+                if not matches:
+                    raise ValidationError('This job is outside your registered profession/category.')
+            except AttributeError:
+                raise ValidationError('Create your worker profile before applying for jobs.')
         if self.proposed_price <= 0:
             raise ValidationError('Proposed price must be greater than 0.')
 
@@ -403,6 +413,60 @@ class Job(models.Model):
             raise ValidationError('Job customer must have customer role.')
         if self.worker_id and self.worker.role != 'worker':
             raise ValidationError('Job worker must have worker role.')
+        
+        # Check for time conflicts
+        if self.worker_id and self.scheduled_date and self.scheduled_time_start:
+            # Get all non-cancelled jobs for this worker on the same date
+            conflict = Job.objects.filter(
+                worker=self.worker, 
+                scheduled_date=self.scheduled_date, 
+                status__in=['CONFIRMED', 'IN_PROGRESS']
+            ).exclude(pk=self.pk)
+            
+            if conflict.exists():
+                # Check if there's a time overlap
+                for existing_job in conflict:
+                    # If both jobs have time ranges, check for overlap
+                    if existing_job.scheduled_time_end and self.scheduled_time_end:
+                        # Check if time ranges overlap
+                        if (self.scheduled_time_start < existing_job.scheduled_time_end and 
+                            self.scheduled_time_end > existing_job.scheduled_time_start):
+                            raise ValidationError(
+                                f'Worker is already assigned to another job at this date and time. '
+                                f'Existing job: {existing_job.scheduled_time_start} - {existing_job.scheduled_time_end}'
+                            )
+                    # If new job has end time but existing doesn't, assume 4-hour duration
+                    elif existing_job.scheduled_time_end is None and self.scheduled_time_end:
+                        existing_end = existing_job.get_estimated_end_time()
+                        if (self.scheduled_time_start < existing_end and 
+                            self.scheduled_time_end > existing_job.scheduled_time_start):
+                            raise ValidationError(
+                                f'Worker is already assigned to another job at this date and time.'
+                            )
+                    # If new job has no end time but existing does, assume 4-hour duration for new
+                    elif existing_job.scheduled_time_end and self.scheduled_time_end is None:
+                        new_end = self.get_estimated_end_time()
+                        if (self.scheduled_time_start < existing_job.scheduled_time_end and 
+                            new_end > existing_job.scheduled_time_start):
+                            raise ValidationError(
+                                f'Worker is already assigned to another job at this date and time.'
+                            )
+                    # Both have no end times - check if start times are on same date
+                    else:
+                        raise ValidationError(
+                            f'Worker is already assigned to another job on this date. '
+                            f'Please specify time ranges to avoid conflicts.'
+                        )
+
+    def get_estimated_end_time(self):
+        """Get estimated end time, defaulting to 4 hours if not set"""
+        from datetime import time, datetime, timedelta
+        if self.scheduled_time_end:
+            return self.scheduled_time_end
+        # Default to 4 hours from start time
+        start = datetime.combine(datetime.today(), self.scheduled_time_start)
+        end = start + timedelta(hours=4)
+        return end.time()
 
     def save(self, *args, **kwargs):
         self.full_clean()

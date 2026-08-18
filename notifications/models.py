@@ -7,15 +7,29 @@ class Notification(models.Model):
     """User notification system for job and payment updates."""
     
     NOTIFICATION_TYPE_CHOICES = [
+        # Job related
         ('JOB_COMPLETED', 'Job Completed by Worker'),
-        ('JOB_PAYMENT_SUBMITTED', 'Payment Submitted for Job'),
-        ('PAYMENT_VERIFIED', 'Payment Verified - You Received Payment'),
-        ('PAYMENT_PENDING', 'Payment Pending Verification'),
         ('JOB_STARTED', 'Job Started'),
         ('JOB_CANCELLED', 'Job Cancelled'),
+        ('JOB_WORKER_UNAVAILABLE', 'Worker Unavailable at Requested Time'),
+        ('JOB_CONFLICT', 'Job Time Conflict'),
+        
+        # Application related
         ('WORKER_APPLIED', 'Worker Applied for Your Request'),
         ('APPLICATION_ACCEPTED', 'Your Application Was Accepted'),
         ('APPLICATION_REJECTED', 'Your Application Was Rejected'),
+        
+        # Payment related
+        ('JOB_PAYMENT_SUBMITTED', 'Payment Submitted for Job'),
+        ('PAYMENT_VERIFIED', 'Payment Verified - You Received Payment'),
+        ('PAYMENT_PENDING', 'Payment Pending Verification'),
+        
+        # Worker approval/status
+        ('WORKER_APPROVED', 'Your Worker Account Has Been Approved'),
+        ('WORKER_REJECTED', 'Your Worker Account Application Was Rejected'),
+        ('WORKER_PROFILE_UPDATED', 'Your Worker Profile Was Updated'),
+        
+        # General
         ('GENERAL', 'General Notification'),
     ]
 
@@ -27,7 +41,7 @@ class Notification(models.Model):
     title = models.CharField(max_length=255)
     message = models.TextField()
     notification_type = models.CharField(
-        max_length=30,
+        max_length=50,
         choices=NOTIFICATION_TYPE_CHOICES,
         default='GENERAL'
     )
