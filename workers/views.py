@@ -67,6 +67,21 @@ def _get_worker_earnings_data(user, period='monthly'):
 @worker_required
 def worker_dashboard(request):
 
+    # Show message if worker is pending approval
+    if request.user.worker_status == 'PENDING':
+        from django.contrib import messages as django_messages
+        django_messages.warning(
+            request,
+            "Your account is awaiting admin approval. You can browse the platform, but you won't appear in service listings until approved. "
+            "Once approved, customers will be able to see your profile and request your services."
+        )
+    elif request.user.worker_status == 'REJECTED':
+        from django.contrib import messages as django_messages
+        django_messages.error(
+            request,
+            "Your worker account has been rejected. Please contact support for more information."
+        )
+
     assigned_bookings = Booking.objects.filter(worker=request.user)
     pending_bookings = assigned_bookings.filter(status='Pending')
     in_progress_bookings = assigned_bookings.filter(status='In Progress')

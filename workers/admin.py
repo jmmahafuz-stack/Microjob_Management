@@ -86,7 +86,6 @@ class WorkerProfileAdmin(admin.ModelAdmin):
                 'experience_years',
                 'service_area',
                 'languages',
-                'portfolio_link',
                 'hourly_rate'
             )
         }),

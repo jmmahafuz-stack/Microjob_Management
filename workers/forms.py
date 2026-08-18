@@ -8,16 +8,26 @@ class WorkerProfileForm(forms.ModelForm):
     """Form for workers to update their profile"""
     
     service = forms.ModelChoiceField(
-        queryset=Service.objects.all(),
+        queryset=Service.objects.none(),
         required=False,
         label='Service offered'
     )
     categories = forms.ModelMultipleChoiceField(
-        queryset=Category.objects.filter(is_active=True),
+        queryset=Category.objects.none(),
         required=True,
         widget=forms.CheckboxSelectMultiple,
         label='Categories you work in (Select at least one)',
         help_text='Select all the categories/professions you can work with'
+    )
+    bio = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Tell customers about yourself'}),
+        label='Short bio'
+    )
+    hourly_rate = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Hourly rate (optional)'}),
+        label='Hourly rate'
     )
 
     class Meta:
@@ -32,7 +42,6 @@ class WorkerProfileForm(forms.ModelForm):
             'service_area',
             'languages',
             'bio',
-            'portfolio_link',
             'id_verification_document',
             'hourly_rate',
             'response_time',
@@ -43,12 +52,15 @@ class WorkerProfileForm(forms.ModelForm):
             'experience_years': forms.NumberInput(attrs={'class': 'form-control', 'min': '0'}),
             'service_area': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Area of service'}),
             'languages': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Languages you speak'}),
-            'bio': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Tell customers about yourself'}),
-            'portfolio_link': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'Link to your portfolio'}),
             'id_verification_document': forms.FileInput(attrs={'class': 'form-control'}),
-            'hourly_rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Hourly rate (optional)'}),
             'response_time': forms.Select(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set querysets dynamically to get latest data
+        self.fields['service'].queryset = Service.objects.all()
+        self.fields['categories'].queryset = Category.objects.filter(is_active=True)
     
     def clean(self):
         cleaned_data = super().clean()
@@ -68,15 +80,25 @@ class WorkerVerificationForm(forms.ModelForm):
     """Form for admin to verify/approve workers"""
     
     service = forms.ModelChoiceField(
-        queryset=Service.objects.all(),
+        queryset=Service.objects.none(),
         required=False,
         label='Service offered'
     )
     categories = forms.ModelMultipleChoiceField(
-        queryset=Category.objects.filter(is_active=True),
+        queryset=Category.objects.none(),
         required=False,
         widget=forms.CheckboxSelectMultiple,
         label='Categories they work in'
+    )
+    bio = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Tell customers about yourself'}),
+        label='Short bio'
+    )
+    hourly_rate = forms.DecimalField(
+        required=False,
+        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Hourly rate (optional)'}),
+        label='Hourly rate'
     )
 
     class Meta:
@@ -91,7 +113,6 @@ class WorkerVerificationForm(forms.ModelForm):
             'service_area',
             'languages',
             'bio',
-            'portfolio_link',
             'hourly_rate',
             'response_time',
             'verification_status',
@@ -102,3 +123,9 @@ class WorkerVerificationForm(forms.ModelForm):
             'verification_status': forms.Select(attrs={'class': 'form-control'}),
             'training_status': forms.Select(attrs={'class': 'form-control'}),
         }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set querysets dynamically to get latest data
+        self.fields['service'].queryset = Service.objects.all()
+        self.fields['categories'].queryset = Category.objects.filter(is_active=True)

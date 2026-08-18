@@ -58,7 +58,6 @@ class WorkerProfile(models.Model):
     experience_years = models.PositiveIntegerField(default=0)
     service_area = models.CharField(max_length=150, blank=True, null=True)
     languages = models.CharField(max_length=150, blank=True, null=True)
-    portfolio_link = models.URLField(blank=True, null=True)
     id_verification_document = models.FileField(upload_to='worker_documents/', blank=True, null=True)
     hourly_rate = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     

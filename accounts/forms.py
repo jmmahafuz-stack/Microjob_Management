@@ -1,10 +1,12 @@
+import re
+
 from django import forms
 from django.contrib.auth.forms import (
     UserCreationForm,
     AuthenticationForm,
     PasswordChangeForm
 )
-from services.models import Service
+from services.models import Service, Category
 from workers.models import WorkerProfile
 from .models import CustomUser
 
@@ -50,15 +52,26 @@ class RegisterForm(UserCreationForm):
     )
     register_as_worker = forms.BooleanField(required=False, widget=forms.HiddenInput(), label='Register as a worker')
     worker_service = forms.ModelChoiceField(
-        queryset=Service.objects.all(),
+        queryset=Service.objects.none(),
         required=False,
         label='Service offered'
     )
+    worker_categories = forms.ModelMultipleChoiceField(
+        queryset=Category.objects.none(),
+        required=False,
+        widget=forms.CheckboxSelectMultiple,
+        label='Categories you work in (Select at least one)',
+        help_text='Select all the categories/professions you can work with'
+    )
     worker_service_category = forms.CharField(required=False, max_length=50, label='Service category')
     worker_skills = forms.CharField(required=False, max_length=200, label='Skills')
-    worker_experience = forms.CharField(required=False, max_length=100, label='Experience')
+    worker_experience = forms.CharField(
+        required=False,
+        max_length=100,
+        label='Experience',
+        widget=forms.NumberInput(attrs={'min': '0', 'step': '1', 'placeholder': 'Years'})
+    )
     worker_service_area = forms.CharField(required=False, max_length=150, label='Service area')
-    worker_portfolio_link = forms.URLField(required=False, label='Portfolio link')
     worker_hourly_rate = forms.DecimalField(required=False, max_digits=8, decimal_places=2, label='Hourly rate')
     worker_bio = forms.CharField(
         required=False,
@@ -82,11 +95,28 @@ class RegisterForm(UserCreationForm):
             'password2',
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Set querysets dynamically to get latest data
+        self.fields['worker_service'].queryset = Service.objects.all()
+        self.fields['worker_categories'].queryset = Category.objects.filter(is_active=True)
+
     def clean_role(self):
         value = self.cleaned_data.get('role')
         if value not in {'customer', 'worker', 'admin'}:
             return 'customer'
         return value
+
+    def clean_worker_experience(self):
+        value = self.cleaned_data.get('worker_experience')
+        if not value:
+            return 0
+
+        match = re.search(r'(\d+)', str(value))
+        if match:
+            return int(match.group(1))
+
+        return 0
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -114,14 +144,18 @@ class RegisterForm(UserCreationForm):
                 profile.service = service
                 profile.service_category = self.cleaned_data.get('worker_service_category') or (service.category if service else '')
                 profile.skills = self.cleaned_data.get('worker_skills') or profile.skills
-                profile.experience_years = int(self.cleaned_data.get('worker_experience') or 0) if self.cleaned_data.get('worker_experience') else 0
+                profile.experience_years = self.clean_worker_experience()
                 profile.service_area = self.cleaned_data.get('worker_service_area') or profile.service_area
-                profile.portfolio_link = self.cleaned_data.get('worker_portfolio_link') or profile.portfolio_link
                 profile.hourly_rate = self.cleaned_data.get('worker_hourly_rate') or profile.hourly_rate
                 profile.bio = self.cleaned_data.get('worker_bio') or profile.bio
                 profile.verification_status = 'Pending'
                 profile.training_status = 'Pending'
                 profile.save()
+                
+                # Add selected categories
+                selected_categories = self.cleaned_data.get('worker_categories')
+                if selected_categories:
+                    profile.categories.set(selected_categories)
 
         return user
 

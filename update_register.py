@@ -1,4 +1,7 @@
-{% extends 'base.html' %}
+#!/usr/bin/env python
+# Script to update register.html with professional styling
+
+new_template = '''{% extends 'base.html' %}
 
 {% block content %}
 <div class="register-wrapper">
@@ -72,64 +75,55 @@
                     
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                            <label for="{{ form.first_name.id_for_label }}" class="form-label">
+                                First Name
+                            </label>
                             {{ form.first_name }}
-                            {% if form.first_name.errors %}<span class="error-message">{{ form.first_name.errors }}</span>{% endif %}
+                            <span class="error-message">{{ form.first_name.errors }}</span>
                         </div>
 
                         <div class="form-group">
-                            <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                            <label for="{{ form.last_name.id_for_label }}" class="form-label">
+                                Last Name
+                            </label>
                             {{ form.last_name }}
-                            {% if form.last_name.errors %}<span class="error-message">{{ form.last_name.errors }}</span>{% endif %}
+                            <span class="error-message">{{ form.last_name.errors }}</span>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            Username
+                        </label>
                         {{ form.username }}
                         <span class="form-help">Choose a unique username for your account</span>
-                        {% if form.username.errors %}<span class="error-message">{{ form.username.errors }}</span>{% endif %}
+                        <span class="error-message">{{ form.username.errors }}</span>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                            <label for="{{ form.email.id_for_label }}" class="form-label">
+                                Email Address
+                            </label>
                             {{ form.email }}
-                            {% if form.email.errors %}<span class="error-message">{{ form.email.errors }}</span>{% endif %}
+                            <span class="error-message">{{ form.email.errors }}</span>
                         </div>
 
                         <div class="form-group">
-                            <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
+                            <label for="{{ form.phone.id_for_label }}" class="form-label">
+                                Phone Number
+                            </label>
                             {{ form.phone }}
-                            {% if form.phone.errors %}<span class="error-message">{{ form.phone.errors }}</span>{% endif %}
+                            <span class="error-message">{{ form.phone.errors }}</span>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+                        <label for="{{ form.address.id_for_label }}" class="form-label">
+                            Address
+                        </label>
                         {{ form.address }}
-                        {% if form.address.errors %}<span class="error-message">{{ form.address.errors }}</span>{% endif %}
-                    </div>
-                </div>
-
-                <!-- Preferences Section -->
-                <div class="form-section preferences-section">
-                    <h3 class="section-title preferences-title">Preferences</h3>
-                    
-                    <div class="form-row preferences-row">
-                        <div class="form-group preferences-group">
-                            <label for="{{ form.preferred_contact_method.id_for_label }}" class="form-label preferences-label">Contact Method</label>
-                            {{ form.preferred_contact_method }}
-                            {% if form.preferred_contact_method.errors %}<span class="error-message">{{ form.preferred_contact_method.errors }}</span>{% endif %}
-                        </div>
-
-                        <div class="form-group checkbox-group preferences-checkbox">
-                            <label class="checkbox-label">
-                                {{ form.receive_notifications }}
-                                <span>Notifications</span>
-                            </label>
-                            {% if form.receive_notifications.errors %}<span class="error-message">{{ form.receive_notifications.errors }}</span>{% endif %}
-                        </div>
+                        <span class="error-message">{{ form.address.errors }}</span>
                     </div>
                 </div>
 
@@ -138,12 +132,15 @@
                     <h3 class="section-title">Profile Photo</h3>
                     
                     <div class="form-group">
+                        <label for="{{ form.profile_picture.id_for_label }}" class="form-label">
+                            Upload Profile Picture
+                        </label>
                         <div class="file-upload-wrapper">
                             {{ form.profile_picture }}
                             <span class="file-upload-label">📷 Click to upload or drag and drop</span>
                         </div>
                         <span class="form-help">PNG, JPG up to 5MB</span>
-                        {% if form.profile_picture.errors %}<span class="error-message">{{ form.profile_picture.errors }}</span>{% endif %}
+                        <span class="error-message">{{ form.profile_picture.errors }}</span>
                     </div>
                 </div>
 
@@ -152,22 +149,53 @@
                     <h3 class="section-title">Security</h3>
                     
                     <div class="form-group">
-                        <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                        <label for="{{ form.password1.id_for_label }}" class="form-label">
+                            Password
+                        </label>
                         <div class="password-wrapper">
                             {{ form.password1 }}
-                            <button type="button" class="password-toggle" onclick="togglePassword('id_password1', this)" aria-label="Show password">👁</button>
+                            <button type="button" class="password-toggle" 
+                                    onclick="togglePassword('id_password1', this)" 
+                                    aria-label="Show password">👁</button>
                         </div>
                         <span class="form-help">At least 8 characters with uppercase, lowercase, and numbers</span>
-                        {% if form.password1.errors %}<span class="error-message">{{ form.password1.errors }}</span>{% endif %}
+                        <span class="error-message">{{ form.password1.errors }}</span>
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                        <label for="{{ form.password2.id_for_label }}" class="form-label">
+                            Confirm Password
+                        </label>
                         <div class="password-wrapper">
                             {{ form.password2 }}
-                            <button type="button" class="password-toggle" onclick="togglePassword('id_password2', this)" aria-label="Show password">👁</button>
+                            <button type="button" class="password-toggle" 
+                                    onclick="togglePassword('id_password2', this)" 
+                                    aria-label="Show password">👁</button>
                         </div>
-                        {% if form.password2.errors %}<span class="error-message">{{ form.password2.errors }}</span>{% endif %}
+                        <span class="error-message">{{ form.password2.errors }}</span>
+                    </div>
+                </div>
+
+                <!-- Preferences Section -->
+                <div class="form-section">
+                    <h3 class="section-title">Preferences</h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="{{ form.preferred_contact_method.id_for_label }}" class="form-label">
+                                Preferred Contact Method
+                            </label>
+                            {{ form.preferred_contact_method }}
+                            <span class="error-message">{{ form.preferred_contact_method.errors }}</span>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label class="checkbox-label">
+                                {{ form.receive_notifications }}
+                                <span>{{ form.receive_notifications.label }}</span>
+                            </label>
+                            <span class="error-message">{{ form.receive_notifications.errors }}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -176,60 +204,74 @@
                     <h3 class="section-title">🏢 Professional Details</h3>
 
                     <div class="form-group">
-                        <label for="{{ form.worker_categories.id_for_label }}" class="form-label">Work Categories</label>
+                        <label for="{{ form.worker_categories.id_for_label }}" class="form-label">
+                            Categories You Work In
+                        </label>
                         <div class="categories-wrapper">
                             {{ form.worker_categories }}
                         </div>
-                        <span class="form-help">Select all the categories you work with</span>
-                        {% if form.worker_categories.errors %}<span class="error-message">{{ form.worker_categories.errors }}</span>{% endif %}
+                        <span class="form-help">Select all the categories/professions you can work with</span>
+                        <span class="error-message">{{ form.worker_categories.errors }}</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.worker_service.id_for_label }}" class="form-label">
+                            Service Offered
+                        </label>
+                        {{ form.worker_service }}
+                        <span class="error-message">{{ form.worker_service.errors }}</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.worker_service_category.id_for_label }}" class="form-label">
+                            Service Category
+                        </label>
+                        {{ form.worker_service_category }}
+                        <span class="error-message">{{ form.worker_service_category.errors }}</span>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="{{ form.worker_service.id_for_label }}" class="form-label">Service Offered</label>
-                            {{ form.worker_service }}
-                            {% if form.worker_service.errors %}<span class="error-message">{{ form.worker_service.errors }}</span>{% endif %}
-                        </div>
-
-                        <div class="form-group">
-                            <label for="{{ form.worker_service_category.id_for_label }}" class="form-label">Category</label>
-                            {{ form.worker_service_category }}
-                            {% if form.worker_service_category.errors %}<span class="error-message">{{ form.worker_service_category.errors }}</span>{% endif %}
-                        </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="{{ form.worker_experience.id_for_label }}" class="form-label">Experience (Years)</label>
+                            <label for="{{ form.worker_experience.id_for_label }}" class="form-label">
+                                Years of Experience
+                            </label>
                             {{ form.worker_experience }}
-                            {% if form.worker_experience.errors %}<span class="error-message">{{ form.worker_experience.errors }}</span>{% endif %}
+                            <span class="error-message">{{ form.worker_experience.errors }}</span>
                         </div>
 
                         <div class="form-group">
-                            <label for="{{ form.worker_hourly_rate.id_for_label }}" class="form-label">Hourly Rate</label>
+                            <label for="{{ form.worker_hourly_rate.id_for_label }}" class="form-label">
+                                Hourly Rate (Optional)
+                            </label>
                             {{ form.worker_hourly_rate }}
-                            {% if form.worker_hourly_rate.errors %}<span class="error-message">{{ form.worker_hourly_rate.errors }}</span>{% endif %}
+                            <span class="error-message">{{ form.worker_hourly_rate.errors }}</span>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.worker_skills.id_for_label }}" class="form-label">Skills</label>
+                        <label for="{{ form.worker_skills.id_for_label }}" class="form-label">
+                            Skills
+                        </label>
                         {{ form.worker_skills }}
                         <span class="form-help">Comma-separated list of your skills</span>
-                        {% if form.worker_skills.errors %}<span class="error-message">{{ form.worker_skills.errors }}</span>{% endif %}
+                        <span class="error-message">{{ form.worker_skills.errors }}</span>
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.worker_service_area.id_for_label }}" class="form-label">Service Area</label>
+                        <label for="{{ form.worker_service_area.id_for_label }}" class="form-label">
+                            Service Area
+                        </label>
                         {{ form.worker_service_area }}
-                        {% if form.worker_service_area.errors %}<span class="error-message">{{ form.worker_service_area.errors }}</span>{% endif %}
+                        <span class="error-message">{{ form.worker_service_area.errors }}</span>
                     </div>
 
                     <div class="form-group">
-                        <label for="{{ form.worker_bio.id_for_label }}" class="form-label">About You</label>
+                        <label for="{{ form.worker_bio.id_for_label }}" class="form-label">
+                            About You (Short Bio)
+                        </label>
                         {{ form.worker_bio }}
                         <span class="form-help">Tell customers about yourself and your experience</span>
-                        {% if form.worker_bio.errors %}<span class="error-message">{{ form.worker_bio.errors }}</span>{% endif %}
+                        <span class="error-message">{{ form.worker_bio.errors }}</span>
                     </div>
                 </div>
 
@@ -249,233 +291,186 @@
 
 <style>
 /* ===================================
-   REGISTRATION PAGE STYLES - PROFESSIONAL
+   REGISTRATION PAGE STYLES
    =================================== */
 
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-    --accent-color: #06b6d4;
-    --success-color: #10b981;
-    --error-color: #ef4444;
-    --warning-color: #f59e0b;
-    --background-color: #f8fafc;
+    --primary-color: #1f527d;
+    --primary-hover: #143c5c;
+    --accent-color: #00a8e8;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --warning-color: #ff9800;
+    --background-color: #f5f7fa;
     --surface-color: #ffffff;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --border-color: #e2e8f0;
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-    --border-radius: 10px;
-    --transition: all 0.2s ease;
+    --text-primary: #2c3e50;
+    --text-secondary: #666666;
+    --border-color: #e0e0e0;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+    --border-radius: 8px;
+    --transition: all 0.3s ease;
 }
 
 * {
     margin: 0;
     padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 .register-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     min-height: 100vh;
-    background: linear-gradient(180deg, #f4f7fb 0%, #eef4ff 100%);
-    padding: 40px 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
-/* ===== LEFT PANEL ===== */
+/* Left Info Section */
 .register-info {
-    display: none;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-hover) 100%);
+    color: white;
+    padding: 60px 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.register-info::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 600px;
+    height: 600px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    animation: float 8s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(20px); }
 }
 
 .info-content {
-    display: none;
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    max-width: 400px;
+}
+
+.register-info h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.2;
 }
 
 .subtitle {
-    display: none;
+    font-size: 1.1rem;
+    opacity: 0.9;
+    margin-bottom: 48px;
+    line-height: 1.6;
 }
 
 .benefits {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    text-align: left;
 }
 
-/* ===== RIGHT PANEL ===== */
+.benefit-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.benefit-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+.benefit-item h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+}
+
+.benefit-item p {
+    font-size: 0.9rem;
+    opacity: 0.85;
+    margin: 0;
+}
+
+/* Right Form Section */
 .register-form-container {
-    width: 100%;
-    max-width: 640px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
-    background: transparent;
-    overflow: visible;
-    min-height: auto;
+    padding: 40px 20px;
+    background: var(--background-color);
+    overflow-y: auto;
 }
 
 .register-card {
-    background: #ffffff;
-    border: 1px solid #e5eaf2;
-    border-radius: 18px;
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
-    padding: 0;
+    background: var(--surface-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-lg);
+    padding: 48px 40px;
     width: 100%;
-    max-width: 700px;
-    overflow: hidden;
+    max-width: 480px;
 }
 
 .register-header {
     text-align: center;
-    margin: 0;
-    padding: 22px 24px 18px;
-    background: linear-gradient(180deg, #ffffff 0%, #f4f7ff 100%);
-    border-bottom: 1px solid #e7ebf3;
+    margin-bottom: 32px;
 }
 
 .register-header h2 {
-    font-size: 2rem;
-    font-weight: 800;
-    color: #1d2736;
-    margin-bottom: 6px;
-    letter-spacing: -0.03em;
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
 }
 
 .register-header p {
-    color: #5b6777;
-    font-size: 0.95rem;
+    color: var(--text-secondary);
     margin: 0;
+    font-size: 0.95rem;
 }
 
-.register-form {
-    padding: 20px 20px 18px;
-}
-
-/* ===== FORM SECTIONS ===== */
+/* Form Sections */
 .form-section {
-    margin-bottom: 18px;
-    padding: 15px 16px;
-    background: #ffffff;
-    border: 1px solid #edf1f5;
-    border-radius: 12px;
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
-}
-
-.form-section:last-of-type {
-    margin-bottom: 18px;
+    margin-bottom: 32px;
 }
 
 .section-title {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1f2937;
-    margin-bottom: 12px;
-    padding-bottom: 0;
-    border-bottom: none;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0 0 16px 0;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--border-color);
 }
 
-.preferences-section {
-    margin-bottom: 16px;
-}
-
-.preferences-title {
-    font-size: 0.95rem;
-    margin-bottom: 12px;
-}
-
-/* ===== FORM LAYOUT ===== */
-.form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
-    margin-bottom: 0;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 14px;
-}
-
-.worker-section .form-row,
-.worker-section .form-group {
-    margin-bottom: 12px;
-}
-
-.form-group:last-child {
-    margin-bottom: 0;
-}
-
-.preferences-row {
-    gap: 12px;
-}
-
-.preferences-group {
-    margin-bottom: 0;
-}
-
-.form-label {
-    font-weight: 700;
-    color: #334155;
-    margin-bottom: 7px;
-    font-size: 0.8rem;
-}
-
-.preferences-label {
-    font-size: 0.85rem;
-    margin-bottom: 4px;
-}
-
-/* ===== FORM INPUTS ===== */
-.register-form input[type="text"],
-.register-form input[type="email"],
-.register-form input[type="password"],
-.register-form input[type="number"],
-.register-form input[type="tel"],
-.register-form select,
-.register-form textarea {
-    width: 100%;
-    padding: 11px 12px;
-    border: 1px solid #d7dfe9;
-    border-radius: 10px;
-    font-size: 0.92rem;
-    font-family: inherit;
-    color: #1f2937;
-    background: #ffffff;
-    transition: var(--transition);
-    box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.02);
-}
-
-.register-form input[type="text"]:focus,
-.register-form input[type="email"]:focus,
-.register-form input[type="password"]:focus,
-.register-form input[type="number"]:focus,
-.register-form input[type="tel"]:focus,
-.register-form select:focus,
-.register-form textarea:focus {
-    outline: none;
-    border-color: #1877f2;
-    box-shadow: 0 0 0 4px rgba(24, 119, 242, 0.12);
-    background: white;
-}
-
-.register-form textarea {
-    resize: vertical;
-    min-height: 90px;
-}
-
-/* ===== ROLE SELECTOR ===== */
+/* Role Selector */
 .role-selector {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 10px;
+    gap: 12px;
+    margin-bottom: 12px;
 }
 
 .role-option {
@@ -489,45 +484,99 @@ body {
 .role-label {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 14px;
-    border: 1px solid #dfe3eb;
-    border-radius: 12px;
+    gap: 12px;
+    padding: 12px 16px;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
     cursor: pointer;
     transition: var(--transition);
-    background: #ffffff;
-    font-weight: 600;
-    color: #334155;
-    box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+    background: var(--surface-color);
 }
 
 .role-option input[type="radio"]:checked + .role-label {
-    border-color: #1877f2;
-    background: #eef5ff;
-    color: #0b57d0;
-    box-shadow: inset 0 0 0 1px rgba(24, 119, 242, 0.12);
+    border-color: var(--primary-color);
+    background: rgba(31, 82, 125, 0.05);
+    color: var(--primary-color);
+    font-weight: 600;
 }
 
 .role-icon {
-    font-size: 1.4rem;
+    font-size: 1.5rem;
 }
 
 .role-description {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     color: var(--text-secondary);
-    padding: 8px 0 0 0;
+    padding: 8px 0;
     min-height: 20px;
-    font-style: italic;
 }
 
-/* ===== PASSWORD FIELD ===== */
+/* Form Layout */
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+/* Form Inputs */
+.register-form input[type="text"],
+.register-form input[type="email"],
+.register-form input[type="password"],
+.register-form input[type="number"],
+.register-form input[type="tel"],
+.register-form select,
+.register-form textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    color: var(--text-primary);
+    background: var(--surface-color);
+    transition: var(--transition);
+    box-sizing: border-box;
+}
+
+.register-form input[type="text"]:focus,
+.register-form input[type="email"]:focus,
+.register-form input[type="password"]:focus,
+.register-form input[type="number"]:focus,
+.register-form input[type="tel"]:focus,
+.register-form select:focus,
+.register-form textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(31, 82, 125, 0.1);
+    background: rgba(31, 82, 125, 0.02);
+}
+
+.register-form textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Password Toggle */
 .password-wrapper {
     position: relative;
     width: 100%;
 }
 
 .password-wrapper input {
-    padding-right: 40px;
+    padding-right: 44px;
 }
 
 .password-toggle {
@@ -535,30 +584,27 @@ body {
     right: 12px;
     top: 50%;
     transform: translateY(-50%);
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     padding: 0;
     margin: 0;
     border: none;
     background: transparent;
     cursor: pointer;
-    font-size: 16px;
+    font-size: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: var(--transition);
-    z-index: 10;
 }
 
 .password-toggle:hover {
     opacity: 0.7;
 }
 
-/* ===== CHECKBOXES ===== */
+/* Checkboxes */
 .checkbox-group {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
+    align-content: flex-end;
 }
 
 .checkbox-label {
@@ -571,90 +617,43 @@ body {
     margin: 0;
 }
 
-.checkbox-group .checkbox-label input[type="checkbox"] {
-    width: 12px;
-    height: 12px;
-    min-width: 12px;
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
     cursor: pointer;
     accent-color: var(--primary-color);
-    border: 1.5px solid var(--border-color);
-    border-radius: 3px;
-    transition: var(--transition);
-    flex-shrink: 0;
 }
 
-.checkbox-group .checkbox-label input[type="checkbox"]:hover {
-    border-color: var(--primary-color);
-}
-
-.checkbox-group .checkbox-label input[type="checkbox"]:checked {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.preferences-checkbox .checkbox-label {
-    gap: 6px;
-    font-size: 0.85rem;
-}
-
-/* ===== CATEGORIES ===== */
+/* Categories Wrapper */
 .categories-wrapper {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 6px;
-    padding: 8px;
-    background: #f9fbff;
-    border: 1px solid #e5edf8;
-    border-radius: 10px;
-    max-height: 180px;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 6px;
+    max-height: 150px;
     overflow-y: auto;
-    box-sizing: border-box;
-    line-height: 1.2;
 }
 
 .categories-wrapper label {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     font-weight: 500;
-    font-size: 0.92rem;
     cursor: pointer;
     margin: 0;
-    padding: 7px 10px;
-    background: #ffffff;
-    border: 1px solid #edf2f7;
-    border-radius: 8px;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    min-width: 0;
-    line-height: 1.3;
-    color: #1f2937;
 }
 
 .categories-wrapper input[type="checkbox"] {
-    width: 15px;
-    height: 15px;
-    min-width: 15px;
+    width: 16px;
+    height: 16px;
     cursor: pointer;
-    accent-color: #1877f2;
-    margin: 0;
-    border: 1px solid #cbd5e1;
-    border-radius: 4px;
-    transition: var(--transition);
-    flex-shrink: 0;
-    vertical-align: middle;
+    accent-color: var(--primary-color);
 }
 
-.categories-wrapper input[type="checkbox"]:hover {
-    border-color: #1877f2;
-}
-
-.categories-wrapper input[type="checkbox"]:checked {
-    background-color: #1877f2;
-    border-color: #1877f2;
-}
-
-/* ===== FILE UPLOAD ===== */
+/* File Upload */
 .file-upload-wrapper {
     position: relative;
     border: 2px dashed var(--border-color);
@@ -668,7 +667,7 @@ body {
 
 .file-upload-wrapper:hover {
     border-color: var(--primary-color);
-    background: rgba(37, 99, 235, 0.05);
+    background: rgba(31, 82, 125, 0.05);
 }
 
 .file-upload-wrapper input[type="file"] {
@@ -677,90 +676,80 @@ body {
 
 .file-upload-label {
     display: block;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: var(--text-secondary);
     font-weight: 500;
 }
 
-/* ===== HELP TEXT & ERRORS ===== */
+/* Help Text */
 .form-help {
     display: block;
     font-size: 0.8rem;
     color: var(--text-secondary);
-    margin-top: 5px;
-    font-style: italic;
+    margin-top: 4px;
 }
 
+/* Error Messages */
 .error-message {
     display: block;
     color: var(--error-color);
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     margin-top: 4px;
     font-weight: 500;
 }
 
-/* ===== BUTTON ===== */
+/* Submit Button */
 .form-actions {
-    margin-top: 28px;
-    margin-bottom: 16px;
+    margin-top: 32px;
+    margin-bottom: 20px;
 }
 
 .btn-primary {
     width: 100%;
-    padding: 13px 24px;
-    background: linear-gradient(180deg, #1e73e8 0%, #165ed7 100%);
+    padding: 14px 24px;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
     color: white;
     border: none;
-    border-radius: 10px;
+    border-radius: var(--border-radius);
     font-size: 1rem;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
     transition: var(--transition);
-    box-shadow: 0 8px 18px rgba(30, 115, 232, 0.18);
-    text-transform: none;
-    letter-spacing: 0;
+    box-shadow: var(--shadow-md);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn-primary:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 18px rgba(24, 119, 242, 0.28);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
 }
 
 .btn-primary:active {
     transform: translateY(0);
 }
 
-/* ===== LOGIN LINK ===== */
+/* Login Switch */
 .login-switch {
     text-align: center;
-    color: #667085;
-    font-size: 0.92rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
     margin: 0;
-    padding-top: 8px;
 }
 
 .login-switch a {
-    color: #1877f2;
+    color: var(--primary-color);
     text-decoration: none;
-    font-weight: 700;
+    font-weight: 600;
     transition: var(--transition);
 }
 
 .login-switch a:hover {
     color: var(--accent-color);
+    text-decoration: underline;
 }
 
-/* ===== WORKER SECTION ===== */
-.worker-section {
-    display: none;
-    margin-top: 22px;
-    padding: 18px 16px 8px;
-    background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
-    border: 1px solid #e7edf7;
-    border-radius: 14px;
-}
-
-/* ===== RESPONSIVE ===== */
+/* Responsive Design */
 @media (max-width: 1024px) {
     .register-wrapper {
         grid-template-columns: 1fr;
@@ -772,69 +761,29 @@ body {
 
     .register-card {
         max-width: 100%;
+        padding: 40px 30px;
     }
 }
 
 @media (max-width: 768px) {
     .register-card {
-        padding: 35px 25px;
-    }
-
-    .register-header {
-        margin-bottom: 24px;
-    }
-
-    .register-header h2 {
-        font-size: 1.4rem;
+        padding: 30px 20px;
     }
 
     .form-row {
         grid-template-columns: 1fr;
-        gap: 0;
     }
 
     .role-selector {
         grid-template-columns: 1fr;
     }
 
-    .btn-primary {
-        padding: 11px 20px;
-        font-size: 0.9rem;
-    }
-
-    .register-form input[type="text"],
-    .register-form input[type="email"],
-    .register-form input[type="password"],
-    .register-form input[type="number"],
-    .register-form input[type="tel"],
-    .register-form select,
-    .register-form textarea {
-        padding: 10px 12px;
-        font-size: 0.88rem;
-    }
-}
-
-@media (max-width: 480px) {
-    .register-wrapper {
-        min-height: auto;
-    }
-
-    .register-form-container {
-        padding: 20px 10px;
-        min-height: auto;
-    }
-
-    .register-card {
-        padding: 25px 20px;
-        border-radius: 8px;
-    }
-
     .register-header h2 {
-        font-size: 1.2rem;
+        font-size: 1.4rem;
     }
 
-    .section-title {
-        font-size: 0.95rem;
+    .btn-primary {
+        padding: 12px 20px;
     }
 }
 </style>
@@ -908,7 +857,7 @@ document.addEventListener('DOMContentLoaded', function () {
         wrapper.addEventListener('dragover', (e) => {
             e.preventDefault();
             wrapper.style.borderColor = 'var(--primary-color)';
-            wrapper.style.background = 'rgba(37, 99, 235, 0.1)';
+            wrapper.style.background = 'rgba(31, 82, 125, 0.1)';
         });
 
         wrapper.addEventListener('dragleave', () => {
@@ -927,4 +876,12 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 
-{% endblock %}
+{% endblock %}'''
+
+# Write the new template
+output_path = r"c:\Users\Mahafuz\OneDrive\Desktop\Projects\Micro-Job Management\Micro-Job\templates\accounts\register.html"
+with open(output_path, 'w', encoding='utf-8') as f:
+    f.write(new_template)
+
+print(f"✅ Successfully updated {output_path}")
+print(f"File size: {len(new_template)} characters")

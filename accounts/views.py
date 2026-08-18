@@ -32,11 +32,24 @@ def register_view(request):
     if request.method == "POST" and form.is_valid():
         user = form.save()
         role_label = user.get_role_display()
-        messages.success(
-            request,
-            f"{role_label} account created successfully. Please log in.",
-        )
-        return redirect("login")
+        
+        # Auto-login the user and redirect based on role
+        login(request, user)
+        
+        if user.role == 'worker':
+            messages.warning(
+                request,
+                "Worker account created! Your account is waiting for admin approval. "
+                "You can browse the platform, but you won't appear in service listings until approved. "
+                "Once approved, you'll be able to see and accept service requests."
+            )
+            return redirect("worker_dashboard")
+        else:
+            messages.success(
+                request,
+                f"{role_label} account created successfully. Welcome!",
+            )
+            return redirect("home")
 
     return render(request, "accounts/register.html", {"form": form})
 
@@ -61,11 +74,11 @@ def login_view(request):
             messages.error(request, "Your account is blocked. Please contact support.")
             return render(request, "accounts/login.html", {"form": form})
 
-        # Workers must be approved before they can enter the worker area.
-        if user.role == "worker" and user.worker_status != "APPROVED":
-            messages.warning(
+        # Workers waiting for approval can log in but will see a warning
+        if user.role == "worker" and user.worker_status == "REJECTED":
+            messages.error(
                 request,
-                "Your worker account is waiting for admin approval.",
+                "Your worker account has been rejected. Please contact support for more information.",
             )
             return render(request, "accounts/login.html", {"form": form})
 
@@ -83,6 +96,14 @@ def login_view(request):
         # This affects only the browser/device making this request.
         login(request, user)
         messages.success(request, f"Welcome {user.first_name or user.username}!")
+        
+        # Show warning if worker is still pending approval
+        if user.role == "worker" and user.worker_status == "PENDING":
+            messages.warning(
+                request,
+                "Your account is awaiting admin approval. You can browse the platform, but you won't appear in service listings until approved."
+            )
+        
         return _redirect_for_role(request)
 
     return render(request, "accounts/login.html", {"form": form})
