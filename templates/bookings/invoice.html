@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2>Invoice</h2>
+
+<p><strong>Booking ID:</strong> {{ booking.id }}</p>
+<p><strong>Customer:</strong> {{ booking.customer.username }}</p>
+<p><strong>Service:</strong> {{ booking.service.name }}</p>
+<p><strong>Service Price:</strong> ৳{{ booking.service.price }}</p>
+<p><strong>Requested Date:</strong> {{ booking.booking_date }}</p>
+<p><strong>Requested Time:</strong> {{ booking.booking_time }}</p>
+<p><strong>Status:</strong> {{ booking.status }}</p>
+
+<a href="{% url 'booking_detail' booking.pk %}">Back to Booking</a>
+
+{% endblock %}

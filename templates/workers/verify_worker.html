@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <h2>Verify Worker</h2>
+    <p><strong>Worker:</strong> {{ worker_profile.user.username }}</p>
+    <p><strong>Skills:</strong> {{ worker_profile.skills }}</p>
+    <p><strong>Service area:</strong> {{ worker_profile.service_area }}</p>
+    <p><strong>Hourly rate:</strong> ৳{{ worker_profile.hourly_rate|default:'0.00' }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Update Verification</button>
+    </form>
+</div>
+{% endblock %}

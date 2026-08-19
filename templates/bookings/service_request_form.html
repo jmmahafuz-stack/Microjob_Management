@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Create Service Request{% endblock %}
+
+{% block content %}
+<div class="request-page">
+    <div class="request-heading">
+        <div>
+            <p class="request-eyebrow">Find the right help</p>
+            <h1>Create a service request</h1>
+            <p>Share the essentials and let verified workers respond.</p>
+        </div>
+        <span class="request-icon" aria-hidden="true"><i class="fas fa-paper-plane"></i></span>
+    </div>
+
+    <form method="post" class="request-form">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div class="request-error">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+
+        <div class="request-fields">
+            <div class="request-field request-field--wide">
+                <label for="{{ form.service.id_for_label }}">Service <span>*</span></label>
+                {{ form.service }}
+                <small>Choose the service you need.</small>
+                {% if form.service.errors %}<div class="request-error">{{ form.service.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="request-field request-field--wide">
+                <label for="{{ form.title.id_for_label }}">Request title <span>*</span></label>
+                {{ form.title }}
+                {% if form.title.errors %}<div class="request-error">{{ form.title.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="request-field request-field--wide">
+                <label for="{{ form.description.id_for_label }}">What do you need? <span>*</span></label>
+                {{ form.description }}
+                {% if form.description.errors %}<div class="request-error">{{ form.description.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="request-field">
+                <label for="{{ form.location.id_for_label }}">City or area <span>*</span></label>
+                {{ form.location }}
+                {% if form.location.errors %}<div class="request-error">{{ form.location.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="request-field">
+                <label for="{{ form.preferred_date.id_for_label }}">Preferred date <span>*</span></label>
+                {{ form.preferred_date }}
+                {% if form.preferred_date.errors %}<div class="request-error">{{ form.preferred_date.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="request-field request-field--wide">
+                <label for="{{ form.address.id_for_label }}">Full address <span>*</span></label>
+                {{ form.address }}
+                {% if form.address.errors %}<div class="request-error">{{ form.address.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="request-field">
+                <label for="{{ form.preferred_time_start.id_for_label }}">Start time</label>
+                {{ form.preferred_time_start }}
+            </div>
+            <div class="request-field">
+                <label for="{{ form.preferred_time_end.id_for_label }}">End time</label>
+                {{ form.preferred_time_end }}
+            </div>
+            <div class="request-field">
+                <label for="{{ form.budget_min.id_for_label }}">Min budget (Rs.)</label>
+                {{ form.budget_min }}
+            </div>
+            <div class="request-field">
+                <label for="{{ form.budget_max.id_for_label }}">Max budget (Rs.) <span>*</span></label>
+                {{ form.budget_max }}
+                {% if form.budget_max.errors %}<div class="request-error">{{ form.budget_max.errors.0 }}</div>{% endif %}
+            </div>
+        </div>
+
+        <button type="submit" class="request-submit"><i class="fas fa-paper-plane"></i> Post request</button>
+    </form>
+</div>
+
+<style>
+    .request-page { max-width: 780px; margin: 42px auto 56px; padding: 0 20px; }
+    .request-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    .request-heading h1 { margin: 0 0 5px; font-size: clamp(1.7rem, 3vw, 2.25rem); color: #163a56; }
+    .request-heading p { margin: 0; color: #64748b; }
+    .request-eyebrow { color: #0f766e !important; font-size: .76rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    .request-icon { display: grid; place-items: center; flex: 0 0 48px; height: 48px; border-radius: 14px; background: #e0f2f1; color: #0f766e; font-size: 1.1rem; }
+    .request-form { padding: 22px; border: 1px solid #dbe4ea; border-radius: 14px; background: #fff; box-shadow: 0 8px 24px rgba(22, 58, 86, .08); }
+    .request-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .request-field { min-width: 0; }
+    .request-field--wide { grid-column: 1 / -1; }
+    .request-field label { display: block; margin-bottom: 5px; color: #334155; font-size: .86rem; font-weight: 650; }
+    .request-field label span { color: #dc2626; }
+    .request-field input, .request-field select, .request-field textarea { width: 100%; box-sizing: border-box; padding: 9px 11px; border: 1px solid #cbd5e1; border-radius: 8px; color: #1e293b; font: inherit; background: #fff; }
+    .request-field textarea { min-height: 74px; resize: vertical; }
+    .request-field input:focus, .request-field select:focus, .request-field textarea:focus { outline: 0; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15, 118, 110, .12); }
+    .request-field small { display: block; margin-top: 4px; color: #64748b; font-size: .76rem; }
+    .request-error { margin-top: 5px; color: #b91c1c; font-size: .78rem; }
+    .request-submit { width: 100%; margin-top: 18px; padding: 11px 16px; border: 0; border-radius: 8px; background: #0f766e; color: #fff; font-weight: 700; cursor: pointer; transition: background .2s ease, transform .2s ease; }
+    .request-submit:hover { background: #115e59; transform: translateY(-1px); }
+    @media (max-width: 600px) { .request-page { margin-top: 28px; } .request-form { padding: 16px; } .request-fields { grid-template-columns: 1fr; } .request-field--wide { grid-column: auto; } }
+</style>
+{% endblock %}

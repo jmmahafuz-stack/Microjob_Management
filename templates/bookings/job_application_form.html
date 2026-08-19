@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Apply for Job{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px; margin-bottom: 50px;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 style="margin-bottom: 30px;">Submit Your Application</h1>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Job Opportunity</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ service_request.title }}</h6>
+                    <p class="text-muted mb-2">{{ service_request.description }}</p>
+                    
+                    <div class="row text-sm">
+                        <div class="col-md-6">
+                            <strong>Budget:</strong> Rs. 
+                            {% if service_request.budget_min and service_request.budget_max %}
+                                {{ service_request.budget_min }} - {{ service_request.budget_max }}
+                            {% elif service_request.budget_max %}
+                                up to {{ service_request.budget_max }}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Preferred Date:</strong> {{ service_request.preferred_date|date:"M d, Y" }}
+                        </div>
+                    </div>
+                    {% if service_request.preferred_time_start or service_request.preferred_time_end %}
+                        <div class="mt-2">
+                            <strong>Preferred Time:</strong>
+                            {% if service_request.preferred_time_start %}
+                                {{ service_request.preferred_time_start|time:"g:i A" }}
+                            {% else %}
+                                Any time
+                            {% endif %}
+                            {% if service_request.preferred_time_end %}
+                                - {{ service_request.preferred_time_end|time:"g:i A" }}
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Your Application</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="post" class="needs-validation">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.proposed_price.id_for_label }}" class="form-label">
+                                <strong>Your Proposed Price (Rs.) *</strong>
+                            </label>
+                            {{ form.proposed_price }}
+                            {% if form.proposed_price.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.proposed_price.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                This is the total amount you're proposing for this job
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.estimated_duration.id_for_label }}" class="form-label">
+                                <strong>Estimated Duration *</strong>
+                            </label>
+                            {{ form.estimated_duration }}
+                            {% if form.estimated_duration.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.estimated_duration.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Format: HH:MM (e.g., 2:30 for 2 hours 30 minutes)
+                            </small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.can_start_date.id_for_label }}" class="form-label">
+                                <strong>When Can You Start? *</strong>
+                            </label>
+                            {{ form.can_start_date }}
+                            {% if form.can_start_date.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.can_start_date.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.proposal_message.id_for_label }}" class="form-label">
+                                <strong>Proposal Message *</strong>
+                            </label>
+                            {{ form.proposal_message }}
+                            {% if form.proposal_message.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.proposal_message.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Explain why you're the best choice for this job. Highlight your experience, approach, and how you'll deliver quality work.
+                            </small>
+                        </div>
+
+                        <div class="mb-3 form-check">
+                            {{ form.agreed_to_schedule }}
+                            <label for="{{ form.agreed_to_schedule.id_for_label }}" class="form-check-label">
+                                {{ form.agreed_to_schedule.label }}
+                            </label>
+                            {% if form.agreed_to_schedule.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.agreed_to_schedule.errors.0 }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors.0 }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2 d-md-flex gap-md-2">
+                            <a href="{% url 'service_request_detail' service_request.id %}" class="btn btn-secondary">
+                                Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Submit Application
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-input, .form-textarea, .form-select {
+        border-radius: 0.375rem;
+        border: 1px solid #ddd;
+        padding: 0.75rem;
+        font-size: 1rem;
+        width: 100%;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+</style>
+{% endblock %}

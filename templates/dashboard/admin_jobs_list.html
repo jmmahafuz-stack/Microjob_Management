@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Admin Operations</p>
+            <h2>Jobs</h2>
+        </div>
+        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
+    </div>
+
+    <form method="get" class="filter-form" style="margin-bottom:20px;">
+        <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+            <select name="status" class="form-control" style="max-width:200px;">
+                <option value="all" {% if status_selected == 'all' %}selected{% endif %}>All statuses</option>
+                <option value="COMPLETED" {% if status_selected == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                <option value="IN_PROGRESS" {% if status_selected == 'IN_PROGRESS' %}selected{% endif %}>In Progress</option>
+                <option value="PENDING" {% if status_selected == 'PENDING' %}selected{% endif %}>Pending</option>
+                <option value="CANCELLED" {% if status_selected == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+            </select>
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Customer</th>
+                    <th>Worker</th>
+                    <th>Status</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td>#{{ job.id }}</td>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.customer.get_full_name|default:job.customer.username }}</td>
+                    <td>{{ job.worker.get_full_name|default:job.worker.username }}</td>
+                    <td>{{ job.status }}</td>
+                    <td>৳{{ job.actual_price|default:job.proposed_price|default:'0.00' }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">No jobs found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

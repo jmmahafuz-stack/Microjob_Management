@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div style="max-width:900px; margin:0 auto;">
+    <h2 style="margin-bottom:18px;">{% if editing %}Edit Booking{% else %}Create Booking{% endif %}</h2>
+
+    {% if selected_service %}
+        <div style="background:linear-gradient(135deg,#f8fbff 0%,#eef5ff 100%); border:1px solid #cfe0ff; border-radius:14px; padding:18px 20px; margin-bottom:18px; box-shadow:0 4px 14px rgba(15,23,42,0.06);">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+                <div>
+                    <div style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:#4f46e5; font-weight:700;">Selected service</div>
+                    <h3 style="margin:4px 0 0; font-size:1.2rem;">{{ selected_service.name }}</h3>
+                </div>
+                <div style="background:#fff; border:1px solid #dbeafe; padding:8px 12px; border-radius:999px; font-weight:700; color:#1d4ed8;">৳{{ selected_service.price }}</div>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:10px;">
+                <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:10px 12px;">
+                    <div style="font-size:0.8rem; color:#64748b;">Category</div>
+                    <div style="font-weight:600; margin-top:2px;">{{ selected_service.category }}</div>
+                </div>
+                <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:10px 12px;">
+                    <div style="font-size:0.8rem; color:#64748b;">Duration</div>
+                    <div style="font-weight:600; margin-top:2px;">{{ selected_service.duration }}</div>
+                </div>
+                <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:10px 12px;">
+                    <div style="font-size:0.8rem; color:#64748b;">Location</div>
+                    <div style="font-weight:600; margin-top:2px;">{{ selected_service.location|default:'Any' }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% if selected_service.related_workers %}
+            <div style="margin-bottom:18px; padding:18px 20px; border:1px solid #d9e2ec; border-radius:14px; background:#f8fbff; box-shadow:0 4px 14px rgba(15,23,42,0.04);">
+                <h3 style="margin-top:0; margin-bottom:8px;">Recommended workers for this service</h3>
+                <p style="margin-top:0; margin-bottom:12px; color:#4b5563;">Choose a verified worker for this booking or continue with the service request below.</p>
+                <div class="worker-card-list">
+                    {% for worker_profile in selected_service.related_workers %}
+                        <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card">
+                            {% if worker_profile.user.profile_picture %}
+                                <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image">
+                            {% else %}
+                                <div class="worker-card__avatar worker-card__image">👷</div>
+                            {% endif %}
+                            <div class="worker-card__meta">
+                                <p class="worker-card__name">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
+                                <p class="worker-card__detail">Profession: {{ worker_profile.profession|default:'Not specified' }}</p>
+                                <p class="worker-card__detail">Skills: {{ worker_profile.skills }}</p>
+                                <p class="worker-card__detail">Experience: {{ worker_profile.experience|default:'Not specified' }}</p>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    {% else %}
+        <p style="padding:12px 14px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;">Please choose the service you want to book below.</p>
+    {% endif %}
+
+    <form method="post" class="auth-form" style="margin-top:6px;">
+    {% csrf_token %}
+    <div class="form-grid">
+        {% for field in form %}
+            <div class="form-group{% if field.name in 'address,problem_description' %} form-group--full{% endif %}">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.errors %}
+                    <div class="alert alert-error">{{ field.errors|striptags }}</div>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+        <button type="submit">{% if editing %}Submit Changes{% else %}Submit Booking Request{% endif %}</button>
+    </form>
+
+    <a href="{% url 'service_list' %}" style="display:inline-block; margin-top:16px; font-weight:600;">← Back to Services</a>
+</div>
+
+{% endblock %}

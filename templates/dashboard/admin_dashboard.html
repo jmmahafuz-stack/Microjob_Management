@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-shell">
+    <header class="admin-header">
+        <div>
+            <p class="eyebrow">Operations Overview</p>
+            <h1>Platform Administration</h1>
+        </div>
+        <div class="admin-header-actions">
+            <a href="{% url 'admin:index' %}" class="btn btn-primary">Admin Panel</a>
+            <a href="{% url 'admin_users_list' %}" class="btn btn-secondary">Manage Users</a>
+        </div>
+    </header>
+
+    <div class="admin-intro">
+        <p>Welcome admin. You oversee the marketplace, worker approvals, customer trust, service quality, and payment performance from one central dashboard.</p>
+        <p><strong>Admin workflow:</strong> Manage Users → Manage Services → Monitor Jobs → Manage Commission → Monitor Payments → Generate Reports</p>
+    </div>
+
+    <section class="stats-grid">
+        <article class="stat-card accent-blue">
+            <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+            <div>
+                <span>Customers</span>
+                <strong>{{ user_stats.total_customers|default:0 }}</strong>
+            </div>
+        </article>
+        <article class="stat-card accent-green">
+            <div class="stat-icon"><i class="fa-solid fa-user-tie"></i></div>
+            <div>
+                <span>Workers</span>
+                <strong>{{ user_stats.total_workers|default:0 }}</strong>
+            </div>
+        </article>
+        <article class="stat-card accent-orange">
+            <div class="stat-icon"><i class="fa-solid fa-clock"></i></div>
+            <div>
+                <span>Pending Workers</span>
+                <strong>{{ user_stats.pending_verification|default:0 }}</strong>
+            </div>
+        </article>
+        <article class="stat-card accent-purple">
+            <div class="stat-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+            <div>
+                <span>Service Requests</span>
+                <strong>{{ total_service_requests|default:0 }}</strong>
+            </div>
+        </article>
+    </section>
+
+    {% if payment_stats or job_stats %}
+    <section class="dashboard-grid admin-grid">
+        <div class="dashboard-card">
+            <h3>Revenue</h3>
+            <p class="dashboard-number">৳{{ payment_stats.total_revenue|default:0 }}</p>
+            <small>Verified payments</small>
+        </div>
+        <div class="dashboard-card">
+            <h3>Commission</h3>
+            <p class="dashboard-number">৳{{ payment_stats.total_commission|default:0 }}</p>
+            <small>Platform earnings</small>
+        </div>
+        <div class="dashboard-card">
+            <h3>Worker Earnings</h3>
+            <p class="dashboard-number">৳{{ payment_stats.total_worker_earnings|default:0 }}</p>
+            <small>Gross payout value</small>
+        </div>
+        <div class="dashboard-card">
+            <h3>Avg Rating</h3>
+            <p class="dashboard-number">{{ quality_stats.avg_rating|default:0|floatformat:1 }}</p>
+            <small>Marketplace quality</small>
+        </div>
+    </section>
+    {% endif %}
+
+    <section class="admin-panel-grid">
+        <div class="panel-card analytics-card">
+            <div class="panel-header">
+                <h3>Quick actions</h3>
+                <span>Priority workflow</span>
+            </div>
+            <div class="dashboard-links">
+                <a href="{% url 'admin_users_list' %}"><i class="fa-solid fa-user-gear"></i> Manage Users</a>
+                <a href="{% url 'service_list' %}"><i class="fa-solid fa-list"></i> Manage Services</a>
+                <a href="{% url 'admin_jobs_list' %}"><i class="fa-solid fa-clipboard-list"></i> Monitor Jobs</a>
+                <a href="{% url 'admin_payouts_list' %}"><i class="fa-solid fa-percent"></i> Manage Commission</a>
+                <a href="{% url 'admin_payments_list' %}"><i class="fa-solid fa-sack-dollar"></i> Monitor Payments</a>
+                <a href="{% url 'admin_reports' %}"><i class="fa-solid fa-file-lines"></i> Generate Reports</a>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

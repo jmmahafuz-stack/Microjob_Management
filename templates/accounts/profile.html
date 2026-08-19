@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card profile-card">
+    <h2>My Profile</h2>
+
+    {% include 'partials/messages.html' %}
+
+    <div class="profile-header">
+        {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}" alt="Profile picture" class="profile-avatar">
+        {% else %}
+            <div class="profile-avatar placeholder">{{ user.username|slice:':1'|upper }}</div>
+        {% endif %}
+
+        <div>
+            <h3>{{ user.first_name }} {{ user.last_name }}</h3>
+            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Role:</strong> {{ user.role|title }}</p>
+        </div>
+    </div>
+
+    <div class="profile-details">
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Phone:</strong> {{ user.phone }}</p>
+        {% if user.role == 'worker' %}
+            <p><strong>Profession / Work category:</strong> {{ user.worker_profile.profession|default:'Not set' }}</p>
+        {% endif %}
+        <p><strong>Address:</strong> {{ user.address }}</p>
+    </div>
+
+    {% if user.role == 'worker' %}
+    <div class="worker-status-card">
+        <h3>Worker Status</h3>
+        <p><strong>Verification:</strong> {{ user.worker_profile.verification_status|default:'Pending' }}</p>
+        <p><strong>Training:</strong> {{ user.worker_profile.training_status|default:'Pending' }}</p>
+        <p><strong>Profession:</strong> {{ user.worker_profile.profession|default:'Not set' }}</p>
+        <p><strong>Category:</strong>
+            {% if user.worker_profile.categories.all %}
+                {% for category in user.worker_profile.categories.all %}{{ category.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            {% elif user.worker_profile.service_category %}
+                {{ user.worker_profile.service_category }}
+            {% elif user.worker_profile.service %}
+                {{ user.worker_profile.service.category }}
+            {% else %}
+                Not set
+            {% endif %}
+        </p>
+        <p><strong>Hourly rate:</strong> ৳{{ user.worker_profile.hourly_rate|default:'0.00' }}</p>
+        <p><strong>Service area:</strong> {{ user.worker_profile.service_area|default:'Not set' }}</p>
+    </div>
+    {% endif %}
+
+    <div class="profile-actions">
+        <a href="{% url 'edit_profile' %}">Edit Profile</a>
+        <a href="{% url 'change_password' %}">Change Password</a>
+    </div>
+</div>
+{% endblock %}

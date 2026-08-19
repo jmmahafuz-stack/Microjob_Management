@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Job #{{ job.id }}{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px; margin-bottom: 50px;">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>Job #{{ job.id }}: {{ job.title }}</h1>
+                <span class="badge bg-{% if job.status == 'CONFIRMED' %}info{% elif job.status == 'IN_PROGRESS' %}warning{% elif job.status == 'COMPLETED' %}success{% else %}secondary{% endif %} fs-5">
+                    {{ job.get_status_display }}
+                </span>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Job Details</h5>
+                </div>
+                <div class="card-body">
+                    <h6>Description</h6>
+                    <p>{{ job.description }}</p>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Location:</strong><br>
+                            {{ job.location }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Address:</strong><br>
+                            {{ job.address }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Pricing & Duration</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Proposed Price:</strong><br>
+                            <h5 class="text-primary">Rs. {{ job.proposed_price }}</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Estimated Duration:</strong><br>
+                            {{ job.estimated_duration }}
+                        </div>
+                    </div>
+                    
+                    {% if job.actual_price %}
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Actual Price:</strong><br>
+                                <h5 class="text-success">Rs. {{ job.actual_price }}</h5>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Schedule</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Scheduled Date:</strong><br>
+                            {{ job.scheduled_date|date:"M d, Y" }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Scheduled Time:</strong><br>
+                            {% if job.scheduled_time_start %}
+                                {{ job.scheduled_time_start|time:"g:i A" }}
+                                {% if job.scheduled_time_end %}
+                                    - {{ job.scheduled_time_end|time:"g:i A" }}
+                                {% endif %}
+                            {% else %}
+                                Not specified
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if job.actual_start_time %}
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Actual Start Time:</strong><br>
+                                {{ job.actual_start_time|date:"M d, Y g:i A" }}
+                            </div>
+                            {% if job.actual_end_time %}
+                                <div class="col-md-6">
+                                    <strong>Actual End Time:</strong><br>
+                                    {{ job.actual_end_time|date:"M d, Y g:i A" }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            {% if job.completion_notes %}
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">Completion Notes</h5>
+                    </div>
+                    <div class="card-body">
+                        {{ job.completion_notes }}
+                    </div>
+                </div>
+            {% endif %}
+            
+            {% if request.user == job.worker and job.status == 'CONFIRMED' %}
+                <div class="mb-4">
+                    <a href="{% url 'job_accept' job.id %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-check-circle"></i> Accept Job
+                    </a>
+                </div>
+            {% elif request.user == job.worker and job.status == 'IN_PROGRESS' %}
+                <div class="mb-4">
+                    <a href="{% url 'job_complete' job.id %}" class="btn btn-success btn-lg">
+                        <i class="fas fa-check-circle"></i> Mark as Complete
+                    </a>
+                </div>
+            {% endif %}
+
+            {% if request.user == job.customer and job.status == 'COMPLETED' %}
+                <div class="mb-4">
+                    <a href="{% url 'make_payment' job.id %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-credit-card"></i> Pay Now (৳{{ job.final_price }})
+                    </a>
+                </div>
+            {% endif %}
+
+            {% if not payment_completed and job.status != 'CANCELLED' %}
+                <div class="mb-4">
+                    <a href="{% url 'job_messages' job.id %}" class="btn btn-info btn-lg text-white">
+                        <i class="fas fa-comments"></i> Message {% if request.user == job.customer %}Worker{% else %}Customer{% endif %}
+                    </a>
+                </div>
+            {% elif payment_completed %}
+                <div class="alert alert-secondary mb-4">
+                    Messaging is closed because this service has been paid for.
+                </div>
+            {% endif %}
+
+            {% if request.user == job.customer and job.status != 'COMPLETED' and job.status != 'CANCELLED' %}
+                <div class="mb-4">
+                    <a href="{% url 'cancel_job' job.id %}" class="btn btn-danger btn-lg">
+                        <i class="fas fa-times-circle"></i> Cancel Job
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">People Involved</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <strong>Customer</strong><br>
+                        {% if request.user == job.customer or request.user.role == 'admin' %}
+                            {{ job.customer.get_full_name }}<br>
+                            <small class="text-muted">{{ job.customer.email }}</small>
+                        {% else %}
+                            {{ job.customer.first_name }}<br>
+                            <small class="text-muted">Contact via job messaging</small>
+                        {% endif %}
+                    </div>
+                    
+                    <hr>
+                    
+                    <div>
+                        <strong>Worker</strong><br>
+                        {% if request.user == job.worker or request.user.role == 'admin' %}
+                            {{ job.worker.get_full_name }}<br>
+                            <small class="text-muted">{{ job.worker.email }}</small>
+                        {% else %}
+                            {{ job.worker.first_name }}<br>
+                            <small class="text-muted">Contact via job messaging</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

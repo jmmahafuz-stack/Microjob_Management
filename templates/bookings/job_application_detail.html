@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Review Application{% endblock %}
+
+{% block content %}
+<div class="container" style="margin-top: 100px; margin-bottom: 50px;">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 style="margin-bottom: 30px;">Review Worker Application</h1>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Job Details</h5>
+                </div>
+                <div class="card-body">
+                    <h6>{{ application.service_request.title }}</h6>
+                    <p>{{ application.service_request.description }}</p>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">Worker Profile</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h6 class="mb-2">{{ application.worker.get_full_name }}</h6>
+                            {% if application.worker.worker_profile %}
+                                <div class="mb-3">
+                                    <strong>Rating:</strong> 
+                                    {% if application.worker_rating_at_application %}
+                                        ⭐ {{ application.worker_rating_at_application }}/5.0
+                                    {% else %}
+                                        No ratings yet
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    <strong>Completed Jobs:</strong> 
+                                    {{ application.worker_completed_jobs }}
+                                </div>
+                                {% if application.worker.worker_profile.categories.exists %}
+                                    <div>
+                                        <strong>Expertise:</strong><br>
+                                        {% for category in application.worker.worker_profile.categories.all %}
+                                            <span class="badge bg-secondary">{{ category.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Application Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Proposed Price:</strong><br>
+                            <h5 class="text-primary">Rs. {{ application.proposed_price }}</h5>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Estimated Duration:</strong><br>
+                            {{ application.estimated_duration }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Can Start Date:</strong><br>
+                        {{ application.can_start_date|date:"M d, Y" }}
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Schedule Agreement:</strong><br>
+                        {% if application.agreed_to_schedule %}
+                            <span class="text-success"><i class="fas fa-check-circle"></i> Agrees to your requested date and time</span>
+                        {% else %}
+                            <span class="text-warning">Worker has not agreed to the requested schedule</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Proposal Message:</strong>
+                        <div class="border rounded p-3 bg-light">
+                            {{ application.proposal_message }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Your Decision</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <p class="mb-3">
+                            Do you want to accept this application and create a job with this worker?
+                        </p>
+                        
+                        <div class="d-grid gap-2 d-md-flex gap-md-2">
+                            <button type="submit" name="action" value="ACCEPTED" class="btn btn-success btn-lg">
+                                <i class="fas fa-check"></i> Accept Application
+                            </button>
+                            <button type="submit" name="action" value="REJECTED" class="btn btn-danger btn-lg">
+                                <i class="fas fa-times"></i> Reject Application
+                            </button>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <a href="{% url 'service_request_detail' application.service_request.id %}" class="btn btn-secondary w-100">
+                                Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

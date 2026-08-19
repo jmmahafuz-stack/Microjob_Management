@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="service-detail-shell">
+    <div class="service-detail-card">
+        <div class="service-detail-header">
+            <div>
+                <span class="service-badge">{{ service.category }}</span>
+                <h2>{{ service.name }}</h2>
+            </div>
+        </div>
+
+        <div class="service-detail-layout">
+            <div class="service-detail-image-wrap">
+                {% if service.image %}
+                    <img src="{{ service.image.url }}" alt="{{ service.name }}" class="service-detail-image">
+                {% else %}
+                    <div class="service-detail-image service-detail-image--placeholder">No image</div>
+                {% endif %}
+            </div>
+
+            <div class="service-detail-content">
+                <div class="detail-info-grid">
+                    <div class="detail-stat">
+                        <span class="detail-label">Duration</span>
+                        <strong>{{ service.duration }}</strong>
+                    </div>
+                    <div class="detail-stat">
+                        <span class="detail-label">Location</span>
+                        <strong>{{ service.location|default:'Any' }}</strong>
+                    </div>
+                    <div class="detail-stat">
+                        <span class="detail-label">Availability</span>
+                        <strong>{% if service.is_available %}Available{% else %}Unavailable{% endif %}</strong>
+                    </div>
+                    <div class="detail-stat">
+                        <span class="detail-label">Rating</span>
+                        <strong>{{ service.average_rating|floatformat:1 }} / 5</strong>
+                    </div>
+                </div>
+
+                <div class="service-description-box">
+                    <h3>Service description</h3>
+                    <p>{{ service.description }}</p>
+                </div>
+
+                {% if user.is_authenticated and user.role == 'customer' %}
+                    <div class="detail-action-group">
+                        <a href="{% url 'service_request_create' %}?service={{ service.id }}" class="btn btn-primary">
+                            Request This Service
+                        </a>
+                        <a href="{% url 'create_booking' %}?service={{ service.id }}" class="btn btn-outline-secondary">
+                            Book Directly (Legacy)
+                        </a>
+                    </div>
+                {% elif not user.is_authenticated %}
+                    <p class="detail-login-message">
+                        <a href="{% url 'login' %}?next={{ request.path }}">Login to request this service</a>
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="time-slot-box">
+            <h3>Suggested time slots</h3>
+            <ul class="time-slot-list">
+                <li>10:00 AM</li>
+                <li>12:00 PM</li>
+                <li>02:00 PM</li>
+                <li>04:00 PM</li>
+            </ul>
+        </div>
+
+        {% if verified_workers %}
+            <div class="recommended-workers-box">
+                <h3>Recommended workers for this service</h3>
+                <p>These verified workers are available for this service and can help with your booking.</p>
+                <div class="worker-card-list">
+                    {% for worker_profile in verified_workers %}
+                        <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card">
+                            {% if worker_profile.user.profile_picture %}
+                                <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image">
+                            {% else %}
+                                <div class="worker-card__avatar worker-card__image">👷</div>
+                            {% endif %}
+                            <div class="worker-card__meta">
+                                <p class="worker-card__name">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
+                                    <p class="worker-card__detail">Profession: {{ worker_profile.profession|default:'Not specified' }}</p>
+                                <p class="worker-card__detail">Skills: {{ worker_profile.skills }}</p>
+                                <p class="worker-card__detail">Exp: {{ worker_profile.experience_years|default:0 }} years</p>
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        {% if user.is_authenticated and user.role == 'admin' %}
+            <div class="admin-actions">
+                <a href="{% url 'edit_service' service.id %}" class="btn btn-outline-secondary">Edit</a>
+                <a href="{% url 'delete_service' service.id %}" class="btn btn-outline-secondary">Delete</a>
+            </div>
+        {% endif %}
+
+        <div class="detail-footer-link">
+            <a href="{% url 'service_list' %}">← Back to services</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container support-page">
+<div class="support-card">
+<div class="support-heading">
+    <div>
+        <p class="section-kicker">SUPPORT CENTER</p>
+        <h1>My Messages</h1>
+    </div>
+    <a href="{% url 'contact_admin' %}" class="btn btn-primary">Message Admin</a>
+</div>
+
+{% if complaints %}
+    <ul>
+        {% for complaint in complaints %}
+            <li class="support-message-item">
+                <strong>{{ complaint.subject }}</strong>
+                <span class="support-status">{{ complaint.status }}</span>
+                <p>{{ complaint.description }}</p>
+                {% if complaint.reply %}
+                    <div class="support-reply"><strong>Admin reply:</strong> {{ complaint.reply }}</div>
+                {% else %}
+                    <small>Waiting for an admin reply.</small>
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No messages found.</p>
+{% endif %}
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/register.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="auth-page auth-page--register">
+    <!-- Left Side: Branding & Info -->
+    <div class="auth-hero">
+        <div>
+            <span class="auth-badge"><i class="fa-solid fa-shield-halved"></i> Trusted service marketplace</span>
+            <h1>Join MJMS today</h1>
+            <p>Get started in less than 2 minutes</p>
+            
+            <div class="auth-benefits">
+                <div class="benefit-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>For Customers: Find trusted professionals</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>For Workers: Grow your business</span>
+                </div>
+                <div class="benefit-item">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>Verified & Secure</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Side: Registration Form -->
+    <div class="auth-card auth-card--register">
+        <div class="auth-card__header">
+            <h2>Create Account</h2>
+            <p>Select your role and fill in your details</p>
+        </div>
+
+        {% include 'partials/messages.html' %}
+
+        <form method="POST" class="register-form" id="registerForm">
+            {% csrf_token %}
+
+            <!-- Role Selection -->
+            <div class="form-section">
+                <label class="form-label">I am a:</label>
+                <div class="role-selector">
+                    {% for value, label in form.role.field.choices %}
+                    <div class="role-option">
+                        <input type="radio" name="role" value="{{ value }}" id="role_{{ value }}" 
+                               {% if form.role.value == value %}checked{% endif %} 
+                               onchange="toggleWorkerFields()">
+                        <label for="role_{{ value }}" class="role-label">
+                            <span class="role-icon">{% if value == 'worker' %}💼{% else %}👤{% endif %}</span>
+                            {{ label }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if form.role.errors %}<span class="error-message">{{ form.role.errors }}</span>{% endif %}
+            </div>
+
+            <!-- Basic Information -->
+            <div class="form-section">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.first_name.id_for_label }}" class="form-label">First Name</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}<span class="error-message">{{ form.first_name.errors.0 }}</span>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.last_name.id_for_label }}" class="form-label">Last Name</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}<span class="error-message">{{ form.last_name.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<span class="error-message">{{ form.email.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}<span class="error-message">{{ form.phone.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                    <div class="password-wrapper">
+                        {{ form.password1 }}
+                        <button type="button" class="password-toggle" onclick="togglePassword('id_password1', this)">👁</button>
+                    </div>
+                    {% if form.password1.errors %}<span class="error-message">{{ form.password1.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+                    <div class="password-wrapper">
+                        {{ form.password2 }}
+                        <button type="button" class="password-toggle" onclick="togglePassword('id_password2', this)">👁</button>
+                    </div>
+                    {% if form.password2.errors %}<span class="error-message">{{ form.password2.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <!-- Worker Section (shown only for workers) -->
+            <div class="form-section worker-section is-hidden">
+                <h3 class="section-title">💼 Professional Information</h3>
+
+                <div class="form-group">
+                    <label for="{{ form.worker_categories.id_for_label }}" class="form-label">Work Category</label>
+                    {{ form.worker_categories }}
+                    <span class="form-help">Select your main work category</span>
+                    {% if form.worker_categories.errors %}<span class="error-message">{{ form.worker_categories.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="{{ form.worker_experience.id_for_label }}" class="form-label">Years Experience</label>
+                        {{ form.worker_experience }}
+                        {% if form.worker_experience.errors %}<span class="error-message">{{ form.worker_experience.errors.0 }}</span>{% endif %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.worker_skills.id_for_label }}" class="form-label">Skills</label>
+                    {{ form.worker_skills }}
+                    <span class="form-help">Comma-separated (e.g., Plumbing, Repairs)</span>
+                    {% if form.worker_skills.errors %}<span class="error-message">{{ form.worker_skills.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.worker_service_area.id_for_label }}" class="form-label">Service Area</label>
+                    {{ form.worker_service_area }}
+                    {% if form.worker_service_area.errors %}<span class="error-message">{{ form.worker_service_area.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.worker_nid_number.id_for_label }}" class="form-label">NID Number</label>
+                    {{ form.worker_nid_number }}
+                    <span class="form-help">Enter your national ID number for verification</span>
+                    {% if form.worker_nid_number.errors %}<span class="error-message">{{ form.worker_nid_number.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.worker_bio.id_for_label }}" class="form-label">About You</label>
+                    {{ form.worker_bio }}
+                    <span class="form-help">Brief description of your services</span>
+                    {% if form.worker_bio.errors %}<span class="error-message">{{ form.worker_bio.errors.0 }}</span>{% endif %}
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="form-actions">
+                <button type="submit" class="btn-primary btn-register">Create Account</button>
+            </div>
+
+            <!-- Login Link -->
+            <p class="login-switch">
+                Already have an account? <a href="{% url 'login' %}">Sign in</a>
+            </p>
+        </form>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+    <script src="{% static 'js/register.js' %}"></script>
+{% endblock %}

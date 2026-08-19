@@ -1,0 +1,357 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="card admin-profile">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Admin Management</p>
+            <h2>User Profile - {{ user.get_full_name|default:user.username }}</h2>
+        </div>
+        <a href="{% url 'admin_users_list' %}" class="btn btn-outline-secondary">Back to Users</a>
+    </div>
+
+    <div class="row mt-4">
+        <!-- User Basic Info -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="img-fluid rounded-circle mb-3 admin-profile-avatar">
+                    {% else %}
+                        <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center admin-profile-avatar">
+                            <i class="fas fa-user fa-3x text-muted"></i>
+                        </div>
+                    {% endif %}
+                    <h5 class="card-title">{{ user.get_full_name|default:user.username }}</h5>
+                    <p class="text-muted">@{{ user.username }}</p>
+                    <p class="text-muted">{{ user.email }}</p>
+                    
+                    {% if user.phone %}
+                        <p class="text-muted">
+                            <i class="fas fa-phone"></i> {{ user.phone }}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- User Details -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Account Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Role:</th>
+                            <td>
+                                <span class="badge bg-primary">{{ user.role|title }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                {% if user.role == 'worker' %}
+                                    <span class="badge bg-info">{{ user.worker_status }}</span>
+                                    {% if user.is_blocked %}
+                                        <span class="badge bg-danger">BLOCKED</span>
+                                    {% endif %}
+                                {% elif user.role == 'customer' %}
+                                    <span class="badge bg-success">{{ user.customer_status }}</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Admin</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Email Verified:</th>
+                            <td>
+                                {% if user.email_verified %}
+                                    <span class="badge bg-success"><i class="fas fa-check"></i> Yes</span>
+                                {% else %}
+                                    <span class="badge bg-warning"><i class="fas fa-times"></i> No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Member Since:</th>
+                            <td>{{ user.date_joined|date:"d M Y" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Updated:</th>
+                            <td>{{ user.updated_at|date:"d M Y H:i" }}</td>
+                        </tr>
+                        {% if user.address %}
+                            <tr>
+                                <th>Address:</th>
+                                <td>{{ user.address }}</td>
+                            </tr>
+                        {% endif %}
+                        {% if user.city %}
+                            <tr>
+                                <th>City:</th>
+                                <td>{{ user.city }}</td>
+                            </tr>
+                        {% endif %}
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Worker Specific Information -->
+    {% if is_worker and worker_profile %}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Professional Details</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Profession:</th>
+                            <td>{{ worker_profile.profession }}</td>
+                        </tr>
+                        <tr>
+                            <th>Experience:</th>
+                            <td>{{ worker_profile.experience_years }} years</td>
+                        </tr>
+                        <tr>
+                            <th>Hourly Rate:</th>
+                            <td>
+                                {% if worker_profile.hourly_rate %}
+                                    ৳ {{ worker_profile.hourly_rate }}
+                                {% else %}
+                                    Not set
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Service Area:</th>
+                            <td>{{ worker_profile.service_area|default:"Not specified" }}</td>
+                        </tr>
+                        <tr>
+                            <th>NID Number:</th>
+                            <td>{{ worker_profile.nid_number|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Languages:</th>
+                            <td>{{ worker_profile.languages|default:"Not specified" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Bio:</th>
+                            <td>{{ worker_profile.bio|default:"Not provided" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Skills:</th>
+                            <td>{{ worker_profile.skills|default:"Not provided" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Performance & Stats</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="badge bg-info">{{ worker_profile.verification_status }}</span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Training Status:</th>
+                            <td>{{ worker_profile.training_status }}</td>
+                        </tr>
+                        <tr>
+                            <th>Completed Jobs:</th>
+                            <td>{{ completed_jobs }}</td>
+                        </tr>
+                        <tr>
+                            <th>Average Rating:</th>
+                            <td>
+                                {% if avg_rating %}
+                                    ⭐ {{ avg_rating|floatformat:1 }}/5.0
+                                {% else %}
+                                    No ratings yet
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Total Earnings:</th>
+                            <td>৳ {{ worker_profile.total_earnings|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Available Earnings:</th>
+                            <td>৳ {{ worker_profile.available_earnings|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Payout Status:</th>
+                            <td>{{ worker_profile.payout_status }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Worker Categories -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Service Categories</h5>
+                </div>
+                <div class="card-body">
+                    {% if worker_profile.categories.exists %}
+                        <div class="d-flex flex-wrap gap-2">
+                            {% for category in worker_profile.categories.all %}
+                                <span class="badge bg-primary">{{ category.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p class="text-muted">No categories assigned</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Customer Specific Information -->
+    {% if is_customer %}
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Customer Activity</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Total Jobs Posted:</th>
+                            <td>{{ total_jobs }}</td>
+                        </tr>
+                        <tr>
+                            <th>Completed Jobs:</th>
+                            <td>{{ completed_jobs }}</td>
+                        </tr>
+                        <tr>
+                            <th>Average Rating Given:</th>
+                            <td>
+                                {% if avg_rating_given %}
+                                    ⭐ {{ avg_rating_given|floatformat:1 }}/5.0
+                                {% else %}
+                                    No ratings given yet
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Preferences</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Preferred Contact:</th>
+                            <td>{{ user.preferred_contact_method }}</td>
+                        </tr>
+                        <tr>
+                            <th>Notifications:</th>
+                            <td>
+                                {% if user.receive_notifications %}
+                                    <span class="badge bg-success">Enabled</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Disabled</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Action Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="d-flex gap-2">
+                {% if is_worker %}
+                    {% if user.worker_status == 'PENDING' %}
+                        <form method="post" action="{% url 'admin_user_action' user.pk %}" class="admin-action-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="approve_worker" />
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Approve Worker
+                            </button>
+                        </form>
+                        <form method="post" action="{% url 'admin_user_action' user.pk %}" class="admin-action-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reject_worker" />
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-times"></i> Reject Worker
+                            </button>
+                        </form>
+                    {% elif user.worker_status == 'APPROVED' %}
+                        <form method="post" action="{% url 'admin_user_action' user.pk %}" class="admin-action-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="block_worker" />
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-ban"></i> Block Worker
+                            </button>
+                        </form>
+                    {% elif user.worker_status == 'BLOCKED' %}
+                        <form method="post" action="{% url 'admin_user_action' user.pk %}" class="admin-action-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="unblock_worker" />
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-unlock"></i> Unblock Worker
+                            </button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+
+                {% if is_customer %}
+                    {% if user.customer_status == 'ACTIVE' %}
+                        <form method="post" action="{% url 'admin_user_action' user.pk %}" class="admin-action-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="block_customer" />
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-ban"></i> Block Customer
+                            </button>
+                        </form>
+                    {% elif user.customer_status == 'BLOCKED' %}
+                        <form method="post" action="{% url 'admin_user_action' user.pk %}" class="admin-action-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="unblock_customer" />
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-unlock"></i> Unblock Customer
+                            </button>
+                        </form>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

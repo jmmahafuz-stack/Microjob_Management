@@ -1,0 +1,43 @@
+<nav class="top-nav" aria-label="Primary navigation">
+    <div class="nav-inner">
+        <a href="{% url 'home' %}" class="brand">
+            <span class="brand-mark"><i class="fa-solid fa-handshake"></i></span>
+            <span>MJMS</span>
+        </a>
+
+        <button class="nav-toggle" type="button" data-mobile-menu aria-label="Open navigation" aria-expanded="false">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <div class="nav-menu" data-nav-menu>
+            <div class="nav-links">
+                <a href="{% url 'home' %}"><i class="fa-solid fa-house"></i> Home</a>
+                <a href="{% url 'service_list' %}"><i class="fa-solid fa-layer-group"></i> Services</a>
+                <a href="{% url 'about' %}"><i class="fa-solid fa-circle-info"></i> About</a>
+                <a href="{% url 'contact' %}"><i class="fa-solid fa-envelope"></i> Contact</a>
+
+                {% if user.is_authenticated %}
+                    {% if user.role == 'admin' %}
+                        <a class="{% if request.resolver_match.url_name == 'dashboard_home' %}nav-active{% endif %}" href="{% url 'dashboard_home' %}"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+                        <a href="{% url 'admin:index' %}"><i class="fa-solid fa-shield-halved"></i> Admin</a>
+                    {% elif user.role == 'worker' %}
+                        <a class="{% if request.resolver_match.url_name == 'worker_dashboard' %}nav-active{% endif %}" href="{% url 'worker_dashboard' %}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+                        <a class="{% if request.resolver_match.url_name == 'worker_my_jobs' or request.resolver_match.url_name == 'job_detail' or request.resolver_match.url_name == 'job_messages' %}nav-active{% endif %}" href="{% url 'worker_my_jobs' %}"><i class="fa-solid fa-briefcase"></i> My Jobs</a>
+                        <a class="{% if request.resolver_match.url_name == 'service_request_list' or request.resolver_match.url_name == 'job_application_create' %}nav-active{% endif %}" href="{% url 'service_request_list' %}"><i class="fa-solid fa-inbox"></i> Open Requests</a>
+                       <!-- <a href="{% url 'payout_request_list' %}"><i class="fa-solid fa-wallet"></i> Earnings</a> -->
+                    {% else %}
+                        <a class="{% if request.resolver_match.url_name == 'my_bookings' or request.resolver_match.url_name == 'job_detail' or request.resolver_match.url_name == 'job_messages' %}nav-active{% endif %}" href="{% url 'my_bookings' %}"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
+                        <a class="{% if request.resolver_match.url_name == 'service_request_list' or request.resolver_match.url_name == 'service_request_detail' or request.resolver_match.url_name == 'service_request_create' %}nav-active{% endif %}" href="{% url 'service_request_list' %}"><i class="fa-solid fa-list-check"></i> My Requests</a>
+                        <a class="{% if request.resolver_match.url_name == 'payment_history' or request.resolver_match.url_name == 'make_payment' %}nav-active{% endif %}" href="{% url 'payment_history' %}"><i class="fa-solid fa-credit-card"></i> Payments</a>
+                    {% endif %}
+
+                    <a href="{% url 'profile' %}"><i class="fa-solid fa-user"></i> Profile</a>
+                    <a href="{% url 'logout' %}" class="nav-danger"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}"><i class="fa-solid fa-right-to-bracket"></i> Login</a>
+                    <a href="{% url 'register' %}" class="nav-cta"><i class="fa-solid fa-user-plus"></i> Get Started</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</nav>

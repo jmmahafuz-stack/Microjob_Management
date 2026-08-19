@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#163a56">
+    <meta name="description" content="MJMS - trusted local services, bookings, workers and payments.">
+    <title>{% block title %}MJMS — Micro Job Management System{% endblock %}</title>
+
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="stylesheet" href="{% static 'css/professional.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/mjms-overrides.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% include 'navbar.html' %}
+
+    <main class="site-main">
+        {% include 'partials/messages.html' %}
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include 'footer.html' %}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const menuButton = document.querySelector("[data-mobile-menu]");
+            const menu = document.querySelector("[data-nav-menu]");
+
+            if (menuButton && menu) {
+                menuButton.addEventListener("click", function () {
+                    const open = menu.classList.toggle("is-open");
+                    menuButton.setAttribute("aria-expanded", String(open));
+                });
+            }
+
+            document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
+                button.addEventListener("click", function () {
+                    const input = document.getElementById(button.dataset.passwordToggle);
+                    if (!input) return;
+                    const visible = input.type === "text";
+                    input.type = visible ? "password" : "text";
+                    button.innerHTML = visible
+                        ? '<i class="fa-solid fa-eye"></i>'
+                        : '<i class="fa-solid fa-eye-slash"></i>';
+                    button.setAttribute("aria-label", visible ? "Show password" : "Hide password");
+                });
+            });
+        });
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Create Service — MJMS{% endblock %}
+{% block content %}
+<div class="card">
+    <div class="booking-page__header">
+        <div><p class="section-kicker">Service Management</p><h1>Create Service</h1><p>Add a service to the marketplace.</p></div>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Save Service</button>
+        <a href="{% url 'service_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
