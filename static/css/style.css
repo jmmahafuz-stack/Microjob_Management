@@ -529,6 +529,53 @@ button:hover, input[type="submit"]:hover {
     margin-bottom: 16px;
 }
 
+.filter-row--single {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 0;
+    width: 100%;
+}
+
+.filter-row--single .filter-group {
+    flex: 1 1 0;
+    min-width: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+}
+
+.filter-row--single .search-group {
+    flex: 2 1 0;
+}
+
+.filter-row--single .filter-group label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.filter-row--single .filter-submit,
+.filter-row--single .filter-reset {
+    min-height: 42px;
+    padding: 10px 12px;
+    white-space: nowrap;
+    width: 100%;
+    overflow: hidden;
+}
+
+.filter-row--single .form-select,
+.filter-row--single .search-input-wrapper,
+.filter-row--single .search-input-wrapper input {
+    width: 100%;
+    min-width: 0;
+}
+
+.filter-row--single .filter-submit i,
+.filter-row--single .filter-reset i {
+    margin-right: 4px;
+}
+
 .filter-actions {
     display: flex;
     gap: 12px;
@@ -574,6 +621,17 @@ button:hover, input[type="submit"]:hover {
 }
 
 @media (max-width: 768px) {
+    .filter-row--single {
+        flex-wrap: wrap;
+    }
+
+    .filter-row--single .filter-group,
+    .filter-row--single .search-group,
+    .filter-row--single .filter-submit,
+    .filter-row--single .filter-reset {
+        flex: 1 1 100%;
+    }
+
     .filter-row {
         grid-template-columns: 1fr;
     }

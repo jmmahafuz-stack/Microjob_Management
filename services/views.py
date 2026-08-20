@@ -146,8 +146,6 @@ def service_list(request):
         .distinct()
     )
 
-    rating_options = [5, 4, 3, 2, 1]
-
     services = list(services)
 
     # Find available workers for every service
@@ -176,8 +174,6 @@ def service_list(request):
 
             'categories': categories,
             'locations': locations,
-            'rating_options': rating_options,
-
             'search_query': search_query,
             'selected_category': category,
             'selected_location': location,
