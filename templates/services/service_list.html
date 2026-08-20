@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/service-filter-fix.css' %}">
 <div class="services-page">
 
     <div class="services-hero">
@@ -19,7 +21,7 @@
             <div class="filter-container">
                 <div class="filter-row filter-row--single">
                     <div class="filter-group search-group">
-                    <label for="search">Search Services</label>
+                    <label for="search">Search services</label>
 
                     <div class="search-input-wrapper">
                         <i class="fas fa-search"></i>
@@ -65,15 +67,17 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary filter-submit">
-                        <i class="fas fa-search"></i>
-                        Apply Filters
-                    </button>
+                    <div class="filter-actions" aria-label="Filter actions">
+                        <button type="submit" class="btn btn-primary filter-submit">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <span>Apply filters</span>
+                        </button>
 
-                    <a href="{% url 'service_list' %}" class="btn btn-outline-secondary filter-reset">
-                        <i class="fas fa-redo"></i>
-                        Reset
-                    </a>
+                        <a href="{% url 'service_list' %}" class="btn btn-outline-secondary filter-reset">
+                            <i class="fas fa-rotate-left" aria-hidden="true"></i>
+                            <span>Reset</span>
+                        </a>
+                    </div>
                 </div>
 
             </div>
