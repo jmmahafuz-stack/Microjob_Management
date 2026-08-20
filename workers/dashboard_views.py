@@ -95,8 +95,6 @@ def worker_dashboard(request):
     available_services = Service.objects.filter(is_available=True)
     if profile.service:
         available_services = available_services.filter(pk=profile.service.pk)
-    elif profile.service_category:
-        available_services = available_services.filter(category__name__icontains=profile.service_category)
     elif profile.categories.exists():
         available_services = available_services.filter(category__in=profile.categories.all())
     else:
@@ -328,7 +326,10 @@ def worker_profile_edit(request):
     
     worker = request.user
     profile = _get_or_create_worker_profile(worker)
-    services = Service.objects.filter(is_available=True)
+    services = Service.objects.filter(
+        is_available=True,
+        category__in=profile.categories.all(),
+    )
     
     if request.method == 'POST':
         # Update basic info
@@ -345,18 +346,15 @@ def worker_profile_edit(request):
         profile.languages = request.POST.get('languages', profile.languages)
         profile.hourly_rate = request.POST.get('hourly_rate', profile.hourly_rate)
         
-        # Update selected service
+        # Workers may choose a service only within their admin-assigned category.
         service_id = request.POST.get('service')
         if service_id:
             try:
-                profile.service = Service.objects.get(pk=service_id)
-                profile.service_category = profile.service.category
+                selected_service = services.get(pk=service_id)
+                profile.service = selected_service
             except Service.DoesNotExist:
-                profile.service = None
-                profile.service_category = request.POST.get('service_category', '')
-        else:
-            profile.service = None
-            profile.service_category = request.POST.get('service_category', '')
+                messages.error(request, 'That service is not available in your assigned category.')
+                return redirect('worker_profile_edit')
         
         profile.save()
         

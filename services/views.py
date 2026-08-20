@@ -63,29 +63,20 @@ def ensure_sample_services():
         )
 
 
-def _get_related_workers(service):
-    """Get workers that match the service's category."""
-    # Get workers approved in this service's category
-    category_matches = WorkerProfile.objects.filter(
+def _get_related_workers(service, limit=None):
+    """Get approved workers for a service category, ranked by cached rating."""
+    workers = WorkerProfile.objects.filter(
         user__role='worker',
         user__worker_status='APPROVED',
+        user__is_blocked=False,
         categories=service.category,
+    ).distinct().select_related('user').order_by(
+        '-average_rating_cached',
+        '-completed_jobs',
+        'user__username',
     )
 
-    # Also include workers with relevant skills
-    skill_matches = WorkerProfile.objects.filter(
-        user__role='worker',
-        user__worker_status='APPROVED',
-        skills__icontains=service.category.name,
-    )
-
-    # Combine and get unique workers
-    combined = (
-        category_matches |
-        skill_matches
-    ).distinct().select_related('user')[:4]
-
-    return combined
+    return workers[:limit] if limit else workers
 
 
 def service_list(request):
@@ -161,7 +152,7 @@ def service_list(request):
 
     # Find available workers for every service
     for service in services:
-        service.related_workers = _get_related_workers(service)
+        service.related_workers = _get_related_workers(service, limit=3)
 
     featured_services = [
         service
@@ -203,9 +194,9 @@ def service_detail(request, pk):
         pk=pk
     )
 
-    verified_workers = _get_related_workers(
-        service
-    )
+    all_workers = _get_related_workers(service)
+    show_all_workers = request.GET.get('show') == 'all'
+    verified_workers = all_workers if show_all_workers else all_workers[:3]
 
     service.related_workers = verified_workers
 
@@ -215,6 +206,8 @@ def service_detail(request, pk):
         {
             'service': service,
             'verified_workers': verified_workers,
+            'total_workers': all_workers.count(),
+            'show_all_workers': show_all_workers,
         }
     )
 

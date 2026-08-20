@@ -85,13 +85,19 @@
                             {% endif %}
                             <div class="worker-card__meta">
                                 <p class="worker-card__name">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
-                                    <p class="worker-card__detail">Profession: {{ worker_profile.profession|default:'Not specified' }}</p>
+                                <p class="worker-card__detail">Rating: {{ worker_profile.average_rating_cached|floatformat:1 }} / 5</p>
+                                <p class="worker-card__detail">Profession: {{ worker_profile.profession|default:'Not specified' }}</p>
                                 <p class="worker-card__detail">Skills: {{ worker_profile.skills }}</p>
                                 <p class="worker-card__detail">Exp: {{ worker_profile.experience_years|default:0 }} years</p>
                             </div>
                         </a>
                     {% endfor %}
                 </div>
+                {% if not show_all_workers and total_workers > 3 %}
+                    <a href="?show=all" class="btn btn-outline-secondary">More workers ({{ total_workers|add:'-3' }} more)</a>
+                {% elif show_all_workers and total_workers > 3 %}
+                    <a href="{{ request.path }}" class="btn btn-outline-secondary">Show top 3 workers</a>
+                {% endif %}
             </div>
         {% endif %}
 

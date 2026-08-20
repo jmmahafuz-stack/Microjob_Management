@@ -1,11 +1,35 @@
 from django.contrib import admin
+from django import forms
 from django.utils.html import format_html
 
+from services.models import Category
 from .models import WorkerProfile
+
+
+class WorkerProfileAdminForm(forms.ModelForm):
+    class Meta:
+        model = WorkerProfile
+        fields = '__all__'
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        active_categories = Category.objects.filter(is_active=True)
+        assigned_categories = (
+            Category.objects.filter(workers=self.instance)
+            if self.instance.pk else Category.objects.none()
+        )
+        self.fields['categories'].queryset = (active_categories | assigned_categories).distinct()
+
+    def clean_categories(self):
+        categories = self.cleaned_data['categories']
+        if categories.count() != 1:
+            raise forms.ValidationError('Assign exactly one category to each worker.')
+        return categories
 
 
 @admin.register(WorkerProfile)
 class WorkerProfileAdmin(admin.ModelAdmin):
+    form = WorkerProfileAdminForm
     
     def worker_approval_status(self, obj):
         """Display worker approval status from CustomUser"""
