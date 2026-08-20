@@ -1,6 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/service-filter-fix.css' %}">
 <div class="services-page">
 
     <div class="services-hero">
@@ -10,16 +12,16 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container services-search-container">
         <form method="get" class="services-filter-section">
             <div class="filter-header">
                 <h3><i class="fas fa-sliders-h"></i> Filter & Search</h3>
             </div>
 
             <div class="filter-container">
-
-                <div class="filter-group search-group">
-                    <label for="search">Search Services</label>
+                <div class="filter-row filter-row--single">
+                    <div class="filter-group search-group">
+                    <label for="search">Search services</label>
 
                     <div class="search-input-wrapper">
                         <i class="fas fa-search"></i>
@@ -31,9 +33,7 @@
                             value="{{ search_query }}"
                         >
                     </div>
-                </div>
-
-                <div class="filter-row">
+                    </div>
 
                     <div class="filter-group">
                         <label for="category">Category</label>
@@ -67,65 +67,17 @@
                         </select>
                     </div>
 
-                    <div class="filter-group">
-                        <label for="min_rating">Minimum Rating</label>
-                        <select id="min_rating" name="min_rating" class="form-select">
-                            <option value="">Any rating</option>
+                    <div class="filter-actions" aria-label="Filter actions">
+                        <button type="submit" class="btn btn-primary filter-submit">
+                            <i class="fas fa-search" aria-hidden="true"></i>
+                            <span>Apply filters</span>
+                        </button>
 
-                            {% for rating in rating_options %}
-                                <option
-                                    value="{{ rating }}"
-                                    {% if min_rating == rating|stringformat:'s' %}selected{% endif %}
-                                >
-                                    {{ rating }}+ stars
-                                </option>
-                            {% endfor %}
-                        </select>
+                        <a href="{% url 'service_list' %}" class="btn btn-outline-secondary filter-reset">
+                            <i class="fas fa-rotate-left" aria-hidden="true"></i>
+                            <span>Reset</span>
+                        </a>
                     </div>
-
-                </div>
-
-                <div class="filter-row">
-
-                    <div class="filter-group">
-                        <label for="sort">Sort By</label>
-
-                        <select id="sort" name="sort" class="form-select">
-                            <option value="">Recommended</option>
-
-                            <option
-                                value="rating_desc"
-                                {% if sort == 'rating_desc' %}selected{% endif %}
-                            >
-                                Highest Rated
-                            </option>
-
-                            <option
-                                value="popular"
-                                {% if sort == 'popular' %}selected{% endif %}
-                            >
-                                Most Popular
-                            </option>
-                        </select>
-                    </div>
-
-                </div>
-
-                <div class="filter-actions">
-
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-search"></i>
-                        Apply Filters
-                    </button>
-
-                    <a
-                        href="{% url 'service_list' %}"
-                        class="btn btn-outline-secondary"
-                    >
-                        <i class="fas fa-redo"></i>
-                        Reset
-                    </a>
-
                 </div>
 
             </div>

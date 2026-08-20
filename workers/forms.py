@@ -5,19 +5,12 @@ from .models import WorkerProfile
 
 
 class WorkerProfileForm(forms.ModelForm):
-    """Form for workers to update their profile"""
+    """Form for workers to update profile details without changing category."""
     
     service = forms.ModelChoiceField(
         queryset=Service.objects.none(),
         required=False,
         label='Service offered'
-    )
-    categories = forms.ModelMultipleChoiceField(
-        queryset=Category.objects.none(),
-        required=True,
-        widget=forms.CheckboxSelectMultiple,
-        label='Categories you work in (Select at least one)',
-        help_text='Select all the categories/professions you can work with'
     )
     bio = forms.CharField(
         required=False,
@@ -34,9 +27,7 @@ class WorkerProfileForm(forms.ModelForm):
         model = WorkerProfile
         fields = [
             'profession',
-            'categories',
             'service',
-            'service_category',
             'skills',
             'experience_years',
             'service_area',
@@ -59,19 +50,16 @@ class WorkerProfileForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Set querysets dynamically to get latest data
-        self.fields['service'].queryset = Service.objects.all()
-        self.fields['categories'].queryset = Category.objects.filter(is_active=True)
+        profile = self.instance
+        self.fields['service'].queryset = Service.objects.filter(
+            category__in=profile.categories.all()
+        ) if profile.pk else Service.objects.none()
     
     def clean(self):
         cleaned_data = super().clean()
         profession = cleaned_data.get('profession')
-        categories = cleaned_data.get('categories')
-        
         if not profession or not profession.strip():
             raise forms.ValidationError('Profession is required.')
-        
-        if not categories:
-            raise forms.ValidationError('Please select at least one category.')
         
         return cleaned_data
 
@@ -129,3 +117,9 @@ class WorkerVerificationForm(forms.ModelForm):
         # Set querysets dynamically to get latest data
         self.fields['service'].queryset = Service.objects.all()
         self.fields['categories'].queryset = Category.objects.filter(is_active=True)
+
+    def clean_categories(self):
+        categories = self.cleaned_data['categories']
+        if categories.count() != 1:
+            raise forms.ValidationError('Assign exactly one category to each worker.')
+        return categories

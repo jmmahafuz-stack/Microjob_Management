@@ -117,6 +117,13 @@ class RegisterForm(UserCreationForm):
 
         return 0
 
+    def clean(self):
+        cleaned_data = super().clean()
+        role = cleaned_data.get('role')
+        if role == 'worker' and not cleaned_data.get('worker_categories'):
+            self.add_error('worker_categories', 'Please select your main work category.')
+        return cleaned_data
+
     def save(self, commit=True):
         user = super().save(commit=False)
         selected_role = self.cleaned_data.get('role') or 'customer'

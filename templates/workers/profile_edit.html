@@ -48,13 +48,7 @@
                         <option value="{{ service.pk }}" {% if profile.service.pk == service.pk %}selected{% endif %}>{{ service.name }} ({{ service.category }})</option>
                     {% endfor %}
                 </select>
-                <small style="color: #64748b; display: block; margin-top: 4px;">Choose the primary service you offer</small>
-            </div>
-
-            <div style="margin-bottom: 16px;">
-                <label for="service_category" style="display: block; margin-bottom: 4px; font-weight: 500;">Service Category (if not selected above)</label>
-                <input type="text" id="service_category" name="service_category" value="{{ profile.service_category }}" placeholder="e.g., Cleaning, Repair, etc." style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 6px;">
-                <small style="color: #64748b; display: block; margin-top: 4px;">Describe the type of work you do</small>
+                <small style="color: #64748b; display: block; margin-top: 4px;">Your category is assigned by admin. Contact admin if you need to change it.</small>
             </div>
 
             <div style="margin-bottom: 16px;">

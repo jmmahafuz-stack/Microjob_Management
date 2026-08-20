@@ -4,14 +4,60 @@ from decimal import Decimal
 from django.test import TestCase
 from django.urls import reverse
 
+from accounts.forms import RegisterForm
 from accounts.models import CustomUser
 from bookings.models import Job, JobApplication, ServiceRequest
+from .admin import WorkerProfileAdminForm
+from .forms import WorkerProfileForm
 from services.models import Service
 from workers.models import WorkerProfile
 from services.models import Category
 
 
 class WorkerRegistrationTests(TestCase):
+    def test_worker_profile_form_does_not_allow_category_changes(self):
+        category = Category.objects.create(name='Electrical', is_active=True)
+        user = CustomUser.objects.create_user(
+            username='fixedcategoryworker',
+            email='fixedcategory@example.com',
+            password='StrongPassword123',
+            role='worker',
+        )
+        profile = WorkerProfile.objects.create(user=user, profession='Electrician')
+        profile.categories.add(category)
+
+        form = WorkerProfileForm(instance=profile)
+
+        self.assertNotIn('categories', form.fields)
+        self.assertNotIn('service_category', form.fields)
+
+    def test_admin_requires_exactly_one_worker_category(self):
+        first = Category.objects.create(name='Electrical', is_active=True)
+        second = Category.objects.create(name='Plumbing', is_active=True)
+        user = CustomUser.objects.create_user(
+            username='admincategoryworker',
+            email='admincategory@example.com',
+            password='StrongPassword123',
+            role='worker',
+        )
+        profile = WorkerProfile.objects.create(user=user, profession='Technician')
+
+        form = WorkerProfileAdminForm(instance=profile, data={
+            'user': user.pk,
+            'profession': 'Technician',
+            'categories': [first.pk, second.pk],
+            'experience_years': 0,
+            'response_time': 'Within 24 hours',
+            'default_preferred_contact': 'Email',
+            'payout_status': 'Pending',
+            'training_status': 'Pending',
+            'verification_status': 'Pending',
+            'payout_method': 'Bank Account',
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('categories', form.errors)
+
     def test_public_worker_profile_shows_profession_and_categories(self):
         category = Category.objects.create(name='Electrical', is_active=True)
         user = CustomUser.objects.create_user(
@@ -34,6 +80,7 @@ class WorkerRegistrationTests(TestCase):
         self.assertContains(response, 'Electrical')
 
     def test_worker_registration_creates_pending_profile(self):
+        category = Category.objects.create(name='Cleaning', is_active=True)
         response = self.client.post(
             reverse('register'),
             {
@@ -44,6 +91,7 @@ class WorkerRegistrationTests(TestCase):
                 'phone': '01700000000',
                 'address': 'Dhaka',
                 'role': 'worker',
+                'worker_categories': category.pk,
                 'password1': 'StrongPassword123',
                 'password2': 'StrongPassword123',
             },
@@ -55,6 +103,20 @@ class WorkerRegistrationTests(TestCase):
         profile = WorkerProfile.objects.get(user=user)
         self.assertEqual(profile.verification_status, 'Pending')
         self.assertEqual(profile.training_status, 'Pending')
+        self.assertEqual(list(profile.categories.values_list('name', flat=True)), ['Cleaning'])
+
+    def test_worker_registration_rejects_unknown_category(self):
+        form = RegisterForm(data={
+            'username': 'unknowncategoryworker',
+            'email': 'unknowncategory@example.com',
+            'role': 'worker',
+            'worker_categories': 999999,
+            'password1': 'StrongPassword123',
+            'password2': 'StrongPassword123',
+        })
+
+        self.assertFalse(form.is_valid())
+        self.assertIn('worker_categories', form.errors)
 
     def test_worker_registration_can_link_a_service(self):
         service = Service.objects.create(
