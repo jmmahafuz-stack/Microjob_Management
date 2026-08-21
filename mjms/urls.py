@@ -19,12 +19,17 @@ from django.urls import path,include
 from django.conf import settings
 from django.conf.urls.static import static
 from accounts import views as accounts_views
+from django.urls import path
+from . import views
 
 urlpatterns=[
 
     path('admin/',admin.site.urls),
 
-    path('',include('core.urls')),
+    path('',views.home,name='home'),
+    path('about/',views.about,name='about'),
+    path('contact/',views.contact,name='contact'),
+    
     path('login/', accounts_views.login_view, name='login'),
     path('logout/', accounts_views.logout_view, name='logout'),
     path('register/', accounts_views.register_view, name='register'),
