@@ -27,7 +27,6 @@
                        <!-- <a href="{% url 'payout_request_list' %}"><i class="fa-solid fa-wallet"></i> Earnings</a> -->
                     {% else %}
                         <a class="{% if request.resolver_match.url_name == 'my_bookings' or request.resolver_match.url_name == 'job_detail' or request.resolver_match.url_name == 'job_messages' %}nav-active{% endif %}" href="{% url 'my_bookings' %}"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
-                        <a class="{% if request.resolver_match.url_name == 'service_request_list' or request.resolver_match.url_name == 'service_request_detail' or request.resolver_match.url_name == 'service_request_create' %}nav-active{% endif %}" href="{% url 'service_request_list' %}"><i class="fa-solid fa-list-check"></i> My Requests</a>
                         <a class="{% if request.resolver_match.url_name == 'payment_history' or request.resolver_match.url_name == 'make_payment' %}nav-active{% endif %}" href="{% url 'payment_history' %}"><i class="fa-solid fa-credit-card"></i> Payments</a>
                     {% endif %}
 
@@ -41,3 +40,4 @@
         </div>
     </div>
 </nav>
+

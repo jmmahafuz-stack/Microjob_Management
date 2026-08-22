@@ -66,11 +66,11 @@
             <i class="fas fa-search filter-icon"></i>
         </div>
         <div class="filter-tags">
-            <button class="filter-tag active" data-filter="all">All Requests</button>
-            <button class="filter-tag" data-filter="open">Open</button>
-            <button class="filter-tag" data-filter="assigned">Assigned</button>
-            <button class="filter-tag" data-filter="in-progress">In Progress</button>
-            <button class="filter-tag" data-filter="completed">Completed</button>
+            <button class="filter-tag filter-tag--all active" data-filter="all">All Requests</button>
+            <button class="filter-tag filter-tag--open" data-filter="open">Open</button>
+            <button class="filter-tag filter-tag--assigned" data-filter="assigned">Assigned</button>
+            <button class="filter-tag filter-tag--in-progress" data-filter="in-progress">In Progress</button>
+            <button class="filter-tag filter-tag--completed" data-filter="completed">Completed</button>
         </div>
     </div>
     {% endif %}
@@ -358,6 +358,12 @@
     color: white;
     border-color: #2563eb;
 }
+
+.filter-tag--all:hover, .filter-tag--all.active { border-color: #334155; color: #fff; background: #334155; }
+.filter-tag--open:hover, .filter-tag--open.active { border-color: #0891b2; color: #fff; background: #0891b2; }
+.filter-tag--assigned:hover, .filter-tag--assigned.active { border-color: #2563eb; color: #fff; background: #2563eb; }
+.filter-tag--in-progress:hover, .filter-tag--in-progress.active { border-color: #d97706; color: #fff; background: #d97706; }
+.filter-tag--completed:hover, .filter-tag--completed.active { border-color: #16a34a; color: #fff; background: #16a34a; }
 
 .request-list {
     display: grid;

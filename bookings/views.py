@@ -75,12 +75,34 @@ def my_bookings(request):
         job=OuterRef('pk'),
         payment_status='Verified',
     )
+    unread_worker_message = Notification.objects.filter(
+        job=OuterRef('pk'),
+        user=request.user,
+        related_user=OuterRef('worker'),
+        notification_type='JOB_MESSAGE',
+        is_read=False,
+    )
     accepted_jobs = Job.objects.filter(
         customer=request.user,
         status__in=['CONFIRMED', 'IN_PROGRESS', 'COMPLETED'],
     ).annotate(
-        payment_completed=Exists(verified_payment)
+        payment_completed=Exists(verified_payment),
+        has_unread_worker_message=Exists(unread_worker_message),
     ).select_related('worker', 'service_request').order_by('-created_at')
+    all_service_requests = ServiceRequest.objects.filter(customer=request.user)
+    service_requests = all_service_requests.filter(
+        status__in=['OPEN', 'REVIEWING'],
+    ).select_related('service').prefetch_related('job_applications').order_by('-created_at')
+    total_booked = bookings.count() + all_service_requests.count()
+    accepted_count = accepted_jobs.count()
+    in_progress_count = accepted_jobs.filter(status='IN_PROGRESS').count()
+    completed_count = accepted_jobs.filter(status='COMPLETED').count()
+    unread_worker_messages = Notification.objects.filter(
+        user=request.user,
+        notification_type='JOB_MESSAGE',
+        is_read=False,
+        job__isnull=False,
+    ).select_related('job').order_by('-created_at')
     
     return render(
         request,
@@ -88,6 +110,12 @@ def my_bookings(request):
         {
             'bookings': bookings,
             'accepted_jobs': accepted_jobs,
+            'service_requests': service_requests,
+            'total_booked': total_booked,
+            'accepted_count': accepted_count,
+            'in_progress_count': in_progress_count,
+            'completed_count': completed_count,
+            'unread_worker_messages': unread_worker_messages,
         }
     )
 
@@ -100,8 +128,16 @@ def my_jobs(request):
         job=OuterRef('pk'),
         payment_status='Verified',
     )
+    unread_worker_message = Notification.objects.filter(
+        job=OuterRef('pk'),
+        user=request.user,
+        related_user=OuterRef('worker'),
+        notification_type='JOB_MESSAGE',
+        is_read=False,
+    )
     job_queryset = Job.objects.annotate(
-        payment_completed=Exists(verified_payment)
+        payment_completed=Exists(verified_payment),
+        has_unread_worker_message=Exists(unread_worker_message),
     ).select_related('worker', 'service_request').order_by('-created_at')
     confirmed_jobs = job_queryset.filter(customer=request.user, status='CONFIRMED')
     active_jobs = job_queryset.filter(customer=request.user, status='IN_PROGRESS')
@@ -464,9 +500,8 @@ def invoice(request, pk):
 @customer_required
 def service_request_create(request, service_id=None):
     """Customer creates a new service request"""
-    service = None
-    if service_id:
-        service = get_object_or_404(Service, pk=service_id)
+    selected_service_id = service_id or request.GET.get('service') or request.POST.get('service')
+    service = get_object_or_404(Service, pk=selected_service_id) if selected_service_id else None
     
     if request.method == 'POST':
         form = ServiceRequestCreateForm(request.POST, service=service)
@@ -480,12 +515,6 @@ def service_request_create(request, service_id=None):
             return redirect('service_request_detail', pk=service_request.pk)
     else:
         initial = {'service': service} if service else {}
-        requested_service_id = request.GET.get('service')
-        if requested_service_id and not service:
-            try:
-                initial['service'] = Service.objects.get(pk=requested_service_id)
-            except (Service.DoesNotExist, ValueError):
-                pass
         form = ServiceRequestCreateForm(service=service, initial=initial)
     
     context = {
@@ -747,9 +776,24 @@ def job_detail(request, pk):
         job=job,
         payment_status='Verified',
     ).exists()
+    unread_message_notifications = Notification.objects.filter(
+        user=request.user,
+        job=job,
+        notification_type='JOB_MESSAGE',
+        is_read=False,
+    ).count()
+    payment = Payment.objects.filter(job=job).first()
+    price_agreed = BookingMessage.objects.filter(
+        job=job,
+        sender=request.user,
+        message__startswith='I agree to the service price of',
+    ).exists()
     context = {
         'job': job,
         'payment_completed': payment_completed,
+        'payment': payment,
+        'price_agreed': price_agreed,
+        'unread_message_notifications': unread_message_notifications,
     }
     return render(request, 'bookings/job_detail.html', context)
 
@@ -762,6 +806,10 @@ def job_complete(request, pk):
     
     if job.worker != request.user:
         messages.error(request, 'Only the assigned worker can mark this job as completed.')
+        return redirect('job_detail', pk=job.pk)
+
+    if job.status != 'IN_PROGRESS':
+        messages.error(request, 'A job must be in progress before it can be completed.')
         return redirect('job_detail', pk=job.pk)
     
     if request.method == 'POST':
@@ -848,15 +896,22 @@ def worker_my_jobs(request):
         status='ACCEPTED'
     ).select_related('service_request', 'service_request__customer').order_by('-created_at')
 
+    unread_customer_message = Notification.objects.filter(
+        job=OuterRef('pk'),
+        user=request.user,
+        related_user=OuterRef('customer'),
+        notification_type='JOB_MESSAGE',
+        is_read=False,
+    )
     confirmed_jobs = Job.objects.filter(
         worker=request.user,
         status='CONFIRMED'
-    ).select_related('customer', 'service_request').order_by('-created_at')
+    ).annotate(has_unread_customer_message=Exists(unread_customer_message)).select_related('customer', 'service_request').order_by('-created_at')
 
     active_jobs = Job.objects.filter(
         worker=request.user,
         status='IN_PROGRESS'
-    ).select_related('customer', 'service_request').order_by('-created_at')
+    ).annotate(has_unread_customer_message=Exists(unread_customer_message)).select_related('customer', 'service_request').order_by('-created_at')
 
     completed_jobs = Job.objects.filter(
         worker=request.user,
@@ -897,6 +952,8 @@ def job_accept(request, pk):
     job.status = 'IN_PROGRESS'
     job.actual_start_time = django.utils.timezone.now()
     job.save(update_fields=['status', 'actual_start_time', 'updated_at'])
+    job.service_request.status = 'IN_PROGRESS'
+    job.service_request.save(update_fields=['status', 'updated_at'])
 
     Notification.create_notification(
         user=job.customer,
@@ -925,11 +982,18 @@ def worker_available_jobs(request):
         return redirect('home')
     
     # Get all jobs assigned to this worker
+    unread_customer_message = Notification.objects.filter(
+        job=OuterRef('pk'),
+        user=request.user,
+        related_user=OuterRef('customer'),
+        notification_type='JOB_MESSAGE',
+        is_read=False,
+    )
     available_jobs = Job.objects.filter(
         worker=request.user
     ).select_related(
         'customer', 'service_request'
-    ).order_by('-created_at')
+    ).annotate(has_unread_customer_message=Exists(unread_customer_message)).order_by('-created_at')
     
     # Get all bookings assigned to this worker (Pending/Assigned status)
     assigned_bookings = Booking.objects.filter(
@@ -968,22 +1032,58 @@ def job_messages(request, pk):
         job=job,
         payment_status='Verified',
     ).exists()
+    Notification.objects.filter(
+        user=request.user,
+        job=job,
+        notification_type='JOB_MESSAGE',
+        is_read=False,
+    ).update(is_read=True)
     if payment_completed:
         messages.info(request, 'Messaging is closed because payment has been completed for this service.')
         return redirect('job_detail', pk=job.pk)
+
+    if request.method == 'POST' and 'agree_price' in request.POST:
+        if request.user != job.customer:
+            messages.error(request, 'Only the customer can agree to the job price.')
+            return redirect('job_messages', pk=job.pk)
+        if job.status in ['COMPLETED', 'CANCELLED']:
+            messages.error(request, 'The price cannot be agreed after this job is closed.')
+            return redirect('job_messages', pk=job.pk)
+
+        BookingMessage.objects.create(
+            job=job,
+            sender=request.user,
+            message=f'I agree to the service price of ৳{job.final_price}.',
+        )
+        Notification.create_notification(
+            user=job.worker,
+            title=f'Price agreed for Job #{job.pk}',
+            message=f'{request.user.username} agreed to the service price of ৳{job.final_price}.',
+            notification_type='JOB_MESSAGE',
+            job=job,
+            related_user=request.user,
+        )
+        messages.success(request, 'You agreed to the current service price.')
+        return redirect('job_messages', pk=job.pk)
     
     # Get all messages for this job
     job_messages = BookingMessage.objects.filter(job=job).order_by('created_at')
+    price_agreed = job_messages.filter(
+        sender=request.user,
+        message__startswith='I agree to the service price of',
+    ).exists()
     
     if request.method == 'POST':
         message_text = request.POST.get('message', '').strip()
+        attachment = request.FILES.get('attachment')
         
-        if message_text:
+        if message_text or attachment:
             # Create a new message associated with the job
             booking_message = BookingMessage.objects.create(
                 job=job,
                 sender=request.user,
                 message=message_text,
+                attachment=attachment,
             )
             
             # Create a notification for the other party
@@ -991,7 +1091,11 @@ def job_messages(request, pk):
             Notification.create_notification(
                 user=recipient,
                 title=f"New message in job: {job.title}",
-                message=f"{request.user.username}: {message_text[:50]}...",
+                message=(
+                    f"{request.user.username}: {message_text[:50]}..."
+                    if message_text else
+                    f"{request.user.username} sent an attachment."
+                ),
                 notification_type='JOB_MESSAGE',
                 job=job,
                 related_user=request.user,
@@ -1004,6 +1108,7 @@ def job_messages(request, pk):
         'job': job,
         'messages': job_messages,
         'payment_completed': payment_completed,
+        'price_agreed': price_agreed,
     }
     return render(request, 'bookings/job_messages.html', context)
 

@@ -5,7 +5,7 @@ Worker Dashboard Views for earnings, transactions, and payouts management.
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.db.models import Sum, Count, Avg, Q
+from django.db.models import Sum, Count, Avg, Q, Exists, OuterRef
 from django.utils import timezone
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -14,11 +14,13 @@ from datetime import timedelta, datetime
 from decimal import Decimal
 
 from accounts.models import CustomUser
+from accounts.decorators import worker_panel_required
 from workers.models import WorkerProfile
 from payments.models import Payment, PayoutRequest
 from bookings.models import Job
 from reviews.models import Review
 from services.models import Service
+from notifications.models import Notification
 
 
 def _get_or_create_worker_profile(user):
@@ -45,8 +47,7 @@ def worker_required(view_func):
     return wrapper
 
 
-@login_required
-@worker_required
+@worker_panel_required
 def worker_dashboard(request):
     """Main worker dashboard with earnings overview."""
     
@@ -61,7 +62,16 @@ def worker_dashboard(request):
     )
     
     # Recent jobs / Active jobs
-    active_jobs = Job.objects.filter(worker=worker).exclude(status='CANCELLED').order_by('-created_at')[:5]
+    unread_customer_message = Notification.objects.filter(
+        job=OuterRef('pk'),
+        user=worker,
+        related_user=OuterRef('customer'),
+        notification_type='JOB_MESSAGE',
+        is_read=False,
+    )
+    active_jobs = Job.objects.filter(worker=worker).exclude(status='CANCELLED').annotate(
+        has_unread_customer_message=Exists(unread_customer_message),
+    ).order_by('-created_at')[:5]
     
     # Recent payments from real customer confirmations (show the service and actual customer-paid amount)
     recent_payments = Payment.objects.filter(
@@ -344,7 +354,6 @@ def worker_profile_edit(request):
         profile.experience_years = int(request.POST.get('experience_years', profile.experience_years))
         profile.service_area = request.POST.get('service_area', profile.service_area)
         profile.languages = request.POST.get('languages', profile.languages)
-        profile.hourly_rate = request.POST.get('hourly_rate', profile.hourly_rate)
         
         # Workers may choose a service only within their admin-assigned category.
         service_id = request.POST.get('service')

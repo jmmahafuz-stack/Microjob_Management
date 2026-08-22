@@ -23,7 +23,7 @@ def _redirect_for_role(request):
 
 
 def register_view(request):
-    """Create a customer or worker account and send the user to login."""
+    """Create an account and send the user to the login page."""
     if request.user.is_authenticated:
         return _redirect_for_role(request)
 
@@ -32,10 +32,7 @@ def register_view(request):
     if request.method == "POST" and form.is_valid():
         user = form.save()
         role_label = user.get_role_display()
-        
-        # Auto-login the user and redirect based on role
-        login(request, user)
-        
+
         if user.role == 'worker':
             messages.warning(
                 request,
@@ -43,13 +40,13 @@ def register_view(request):
                 "You can browse the platform, but you won't appear in service listings until approved. "
                 "Once approved, you'll be able to see and accept service requests."
             )
-            return redirect("worker_dashboard")
         else:
             messages.success(
                 request,
                 f"{role_label} account created successfully. Welcome!",
             )
-            return redirect("home")
+
+        return redirect("login")
 
     return render(request, "accounts/register.html", {"form": form})
 

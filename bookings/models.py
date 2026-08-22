@@ -90,6 +90,12 @@ class BookingMessage(models.Model):
         related_name='booking_messages'
     )
     message = models.TextField()
+    attachment = models.FileField(
+        upload_to='message_attachments/',
+        blank=True,
+        null=True,
+        help_text='Optional photo or document'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -189,6 +195,12 @@ class ServiceRequest(models.Model):
     )
     title = models.CharField(max_length=200, help_text="Brief title of the service needed")
     description = models.TextField()
+    problem_photo = models.ImageField(
+        upload_to='service_request_photos/',
+        blank=True,
+        null=True,
+        help_text='Optional photo showing the problem'
+    )
     location = models.CharField(max_length=255)
     address = models.TextField()
     

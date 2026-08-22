@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from accounts.decorators import admin_required, worker_required
+from accounts.decorators import admin_required, worker_panel_required, worker_required
 from bookings.models import Booking, Job
 from payments.models import Payment
 from reviews.models import Review
@@ -64,7 +64,7 @@ def _get_worker_earnings_data(user, period='monthly'):
     }
 
 
-@worker_required
+@worker_panel_required
 def worker_dashboard(request):
 
     # Show message if worker is pending approval

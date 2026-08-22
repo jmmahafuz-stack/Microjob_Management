@@ -25,13 +25,67 @@
             <p class="dashboard-number">{{ worker_profile.average_rating|floatformat:1 }} / 5</p>
             <p style="margin: 0;"><small>⭐ Highly rated</small></p>
         </div>
-        <div class="dashboard-card">
-            <h3>Hourly Rate</h3>
-            <p class="dashboard-number">৳{{ worker_profile.hourly_rate|default:'0.00' }}</p>
-            <p style="margin: 0;"><small>Your standard rate</small></p>
-        </div>
     </div>
 </div>
+
+<div class="card">
+    <div class="booking-page__header">
+        <div>
+            <p class="section-kicker">Job Workflow</p>
+            <h2>Assigned Services</h2>
+        </div>
+        <a href="{% url 'worker_my_jobs' %}" class="btn btn-outline-primary">View All Jobs</a>
+    </div>
+
+    {% if active_jobs %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in active_jobs %}
+                        <tr>
+                            <td>{{ job.title }}</td>
+                            <td>{{ job.customer.get_full_name|default:job.customer.username }}</td>
+                            <td>{{ job.get_status_display }}</td>
+                            <td>
+                                {% if job.payment and job.payment.payment_status == 'Verified' %}
+                                    Paid by customer
+                                {% else %}
+                                    Awaiting payment
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if job.status == 'CONFIRMED' %}
+                                    <a href="{% url 'job_accept' job.pk %}" class="btn btn-sm btn-success">Start Work</a>
+                                {% elif job.status == 'IN_PROGRESS' %}
+                                    <a href="{% url 'job_complete' job.pk %}" class="btn btn-sm btn-success">Mark Complete</a>
+                                {% elif job.status == 'COMPLETED' %}
+                                    <span class="text-muted">Waiting for payment</span>
+                                {% endif %}
+                                <a href="{% url 'job_messages' job.pk %}" class="btn btn-sm btn-outline-primary">Message Customer{% if job.has_unread_customer_message %}<i class="fas fa-bell message-unread-bell" title="New message"></i>{% endif %}</a>
+                                <a href="{% url 'job_detail' job.pk %}" class="btn btn-sm btn-outline-primary">Details</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="empty-state">No assigned services yet.</p>
+    {% endif %}
+</div>
+
+<style>
+    .message-unread-bell { margin-left: 7px; color: #facc15; filter: drop-shadow(0 0 2px rgba(120, 53, 15, .45)); }
+</style>
 
 <!-- Earnings & Payout Section -->
 <div class="card" style="border-left: 4px solid #0c63e4;">

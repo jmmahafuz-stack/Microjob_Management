@@ -35,6 +35,23 @@ def worker_required(view_func):
     return _wrapped_view
 
 
+def worker_panel_required(view_func):
+    """Allow workers to view their panel before approval, but not blocked users."""
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            messages.error(request, 'Please login to continue.')
+            return redirect('login')
+        if request.user.role != 'worker':
+            messages.error(request, 'Only workers can access this page.')
+            return redirect('home')
+        if getattr(request.user, 'is_blocked', False):
+            messages.error(request, 'Your worker account is blocked. Please contact support.')
+            return redirect('home')
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
 def admin_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):

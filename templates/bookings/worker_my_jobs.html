@@ -4,6 +4,9 @@
 {% block title %}My Jobs - Worker{% endblock %}
 
 {% block content %}
+<style>
+    .message-unread-bell { margin-left: 7px; color: #facc15; filter: drop-shadow(0 0 2px rgba(120, 53, 15, .45)); }
+</style>
 <div class="container" style="padding: 2rem 1rem;">
     <h1 style="margin-bottom: 2rem; color: var(--primary, #0f172a);">My Jobs</h1>
 
@@ -45,7 +48,7 @@
                 <p style="margin: 0.5rem 0; color: #666;"><strong>Service:</strong> {{ job.service_request.title }}</p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
                     <a href="{% url 'job_detail' job.pk %}" style="padding: 0.75rem 1rem; background: #4f46e5; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">View Details</a>
-                    <a href="{% url 'job_messages' job.pk %}" style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Message Customer</a>
+                    <a href="{% url 'job_messages' job.pk %}" style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Message Customer{% if job.has_unread_customer_message %}<i class="fas fa-bell message-unread-bell" title="New message"></i>{% endif %}</a>
                     <a href="{% url 'job_accept' job.pk %}" style="padding: 0.75rem 1rem; background: #059669; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Start Work</a>
                 </div>
             </div>
@@ -76,7 +79,7 @@
                 <p style="margin: 0.5rem 0; color: #666;"><strong>Service:</strong> {{ job.service_request.title }}</p>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
                     <a href="{% url 'job_detail' job.pk %}" style="padding: 0.75rem 1rem; background: #4f46e5; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">View Details</a>
-                    <a href="{% url 'job_messages' job.pk %}" style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Message Customer</a>
+                    <a href="{% url 'job_messages' job.pk %}" style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Message Customer{% if job.has_unread_customer_message %}<i class="fas fa-bell message-unread-bell" title="New message"></i>{% endif %}</a>
                     <a href="{% url 'job_complete' job.pk %}" style="padding: 0.75rem 1rem; background: #059669; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Service Done</a>
                 </div>
             </div>

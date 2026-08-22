@@ -110,7 +110,6 @@ class WorkerProfileAdmin(admin.ModelAdmin):
                 'experience_years',
                 'service_area',
                 'languages',
-                'hourly_rate'
             )
         }),
         ('Documents & Verification', {

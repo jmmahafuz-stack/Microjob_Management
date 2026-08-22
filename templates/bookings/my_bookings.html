@@ -11,36 +11,43 @@
                 <p class="header-subtitle">Track and manage all your service requests and bookings</p>
             </div>
             <div class="header-buttons">
-                <a href="{% url 'create_booking' %}" class="btn btn-primary">
+                <a href="{% url 'service_list' %}" class="btn btn-primary">
                     <i class="fas fa-plus"></i> New Booking
-                </a>
-                <a href="{% url 'service_request_list' %}" class="btn btn-secondary">
-                    <i class="fas fa-file-alt"></i> New Request
                 </a>
             </div>
         </div>
 
-        {% if bookings %}
+        {% if bookings or accepted_jobs %}
         <!-- Stats Row -->
-        <div class="booking-stats-grid">
-            {% with pending_count=bookings|dictsort:"status"|length %}
-                <div class="stat-box">
-                    <div class="stat-box__icon" style="background: #fef3c7; color: #d97706;">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div>
-                        <p class="stat-box__label">Pending</p>
-                        <p class="stat-box__value">{{ bookings|dictsort:"status" }}</p>
-                    </div>
+        <div class="booking-stats-grid" id="booking-summary">
+            <div class="stat-box">
+                <div class="stat-box__icon" style="background: #e0e7ff; color: #4f46e5;">
+                    <i class="fas fa-calendar-check"></i>
                 </div>
-            {% endwith %}
+                <div>
+                    <p class="stat-box__label">Total Services Booked</p>
+                    <p class="stat-box__value">{{ total_booked }}</p>
+                    <a href="#all-bookings">View</a>
+                </div>
+            </div>
             <div class="stat-box">
                 <div class="stat-box__icon" style="background: #dbeafe; color: #2563eb;">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div>
+                    <p class="stat-box__label">Accepted by Worker</p>
+                    <p class="stat-box__value">{{ accepted_count }}</p>
+                    <a href="#accepted-services">View</a>
+                </div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-box__icon" style="background: #fef3c7; color: #d97706;">
                     <i class="fas fa-hourglass-half"></i>
                 </div>
                 <div>
                     <p class="stat-box__label">In Progress</p>
-                    <p class="stat-box__value">{{ bookings|length }}</p>
+                    <p class="stat-box__value">{{ in_progress_count }}</p>
+                    <a href="#accepted-services">View</a>
                 </div>
             </div>
             <div class="stat-box">
@@ -48,16 +55,68 @@
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div>
-                    <p class="stat-box__label">Total Bookings</p>
-                    <p class="stat-box__value">{{ bookings|length }}</p>
+                    <p class="stat-box__label">Completed</p>
+                    <p class="stat-box__value">{{ completed_count }}</p>
+                    <a href="#accepted-services">View</a>
                 </div>
             </div>
         </div>
         {% endif %}
     </div>
 
+    {% if service_requests %}
+        <section id="service-requests" style="margin-bottom: 2rem;">
+            <div class="booking-section-heading">
+                <div>
+                    <p class="section-kicker">YOUR REQUESTS</p>
+                    <h3 style="color: #0f172a; border-bottom: 2px solid #8b5cf6; padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                        Waiting for a Worker ({{ service_requests|length }})
+                    </h3>
+                </div>
+            </div>
+            <div class="booking-list">
+                {% for service_request in service_requests %}
+                    <article class="booking-card">
+                        <div class="booking-card__header">
+                            <div>
+                                <p class="booking-card__label">Service request</p>
+                                <h4>{{ service_request.title }}</h4>
+                                {% if service_request.service %}
+                                    <p class="mb-0">{{ service_request.service.name }}</p>
+                                {% endif %}
+                            </div>
+                            <span class="booking-status-pill booking-status-pill--{{ service_request.status|lower }}">
+                                {{ service_request.get_status_display }}
+                            </span>
+                        </div>
+                        <div class="booking-card__meta">
+                            <div>
+                                <span class="meta-label">Applications</span>
+                                <p>{{ service_request.application_count }}</p>
+                            </div>
+                            <div>
+                                <span class="meta-label">Preferred date</span>
+                                <p>{{ service_request.preferred_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div>
+                                <span class="meta-label">Posted</span>
+                                <p>{{ service_request.created_at|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                        <div class="booking-card__footer">
+                            <strong>Choose a worker from the applications</strong>
+                            <a href="{% url 'service_request_detail' service_request.pk %}" class="btn btn-primary">
+                                <i class="fas fa-eye"></i> View Request
+                            </a>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
     {% if accepted_jobs %}
-        <section style="margin-bottom: 2rem;">
+        <section id="accepted-services" style="margin-bottom: 2rem;">
             <h3 style="color: #0f172a; border-bottom: 2px solid #0284c7; padding-bottom: 0.75rem; margin-bottom: 1rem;">
                 Accepted Services
             </h3>
@@ -97,15 +156,12 @@
                         <div class="booking-card__footer">
                             <strong>{% if job.payment_completed %}Payment completed{% else %}Service details{% endif %}</strong>
                             <div>
-                                <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Details</a>
+                                <a href="{% url 'job_messages' job.pk %}" class="btn btn-primary">View Job &amp; Messages{% if job.has_unread_worker_message %}<i class="fas fa-bell message-unread-bell" title="New message"></i>{% endif %}</a>
                                 {% if job.status == 'COMPLETED' and not job.payment_completed %}
                                     <a href="{% url 'make_payment' job.pk %}" class="btn btn-success">Pay Now</a>
                                 {% endif %}
                                 {% if job.status == 'COMPLETED' %}
-                                    <a href="{% url 'create_job_review' job.pk %}" class="btn btn-outline-primary">Rate Worker</a>
-                                {% endif %}
-                                {% if not job.payment_completed %}
-                                    <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-primary">Message Worker</a>
+                                    <a href="{% url 'create_job_review' job.pk %}" class="btn btn-outline-primary">Rating Worker</a>
                                 {% endif %}
                             </div>
                         </div>
@@ -113,23 +169,6 @@
                 {% endfor %}
             </div>
         </section>
-    {% endif %}
-
-    <!-- Filter Section -->
-    {% if bookings %}
-    <div class="booking-filters">
-        <div class="filter-group">
-            <input type="text" id="searchInput" placeholder="Search by service name, location, or worker..." class="filter-input">
-            <i class="fas fa-search filter-icon"></i>
-        </div>
-        <div class="filter-tags">
-            <button class="filter-tag active" data-filter="all">All Bookings</button>
-            <button class="filter-tag" data-filter="pending">Pending</button>
-            <button class="filter-tag" data-filter="confirmed">Confirmed</button>
-            <button class="filter-tag" data-filter="in-progress">In Progress</button>
-            <button class="filter-tag" data-filter="completed">Completed</button>
-        </div>
-    </div>
     {% endif %}
 
     {% if bookings %}
@@ -262,24 +301,6 @@
                 </article>
             {% endfor %}
         </div>
-    {% else %}
-        <div class="empty-state-container">
-            <div class="empty-state">
-                <div class="empty-state__icon">
-                    <i class="fas fa-inbox"></i>
-                </div>
-                <h3>No Bookings Yet</h3>
-                <p>You haven't created any bookings. Start by browsing services and creating your first booking!</p>
-                <div class="empty-state__actions">
-                    <a href="{% url 'service_list' %}" class="btn btn-primary">
-                        <i class="fas fa-search"></i> Browse Services
-                    </a>
-                    <a href="{% url 'create_booking' %}" class="btn btn-secondary">
-                        <i class="fas fa-plus"></i> Create Booking
-                    </a>
-                </div>
-            </div>
-        </div>
     {% endif %}
 </div>
 
@@ -289,6 +310,8 @@
         padding-bottom: 1.5rem;
         border-bottom: 2px solid #e5e7eb;
     }
+
+    .message-unread-bell { margin-left: 7px; color: #facc15; filter: drop-shadow(0 0 2px rgba(120, 53, 15, .45)); }
 
     .header-content {
         display: flex;

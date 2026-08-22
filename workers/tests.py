@@ -166,7 +166,7 @@ class WorkerRegistrationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(WorkerProfile.objects.filter(user=user).exists())
 
-    def test_pending_worker_cannot_access_worker_dashboard_until_approved(self):
+    def test_pending_worker_can_access_worker_dashboard_before_approval(self):
         user = CustomUser.objects.create_user(
             username='pendingworker',
             email='pendingworker@example.com',
@@ -178,8 +178,54 @@ class WorkerRegistrationTests(TestCase):
         self.client.login(username='pendingworker', password='StrongPassword123')
         response = self.client.get(reverse('worker_dashboard'))
 
-        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Worker Dashboard')
+
+    def test_pending_worker_cannot_apply_for_a_service_request(self):
+        category = Category.objects.create(name='Cleaning', is_active=True)
+        service = Service.objects.create(
+            name='Pending Worker Service',
+            category=category,
+            description='Cleaning service',
+            price='500.00',
+            image='service_images/default.jpg',
+            duration='1 hour',
+            location='Dhaka',
+            is_available=True,
+        )
+        customer = CustomUser.objects.create_user(
+            username='servicecustomer',
+            password='StrongPassword123',
+            role='customer',
+        )
+        worker = CustomUser.objects.create_user(
+            username='pendingapplicant',
+            password='StrongPassword123',
+            role='worker',
+            worker_status='PENDING',
+        )
+        WorkerProfile.objects.create(user=worker, profession='Cleaning')
+        request_obj = ServiceRequest.objects.create(
+            customer=customer,
+            service=service,
+            title='Cleaning request',
+            description='Please clean the house',
+            location='Dhaka',
+            address='Road 1',
+            preferred_date=date.today() + timedelta(days=1),
+            status='OPEN',
+            budget_min=Decimal('400.00'),
+            budget_max=Decimal('600.00'),
+        )
+
+        self.client.login(username='pendingapplicant', password='StrongPassword123')
+        response = self.client.get(reverse(
+            'job_application_create',
+            kwargs={'service_request_id': request_obj.pk},
+        ))
+
         self.assertRedirects(response, reverse('home'))
+        self.assertFalse(JobApplication.objects.filter(worker=worker).exists())
 
     def test_worker_dashboard_shows_only_matching_services(self):
         service_a = Service.objects.create(

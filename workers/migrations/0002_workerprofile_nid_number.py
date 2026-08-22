@@ -1,4 +1,4 @@
-from django.db import migrations, models
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
@@ -7,15 +7,5 @@ class Migration(migrations.Migration):
         ("workers", "0001_initial"),
     ]
 
-    operations = [
-        migrations.AddField(
-            model_name="workerprofile",
-            name="nid_number",
-            field=models.CharField(
-                blank=True,
-                help_text="National ID number",
-                max_length=30,
-                null=True,
-            ),
-        ),
-    ]
+    # nid_number is already created by 0001_initial.
+    operations = []

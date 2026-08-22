@@ -70,10 +70,10 @@ def make_payment(request, job_id):
                 payment.transaction_id = f'{payment.payment_method}-{job.pk}-{job.id}'
 
             payment.calculate_commission()
-            payment.payment_status = 'Verified'
-            payment.worker_payout_status = 'Available'
             payment.save()
 
+            # verify_payment() changes the saved pending payment to Verified.
+            # Do not set Verified before calling it, or the method returns early.
             payment.verify_payment()
 
             Notification.create_notification(

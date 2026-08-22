@@ -4,193 +4,151 @@
 {% block title %}Job #{{ job.id }}{% endblock %}
 
 {% block content %}
-<div class="container" style="margin-top: 100px; margin-bottom: 50px;">
+<style>
+    .job-detail-page { max-width: 1180px; margin: 0 auto; padding: 2.5rem 1rem 4rem; color: #243746; }
+    .job-detail-page h1 { color: #163a56; font-size: clamp(1.65rem, 3vw, 2.35rem); font-weight: 800; letter-spacing: 0; }
+    .job-detail-page h5 { color: #163a56; font-size: 1.05rem; font-weight: 750; letter-spacing: 0; }
+    .job-detail-page .card { border: 1px solid #dbe4ea; border-radius: 12px; box-shadow: 0 8px 24px rgba(22, 58, 86, .07); }
+    .job-detail-page .card-header { padding: 1rem 1.25rem; background: #f5f9fb !important; border-bottom: 1px solid #dbe4ea; }
+    .job-detail-page .card-body { padding: 1.25rem; line-height: 1.65; }
+    .job-detail-page strong { color: #385466; font-size: .82rem; letter-spacing: .02em; }
+    .job-detail-page .text-primary { color: #0f766e !important; font-size: 1.35rem; }
+    .job-detail-page .job-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .65rem; margin-bottom: 1.25rem; }
+    .job-detail-page .job-actions .btn { margin: 0 !important; white-space: nowrap; }
+    .job-detail-page .message-alert { display: inline-flex; align-items: center; gap: .4rem; color: #facc15; filter: drop-shadow(0 0 2px rgba(120, 53, 15, .45)); font-size: .9rem; font-weight: 700; }
+    .job-detail-page .job-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+    .job-detail-page .job-header h1 { margin: 0; }
+    .job-detail-page .job-reference { margin: 0 0 .2rem; color: #0f766e; font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .job-detail-page .job-title { margin: 0; }
+    .job-detail-page .job-header-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: .5rem; }
+    .job-detail-page .job-header-actions .btn { margin: 0; white-space: nowrap; }
+    .job-detail-page .job-header-actions .badge { font-size: .9rem; }
+    .job-detail-page .job-summary { display: flex; flex-wrap: wrap; gap: 1rem 3rem; align-items: center; padding: 1rem 1.25rem; background: #f5f9fb; }
+    .job-detail-page .job-summary__item { display: flex; align-items: baseline; gap: .65rem; }
+    .job-detail-page .job-summary__item strong { text-transform: uppercase; }
+    .job-detail-page .job-summary__item span { color: #163a56; font-weight: 700; }
+    .job-detail-page .job-summary__price { color: #0f766e !important; font-size: 1.35rem; }
+    .job-detail-page .job-participants { display: flex; flex-wrap: wrap; gap: .5rem 1.25rem; margin-top: .55rem; color: #526b7b; font-size: .84rem; }
+    .job-detail-page .job-participants strong { color: #385466; font-size: .84rem; }
+    .job-detail-page .job-price { margin: .7rem 0 0; color: #0f766e; font-size: 1.35rem; font-weight: 800; }
+    .job-detail-page .job-price-label { margin-right: .35rem; color: #385466; font-size: .78rem; font-weight: 700; text-transform: uppercase; }
+    .job-detail-page .agreement-note { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .7rem; border: 1px solid #b7e3d5; border-radius: 8px; background: #effaf6; color: #166534; font-size: .86rem; font-weight: 700; }
+    @media (max-width: 700px) {
+        .job-detail-page .job-header { flex-direction: column; }
+        .job-detail-page .job-header-actions { justify-content: flex-start; }
+    }
+</style>
+<div class="container job-detail-page">
     <div class="row">
-        <div class="col-md-8">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1>Job #{{ job.id }}: {{ job.title }}</h1>
-                <span class="badge bg-{% if job.status == 'CONFIRMED' %}info{% elif job.status == 'IN_PROGRESS' %}warning{% elif job.status == 'COMPLETED' %}success{% else %}secondary{% endif %} fs-5">
-                    {{ job.get_status_display }}
-                </span>
-            </div>
-            
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Job Details</h5>
-                </div>
-                <div class="card-body">
-                    <h6>Description</h6>
-                    <p>{{ job.description }}</p>
-                    
-                    <hr>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Location:</strong><br>
-                            {{ job.location }}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Address:</strong><br>
-                            {{ job.address }}
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Pricing & Duration</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Proposed Price:</strong><br>
-                            <h5 class="text-primary">Rs. {{ job.proposed_price }}</h5>
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Estimated Duration:</strong><br>
-                            {{ job.estimated_duration }}
-                        </div>
-                    </div>
-                    
-                    {% if job.actual_price %}
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Actual Price:</strong><br>
-                                <h5 class="text-success">Rs. {{ job.actual_price }}</h5>
-                            </div>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Schedule</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <strong>Scheduled Date:</strong><br>
-                            {{ job.scheduled_date|date:"M d, Y" }}
-                        </div>
-                        <div class="col-md-6">
-                            <strong>Scheduled Time:</strong><br>
-                            {% if job.scheduled_time_start %}
-                                {{ job.scheduled_time_start|time:"g:i A" }}
-                                {% if job.scheduled_time_end %}
-                                    - {{ job.scheduled_time_end|time:"g:i A" }}
-                                {% endif %}
-                            {% else %}
-                                Not specified
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    {% if job.actual_start_time %}
-                        <hr>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <strong>Actual Start Time:</strong><br>
-                                {{ job.actual_start_time|date:"M d, Y g:i A" }}
-                            </div>
-                            {% if job.actual_end_time %}
-                                <div class="col-md-6">
-                                    <strong>Actual End Time:</strong><br>
-                                    {{ job.actual_end_time|date:"M d, Y g:i A" }}
-                                </div>
-                            {% endif %}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-            
-            {% if job.completion_notes %}
+        <div class="col-12">
+            <div class="job-header">
+                <div>
+
                 <div class="card shadow-sm mb-4">
                     <div class="card-header bg-light">
-                        <h5 class="mb-0">Completion Notes</h5>
+                        <h5 class="mb-0">Service Details</h5>
                     </div>
                     <div class="card-body">
-                        {{ job.completion_notes }}
-                    </div>
-                </div>
-            {% endif %}
-            
-            {% if request.user == job.worker and job.status == 'CONFIRMED' %}
-                <div class="mb-4">
-                    <a href="{% url 'job_accept' job.id %}" class="btn btn-success btn-lg">
-                        <i class="fas fa-check-circle"></i> Accept Job
-                    </a>
-                </div>
-            {% elif request.user == job.worker and job.status == 'IN_PROGRESS' %}
-                <div class="mb-4">
-                    <a href="{% url 'job_complete' job.id %}" class="btn btn-success btn-lg">
-                        <i class="fas fa-check-circle"></i> Mark as Complete
-                    </a>
-                </div>
-            {% endif %}
-
-            {% if request.user == job.customer and job.status == 'COMPLETED' %}
-                <div class="mb-4">
-                    <a href="{% url 'make_payment' job.id %}" class="btn btn-primary btn-lg">
-                        <i class="fas fa-credit-card"></i> Pay Now (৳{{ job.final_price }})
-                    </a>
-                </div>
-            {% endif %}
-
-            {% if not payment_completed and job.status != 'CANCELLED' %}
-                <div class="mb-4">
-                    <a href="{% url 'job_messages' job.id %}" class="btn btn-info btn-lg text-white">
-                        <i class="fas fa-comments"></i> Message {% if request.user == job.customer %}Worker{% else %}Customer{% endif %}
-                    </a>
-                </div>
-            {% elif payment_completed %}
-                <div class="alert alert-secondary mb-4">
-                    Messaging is closed because this service has been paid for.
-                </div>
-            {% endif %}
-
-            {% if request.user == job.customer and job.status != 'COMPLETED' and job.status != 'CANCELLED' %}
-                <div class="mb-4">
-                    <a href="{% url 'cancel_job' job.id %}" class="btn btn-danger btn-lg">
-                        <i class="fas fa-times-circle"></i> Cancel Job
-                    </a>
-                </div>
-            {% endif %}
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">People Involved</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-4">
-                        <strong>Customer</strong><br>
-                        {% if request.user == job.customer or request.user.role == 'admin' %}
-                            {{ job.customer.get_full_name }}<br>
-                            <small class="text-muted">{{ job.customer.email }}</small>
-                        {% else %}
-                            {{ job.customer.first_name }}<br>
-                            <small class="text-muted">Contact via job messaging</small>
+                        <div class="mb-4">
+                            <strong>Description</strong>
+                            <p class="mb-0">{{ job.description }}</p>
+                        </div>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <strong>Location</strong>
+                                <p class="mb-0">{{ job.location }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Address</strong>
+                                <p class="mb-0">{{ job.address }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Scheduled date</strong>
+                                <p class="mb-0">{{ job.scheduled_date|date:"M d, Y" }}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Scheduled time</strong>
+                                <p class="mb-0">
+                                    {% if job.scheduled_time_start %}{{ job.scheduled_time_start|time:"g:i A" }}{% else %}Not specified{% endif %}
+                                    {% if job.scheduled_time_end %} - {{ job.scheduled_time_end|time:"g:i A" }}{% endif %}
+                                </p>
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Estimated duration</strong>
+                                <p class="mb-0">{{ job.estimated_duration }}</p>
+                            </div>
+                        </div>
+                        {% if job.completion_notes %}
+                            <div class="mt-4 pt-3 border-top">
+                                <strong>Completion notes</strong>
+                                <p class="mb-0">{{ job.completion_notes }}</p>
+                            </div>
                         {% endif %}
                     </div>
-                    
-                    <hr>
-                    
-                    <div>
-                        <strong>Worker</strong><br>
-                        {% if request.user == job.worker or request.user.role == 'admin' %}
-                            {{ job.worker.get_full_name }}<br>
-                            <small class="text-muted">{{ job.worker.email }}</small>
-                        {% else %}
-                            {{ job.worker.first_name }}<br>
-                            <small class="text-muted">Contact via job messaging</small>
-                        {% endif %}
+                </div>
+                    <p class="job-reference">Job #{{ job.id }}</p>
+                    <h1 class="job-title">{{ job.title }}</h1>
+                    <div class="job-participants">
+                        <span><strong>Customer:</strong> {{ job.customer.get_full_name|default:job.customer.username }}</span>
+                        <span><strong>Worker:</strong> {{ job.worker.get_full_name|default:job.worker.username }}</span>
                     </div>
+                    <p class="job-price"><span class="job-price-label">Price</span>৳{{ job.final_price }}</p>
+                </div>
+                <div class="job-header-actions">
+                    {% if not payment_completed and job.status != 'CANCELLED' %}
+                        <a href="{% url 'job_messages' job.id %}" class="btn btn-info text-white">
+                            <i class="fas fa-comments"></i> Messages
+                            {% if unread_message_notifications %}<span class="message-alert" title="New message"><i class="fas fa-bell"></i></span>{% endif %}
+                        </a>
+                        {% if request.user == job.customer and job.status != 'COMPLETED' %}
+                            <a href="{% url 'cancel_job' job.id %}" class="btn btn-danger">
+                                <i class="fas fa-times-circle"></i> Cancel Job
+                            </a>
+                        {% endif %}
+                    {% endif %}
+                    {% if request.user == job.worker and job.status == 'CONFIRMED' %}
+                        <a href="{% url 'job_accept' job.id %}" class="btn btn-success">
+                            <i class="fas fa-play"></i> Start Work
+                        </a>
+                    {% elif request.user == job.worker and job.status == 'IN_PROGRESS' %}
+                        <a href="{% url 'job_complete' job.id %}" class="btn btn-success">
+                            <i class="fas fa-check-circle"></i> Mark Complete
+                        </a>
+                    {% endif %}
+                    {% if request.user == job.customer and job.status == 'COMPLETED' and not payment_completed %}
+                        <a href="{% url 'make_payment' job.id %}" class="btn btn-primary">
+                            <i class="fas fa-credit-card"></i> Pay Now
+                        </a>
+                    {% endif %}
+                    {% if request.user == job.customer and job.status != 'COMPLETED' and job.status != 'CANCELLED' %}
+                        {% if price_agreed %}
+                            <span class="agreement-note"><i class="fas fa-check-circle"></i> Price agreed</span>
+                        {% else %}
+                            <form method="post" action="{% url 'job_messages' job.id %}">
+                                {% csrf_token %}
+                                <button type="submit" name="agree_price" class="btn btn-success">
+                                    <i class="fas fa-check-circle"></i> Agree to Price
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
+                    <span class="badge bg-{% if job.status == 'CONFIRMED' %}info{% elif job.status == 'IN_PROGRESS' %}warning{% elif job.status == 'COMPLETED' %}success{% else %}secondary{% endif %} fs-5">
+                        {{ job.get_status_display }}
+                    </span>
                 </div>
             </div>
+            
+            {% if payment_completed %}
+                <div class="alert alert-success mb-4">
+                    <i class="fas fa-check-circle"></i>
+                    Payment received and verified.
+                    {% if payment.transaction_id %}<br><small>Transaction: {{ payment.transaction_id }}</small>{% endif %}
+                </div>
+            {% endif %}
+
+            {% if request.user == job.customer and job.status == 'CANCELLED' %}
+                <div class="mb-4"><span class="text-muted">This job was cancelled.</span></div>
+            {% endif %}
         </div>
     </div>
 </div>

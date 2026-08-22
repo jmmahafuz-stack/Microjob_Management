@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django import forms
 
 from accounts.models import CustomUser
@@ -89,9 +91,12 @@ class BookingAssignForm(forms.ModelForm):
 class BookingMessageForm(forms.ModelForm):
     class Meta:
         model = BookingMessage
-        fields = ['message']
+        fields = ['message', 'attachment']
         widgets = {
-            'message': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Type your message...'})
+            'message': forms.Textarea(attrs={'rows': 4, 'placeholder': 'Type your message...'}),
+            'attachment': forms.ClearableFileInput(attrs={
+                'accept': 'image/*,.pdf',
+            }),
         }
 
 
@@ -129,6 +134,7 @@ class ServiceRequestCreateForm(forms.ModelForm):
             'service',
             'title',
             'description',
+            'problem_photo',
             'location',
             'address',
             'preferred_date',
@@ -203,6 +209,16 @@ class ServiceRequestCreateForm(forms.ModelForm):
 
 class JobApplicationForm(forms.ModelForm):
     """Form for workers to apply for a service request"""
+    duration_hours = forms.ChoiceField(
+        choices=[(str(value), str(value)) for value in range(1, 25)],
+        label='Hours',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    duration_minutes = forms.ChoiceField(
+        choices=[(str(value), f'{value:02d}') for value in range(0, 60, 15)],
+        label='Minutes',
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
     agreed_to_schedule = forms.BooleanField(
         required=True,
         label="I agree to the customer's requested date and time"
@@ -212,7 +228,6 @@ class JobApplicationForm(forms.ModelForm):
         model = JobApplication
         fields = [
             'proposed_price',
-            'estimated_duration',
             'proposal_message',
             'can_start_date',
             'agreed_to_schedule',
@@ -223,11 +238,6 @@ class JobApplicationForm(forms.ModelForm):
                 'placeholder': 'Your proposed price',
                 'min': '0',
                 'step': '0.01'
-            }),
-            'estimated_duration': forms.TextInput(attrs={
-                'class': 'form-input',
-                'placeholder': 'e.g., 2 hours or 1 day 3 hours',
-                'title': 'Format: HH:MM or use the pattern like 1 14:30 for 1 day and 14 hours 30 minutes'
             }),
             'proposal_message': forms.Textarea(attrs={
                 'class': 'form-textarea',
@@ -251,6 +261,13 @@ class JobApplicationForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         proposed_price = cleaned_data.get('proposed_price')
+        hours = cleaned_data.get('duration_hours')
+        minutes = cleaned_data.get('duration_minutes')
+
+        if hours is not None and minutes is not None:
+            cleaned_data['estimated_duration'] = timedelta(
+                hours=int(hours), minutes=int(minutes)
+            )
         
         if proposed_price and proposed_price <= 0:
             raise forms.ValidationError("Proposed price must be greater than 0.")
@@ -304,6 +321,13 @@ class JobApplicationForm(forms.ModelForm):
                     )
         
         return cleaned_data
+
+    def save(self, commit=True):
+        application = super().save(commit=False)
+        application.estimated_duration = self.cleaned_data['estimated_duration']
+        if commit:
+            application.save()
+        return application
 
 
 class JobApplicationReviewForm(forms.ModelForm):

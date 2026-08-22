@@ -125,7 +125,7 @@
                                     <a href="{% url 'cancel_job' job.pk %}" class="btn btn-outline-danger">Cancel</a>
                                 {% endif %}
                                 
-                                <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-secondary">💬 Message Customer</a>
+                                <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-secondary">💬 Message Customer{% if job.has_unread_customer_message %}<i class="fas fa-bell message-unread-bell" title="New message"></i>{% endif %}</a>
                             </div>
                         </div>
                     </article>
@@ -133,6 +133,10 @@
             </div>
         </div>
         {% endif %}
+
+    <style>
+        .message-unread-bell { margin-left: 7px; color: #facc15; filter: drop-shadow(0 0 2px rgba(120, 53, 15, .45)); }
+    </style>
     {% else %}
         <div style="text-align: center; padding: 3rem 1rem; background: #f8fbff; border-radius: 8px;">
             <p style="font-size: 1.2rem; color: #64748b; margin-bottom: 1rem;">📭 No jobs or bookings assigned yet</p>

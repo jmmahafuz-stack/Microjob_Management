@@ -14,7 +14,7 @@
         <span class="request-icon" aria-hidden="true"><i class="fas fa-paper-plane"></i></span>
     </div>
 
-    <form method="post" class="request-form">
+    <form method="post" enctype="multipart/form-data" class="request-form">
         {% csrf_token %}
         {% if form.non_field_errors %}
             <div class="request-error">{{ form.non_field_errors.0 }}</div>
@@ -22,10 +22,22 @@
 
         <div class="request-fields">
             <div class="request-field request-field--wide">
-                <label for="{{ form.service.id_for_label }}">Service <span>*</span></label>
-                {{ form.service }}
-                <small>Choose the service you need.</small>
-                {% if form.service.errors %}<div class="request-error">{{ form.service.errors.0 }}</div>{% endif %}
+                {% if service %}
+                    <label>Selected service</label>
+                    <div class="selected-service" role="status">
+                        <span class="selected-service__icon"><i class="fas fa-check"></i></span>
+                        <span>
+                            <strong>{{ service.name }}</strong>
+                            <small>Your request will be sent to workers who provide this service.</small>
+                        </span>
+                    </div>
+                    <input type="hidden" name="service" value="{{ service.pk }}">
+                {% else %}
+                    <label for="{{ form.service.id_for_label }}">Service <span>*</span></label>
+                    {{ form.service }}
+                    <small>Choose the service you need.</small>
+                    {% if form.service.errors %}<div class="request-error">{{ form.service.errors.0 }}</div>{% endif %}
+                {% endif %}
             </div>
             <div class="request-field request-field--wide">
                 <label for="{{ form.title.id_for_label }}">Request title <span>*</span></label>
@@ -36,6 +48,12 @@
                 <label for="{{ form.description.id_for_label }}">What do you need? <span>*</span></label>
                 {{ form.description }}
                 {% if form.description.errors %}<div class="request-error">{{ form.description.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="request-field request-field--wide">
+                <label for="{{ form.problem_photo.id_for_label }}">Problem photo <span class="optional">(optional)</span></label>
+                {{ form.problem_photo }}
+                <small>Help workers understand the problem. You can also send photos later in messages.</small>
+                {% if form.problem_photo.errors %}<div class="request-error">{{ form.problem_photo.errors.0 }}</div>{% endif %}
             </div>
             <div class="request-field">
                 <label for="{{ form.location.id_for_label }}">City or area <span>*</span></label>
@@ -92,6 +110,10 @@
     .request-field textarea { min-height: 74px; resize: vertical; }
     .request-field input:focus, .request-field select:focus, .request-field textarea:focus { outline: 0; border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15, 118, 110, .12); }
     .request-field small { display: block; margin-top: 4px; color: #64748b; font-size: .76rem; }
+    .selected-service { display: flex; align-items: center; gap: 11px; min-height: 48px; padding: 10px 12px; border: 1px solid #b7e3d5; border-radius: 8px; background: #effaf6; color: #164e63; }
+    .selected-service__icon { display: grid; place-items: center; flex: 0 0 26px; width: 26px; height: 26px; border-radius: 50%; background: #0f766e; color: #fff; font-size: .72rem; }
+    .selected-service strong { display: block; color: #134e4a; font-size: .92rem; }
+    .selected-service small { margin-top: 2px; color: #52716e; }
     .request-error { margin-top: 5px; color: #b91c1c; font-size: .78rem; }
     .request-submit { width: 100%; margin-top: 18px; padding: 11px 16px; border: 0; border-radius: 8px; background: #0f766e; color: #fff; font-weight: 700; cursor: pointer; transition: background .2s ease, transform .2s ease; }
     .request-submit:hover { background: #115e59; transform: translateY(-1px); }

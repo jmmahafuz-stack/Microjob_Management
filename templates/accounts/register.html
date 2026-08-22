@@ -84,6 +84,12 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                    {{ form.username }}
+                    {% if form.username.errors %}<span class="error-message">{{ form.username.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
                     <label for="{{ form.phone.id_for_label }}" class="form-label">Phone</label>
                     {{ form.phone }}
                     {% if form.phone.errors %}<span class="error-message">{{ form.phone.errors.0 }}</span>{% endif %}

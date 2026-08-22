@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 
+from services.models import Category
 from .forms import RegisterForm
 from .models import CustomUser
 
@@ -25,6 +26,27 @@ class AuthenticationRoleTests(TestCase):
         user = CustomUser.objects.get(username='customer1')
         self.assertEqual(user.role, 'customer')
         self.assertFalse(user.is_verified_worker)
+
+    def test_worker_registration_redirects_to_login(self):
+        category = Category.objects.create(name='Cleaning', is_active=True)
+
+        response = self.client.post(
+            reverse('register'),
+            {
+                'username': 'registeredworker',
+                'email': 'registeredworker@example.com',
+                'first_name': 'Registered',
+                'last_name': 'Worker',
+                'role': 'worker',
+                'worker_categories': category.pk,
+                'password1': 'StrongPassword123',
+                'password2': 'StrongPassword123',
+            },
+            follow=False,
+        )
+
+        self.assertRedirects(response, reverse('login'))
+        self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_worker_self_registration_is_not_allowed(self):
         form = RegisterForm(

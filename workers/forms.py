@@ -17,12 +17,6 @@ class WorkerProfileForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Tell customers about yourself'}),
         label='Short bio'
     )
-    hourly_rate = forms.DecimalField(
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Hourly rate (optional)'}),
-        label='Hourly rate'
-    )
-
     class Meta:
         model = WorkerProfile
         fields = [
@@ -34,7 +28,6 @@ class WorkerProfileForm(forms.ModelForm):
             'languages',
             'bio',
             'id_verification_document',
-            'hourly_rate',
             'response_time',
         ]
         widgets = {
@@ -83,12 +76,6 @@ class WorkerVerificationForm(forms.ModelForm):
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Tell customers about yourself'}),
         label='Short bio'
     )
-    hourly_rate = forms.DecimalField(
-        required=False,
-        widget=forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'placeholder': 'Hourly rate (optional)'}),
-        label='Hourly rate'
-    )
-
     class Meta:
         model = WorkerProfile
         fields = [
@@ -101,7 +88,6 @@ class WorkerVerificationForm(forms.ModelForm):
             'service_area',
             'languages',
             'bio',
-            'hourly_rate',
             'response_time',
             'verification_status',
             'training_status',

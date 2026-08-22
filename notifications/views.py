@@ -5,6 +5,18 @@ from django.http import JsonResponse
 from .models import Notification
 
 
+def notification_context(request):
+    if not request.user.is_authenticated:
+        return {}
+
+    return {
+        'unread_notification_count': Notification.objects.filter(
+            user=request.user,
+            is_read=False,
+        ).count(),
+    }
+
+
 @login_required
 def notification_list(request):
     """List all notifications for the logged-in user."""

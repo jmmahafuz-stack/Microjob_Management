@@ -1453,7 +1453,109 @@ input[type="button"]:hover {
 }
 
 .recommended-workers-box .worker-card-list {
+    gap: 1rem;
+}
+
+.recommended-workers-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.recommended-workers-header h3 {
+    margin: .2rem 0 .35rem;
+}
+
+.recommended-workers-header p:last-child {
+    margin: 0;
+}
+
+.verified-workers-count {
+    flex: 0 0 auto;
+    padding: .4rem .65rem;
+    border: 1px solid #b7e3d5;
+    border-radius: 999px;
+    background: #effaf6;
+    color: #087f5b;
+    font-size: .75rem;
+    font-weight: 800;
+}
+
+.recommended-workers-box .worker-card {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    min-height: 148px;
+    padding: 1rem;
+    border: 1px solid #d9e5ea;
+    border-radius: 12px;
+    background: #ffffff;
+    box-shadow: 0 5px 16px rgba(22, 58, 86, .06);
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+}
+
+.recommended-workers-box .worker-card:hover {
+    border-color: #73c9b0;
+    box-shadow: 0 10px 24px rgba(22, 58, 86, .12);
+    transform: translateY(-2px);
+}
+
+.recommended-workers-box .worker-card__image {
+    width: 58px;
+    height: 58px;
+    border: 3px solid #d9f2e9;
+}
+
+.recommended-workers-box .worker-card__meta {
+    flex: 1;
+}
+
+.recommended-workers-box .worker-card__name {
+    margin-bottom: .2rem;
+    color: var(--mjms-ink);
+    font-size: .98rem;
+}
+
+.worker-card__verified {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    color: #087f5b;
+    font-size: .7rem;
+    font-weight: 800;
+}
+
+.worker-card__profession,
+.worker-card__skills {
+    margin: .35rem 0;
+    color: #42586a;
+    font-size: .8rem;
+}
+
+.worker-card__stats {
+    display: flex;
+    flex-wrap: wrap;
     gap: .75rem;
+    color: #526b7b;
+    font-size: .76rem;
+    font-weight: 700;
+}
+
+.worker-card__stats i {
+    color: #e09b32;
+    margin-right: .2rem;
+}
+
+.worker-card__link {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    margin-top: .35rem;
+    color: var(--mjms-teal-dark);
+    font-size: .78rem;
+    font-weight: 800;
 }
 
 .detail-footer-link {

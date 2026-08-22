@@ -72,18 +72,20 @@
                         </div>
                         
                         <div class="mb-3">
-                            <label for="{{ form.estimated_duration.id_for_label }}" class="form-label">
-                                <strong>Estimated Duration *</strong>
-                            </label>
-                            {{ form.estimated_duration }}
-                            {% if form.estimated_duration.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.estimated_duration.errors.0 }}
+                            <label class="form-label"><strong>Estimated Duration *</strong></label>
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label for="{{ form.duration_hours.id_for_label }}" class="small text-muted">Hours</label>
+                                    {{ form.duration_hours }}
                                 </div>
-                            {% endif %}
-                            <small class="form-text text-muted">
-                                Format: HH:MM (e.g., 2:30 for 2 hours 30 minutes)
-                            </small>
+                                <div class="col-6">
+                                    <label for="{{ form.duration_minutes.id_for_label }}" class="small text-muted">Minutes</label>
+                                    {{ form.duration_minutes }}
+                                </div>
+                            </div>
+                            {% if form.duration_hours.errors %}<div class="invalid-feedback d-block">{{ form.duration_hours.errors.0 }}</div>{% endif %}
+                            {% if form.duration_minutes.errors %}<div class="invalid-feedback d-block">{{ form.duration_minutes.errors.0 }}</div>{% endif %}
+                            <small class="form-text text-muted">Choose the expected time to complete the service.</small>
                         </div>
                         
                         <div class="mb-3">
