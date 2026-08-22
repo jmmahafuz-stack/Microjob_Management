@@ -93,9 +93,6 @@
                                 {% endif %}
                                 <div class="worker-card__actions">
                                     <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card__link">View profile <i class="fas fa-arrow-right"></i></a>
-                                    {% if user.is_authenticated and user.role == 'customer' %}
-                                        <a href="{% url 'create_booking' %}?service={{ service.pk }}&worker={{ worker_profile.user.pk }}" class="btn btn-primary">Book this worker</a>
-                                    {% endif %}
                                 </div>
                             </div>
                         </div>

@@ -2,57 +2,65 @@
 
 {% block content %}
 
-<div style="max-width:900px; margin:0 auto;">
-    <h2 style="margin-bottom:18px;">{% if editing %}Edit Booking{% else %}Create Booking{% endif %}</h2>
+<div class="booking-create-page">
+    <div class="booking-create-heading">
+        <p class="section-kicker">BOOKING</p>
+        <h2>{% if editing %}Edit Booking{% else %}Create Booking{% endif %}</h2>
+        <p>Confirm the details for your service appointment.</p>
+    </div>
 
     {% if selected_service %}
-        <div style="background:linear-gradient(135deg,#f8fbff 0%,#eef5ff 100%); border:1px solid #cfe0ff; border-radius:14px; padding:18px 20px; margin-bottom:18px; box-shadow:0 4px 14px rgba(15,23,42,0.06);">
-            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px;">
+        <div class="selected-service-card">
+            <div class="selected-service-heading">
                 <div>
-                    <div style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:#4f46e5; font-weight:700;">Selected service</div>
-                    <h3 style="margin:4px 0 0; font-size:1.2rem;">{{ selected_service.name }}</h3>
+                    <span class="selected-service-label">Selected service</span>
+                    <h3>{{ selected_service.name }}</h3>
                 </div>
-                <div style="background:#fff7ed; border:1px solid #fed7aa; padding:8px 12px; border-radius:999px; font-weight:700; color:#c2410c;">Price to be agreed</div>
             </div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:10px;">
-                <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:10px 12px;">
-                    <div style="font-size:0.8rem; color:#64748b;">Category</div>
-                    <div style="font-weight:600; margin-top:2px;">{{ selected_service.category }}</div>
+            <div class="selected-service-meta">
+                <div>
+                    <span>Category</span>
+                    <strong>{{ selected_service.category }}</strong>
                 </div>
-                <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:10px 12px;">
-                    <div style="font-size:0.8rem; color:#64748b;">Duration</div>
-                    <div style="font-weight:600; margin-top:2px;">{{ selected_service.duration }}</div>
+                <div>
+                    <span>Duration</span>
+                    <strong>{{ selected_service.duration }}</strong>
                 </div>
-                <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:10px 12px;">
-                    <div style="font-size:0.8rem; color:#64748b;">Location</div>
-                    <div style="font-weight:600; margin-top:2px;">{{ selected_service.location|default:'Any' }}</div>
+                <div>
+                    <span>Location</span>
+                    <strong>{{ selected_service.location|default:'Any' }}</strong>
                 </div>
             </div>
         </div>
 
         {% if selected_worker %}
-            <div style="margin-bottom:18px; padding:14px 18px; border:1px solid #b7e3d5; border-radius:14px; background:#effaf6;">
-                <strong>Selected worker:</strong>
-                {{ selected_worker.user.get_full_name|default:selected_worker.user.username }}
-                <span style="color:#526b7b;">({{ selected_worker.profession|default:'Service professional' }})</span>
+            <div class="selected-worker-row">
+                <i class="fas fa-circle-check"></i>
+                <span><strong>Worker selected:</strong> {{ selected_worker.user.get_full_name|default:selected_worker.user.username }} <small>{{ selected_worker.profession|default:'Service professional' }}</small></span>
             </div>
         {% elif selected_service.related_workers %}
-            <div style="margin-bottom:18px; padding:18px 20px; border:1px solid #d9e2ec; border-radius:14px; background:#f8fbff; box-shadow:0 4px 14px rgba(15,23,42,0.04);">
-                <h3 style="margin-top:0; margin-bottom:8px;">Recommended workers for this service</h3>
-                <p style="margin-top:0; margin-bottom:12px; color:#4b5563;">Choose a verified worker for this booking or continue with the service request below.</p>
+            <div class="available-workers-card">
+                <div class="available-workers-heading">
+                    <div>
+                        <span class="selected-service-label">OPTIONAL</span>
+                        <h3>Choose a worker</h3>
+                    </div>
+                    <span class="available-workers-count">{{ selected_service.related_workers|length }} available</span>
+                </div>
+                <p class="available-workers-intro">You can continue without choosing one. A worker can be assigned later.</p>
                 <div class="worker-card-list">
                     {% for worker_profile in selected_service.related_workers %}
-                        <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card">
+                        <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card available-worker-card">
                             {% if worker_profile.user.profile_picture %}
                                 <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image">
                             {% else %}
-                                <div class="worker-card__avatar worker-card__image">👷</div>
+                                <div class="worker-card__avatar worker-card__image"><i class="fas fa-user-tie"></i></div>
                             {% endif %}
                             <div class="worker-card__meta">
                                 <p class="worker-card__name">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
                                 <p class="worker-card__detail">Profession: {{ worker_profile.profession|default:'Not specified' }}</p>
-                                <p class="worker-card__detail">Skills: {{ worker_profile.skills }}</p>
-                                <p class="worker-card__detail">Experience: {{ worker_profile.experience|default:'Not specified' }}</p>
+                                <p class="worker-card__detail">Skills: {{ worker_profile.skills|default:'Not specified' }}</p>
+                                <p class="worker-card__detail">Experience: {{ worker_profile.experience_years|default:0 }} years</p>
                             </div>
                         </a>
                     {% endfor %}
@@ -60,10 +68,10 @@
             </div>
         {% endif %}
     {% else %}
-        <p style="padding:12px 14px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;">Please choose the service you want to book below.</p>
+        <p class="booking-empty-state">Please choose the service you want to book below.</p>
     {% endif %}
 
-    <form method="post" enctype="multipart/form-data" class="auth-form" style="margin-top:6px;">
+    <form method="post" enctype="multipart/form-data" class="auth-form booking-form-card">
     {% csrf_token %}
     {% if selected_service %}<input type="hidden" name="service" value="{{ selected_service.pk }}">{% endif %}
     {% if selected_worker %}<input type="hidden" name="worker" value="{{ selected_worker.user.pk }}">{% endif %}
@@ -78,10 +86,270 @@
             </div>
         {% endfor %}
     </div>
-        <button type="submit">{% if editing %}Submit Changes{% else %}Submit Booking Request{% endif %}</button>
+        <button type="submit" class="booking-submit">{% if editing %}Submit Changes{% else %}Submit Booking Request{% endif %}</button>
     </form>
 
-    <a href="{% url 'service_list' %}" style="display:inline-block; margin-top:16px; font-weight:600;">← Back to Services</a>
+    <a href="{% url 'service_list' %}" class="booking-back-link">← Back to Services</a>
 </div>
 
 {% endblock %}
+
+<style>
+    .booking-create-page {
+        width: min(760px, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 2.25rem 0 3rem;
+    }
+
+    .booking-create-heading {
+        margin-bottom: 1rem;
+    }
+
+    .booking-create-heading h2 {
+        margin: .25rem 0 .25rem;
+        color: #163a56;
+        font-size: clamp(1.55rem, 4vw, 2rem);
+    }
+
+    .booking-create-heading > p:last-child {
+        margin: 0;
+        color: #607586;
+        font-size: .88rem;
+    }
+
+    .selected-service-card,
+    .booking-form-card,
+    .selected-worker-row {
+        border: 1px solid #dce7ea;
+        border-radius: 10px;
+        background: #fff;
+        box-shadow: 0 6px 18px rgba(22, 58, 86, .06);
+    }
+
+    .selected-service-card {
+        padding: 1rem 1.1rem;
+        background: #f7fbfa;
+    }
+
+    .selected-service-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    .selected-service-label {
+        display: block;
+        color: #087f5b;
+        font-size: .68rem;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    .selected-service-heading h3 {
+        margin: .2rem 0 0;
+        color: #163a56;
+        font-size: 1.12rem;
+    }
+
+    .negotiation-badge {
+        flex: 0 0 auto;
+        padding: .4rem .6rem;
+        border: 1px solid #fed7aa;
+        border-radius: 999px;
+        background: #fff7ed;
+        color: #c2410c;
+        font-size: .7rem;
+        font-weight: 800;
+    }
+
+    .selected-service-meta {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .55rem;
+        margin-top: .85rem;
+    }
+
+    .selected-service-meta > div {
+        padding: .55rem .65rem;
+        border: 1px solid #dce7ea;
+        border-radius: 7px;
+        background: #fff;
+    }
+
+    .selected-service-meta span,
+    .selected-service-meta strong {
+        display: block;
+    }
+
+    .selected-service-meta span {
+        color: #708391;
+        font-size: .66rem;
+        text-transform: uppercase;
+    }
+
+    .selected-service-meta strong {
+        margin-top: .15rem;
+        color: #29485c;
+        font-size: .78rem;
+    }
+
+    .selected-worker-row {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        margin: .75rem 0;
+        padding: .7rem .85rem;
+        border-color: #b7e3d5;
+        background: #effaf6;
+        color: #315b51;
+        font-size: .82rem;
+    }
+
+    .selected-worker-row > i {
+        color: #087f5b;
+    }
+
+    .selected-worker-row small {
+        color: #607586;
+    }
+
+    .available-workers-card {
+        margin: .75rem 0;
+        padding: 1rem 1.1rem;
+        border: 1px solid #dce7ea;
+        border-radius: 10px;
+        background: #f8fbfa;
+    }
+
+    .available-workers-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    .available-workers-heading h3 {
+        margin: .2rem 0 0;
+        color: #163a56;
+        font-size: 1rem;
+    }
+
+    .available-workers-count {
+        padding: .35rem .55rem;
+        border-radius: 999px;
+        background: #e4f6ef;
+        color: #087f5b;
+        font-size: .7rem;
+        font-weight: 800;
+    }
+
+    .available-workers-intro {
+        margin: .55rem 0 .75rem;
+        color: #607586;
+        font-size: .8rem;
+    }
+
+    .available-worker-card {
+        min-height: 0;
+        padding: .65rem;
+        border-color: #dce7ea;
+        box-shadow: none;
+    }
+
+    .available-worker-card:hover {
+        transform: none;
+        box-shadow: 0 5px 14px rgba(22, 58, 86, .08);
+    }
+
+    .booking-form-card {
+        margin-top: .75rem;
+        padding: 1.1rem;
+    }
+
+    .booking-empty-state {
+        margin: 0;
+        padding: .85rem 1rem;
+        border: 1px solid #fcd7aa;
+        border-radius: 9px;
+        background: #fff7ed;
+        color: #9a5b12;
+        font-size: .84rem;
+    }
+
+    .booking-form-card .form-grid {
+        gap: .8rem;
+    }
+
+    .booking-form-card .form-group label {
+        margin-bottom: .3rem;
+        color: #29485c;
+        font-size: .8rem;
+        font-weight: 700;
+    }
+
+    .booking-form-card input,
+    .booking-form-card textarea,
+    .booking-form-card select {
+        min-height: 40px;
+        padding: .55rem .65rem;
+        border-radius: 7px;
+        border-color: #cbd9dd;
+        font-size: .86rem;
+    }
+
+    .booking-form-card textarea {
+        min-height: 86px;
+    }
+
+    .booking-submit {
+        width: 100%;
+        min-height: 42px;
+        margin-top: .25rem;
+        border: 0;
+        border-radius: 7px;
+        background: #087f5b;
+        color: #fff;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+    .booking-submit:hover {
+        background: #056b4c;
+    }
+
+    .booking-back-link {
+        display: inline-block;
+        margin-top: .85rem;
+        color: #087f5b;
+        font-size: .82rem;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    @media (max-width: 560px) {
+        .booking-create-page {
+            width: min(100% - 1rem, 760px);
+            padding-top: 1.25rem;
+        }
+
+        .selected-service-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+
+        .selected-service-meta {
+            grid-template-columns: 1fr;
+        }
+
+        .booking-form-card {
+            padding: .85rem;
+        }
+
+        .available-workers-heading {
+            align-items: flex-start;
+            flex-direction: column;
+        }
+    }
+</style>
