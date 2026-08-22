@@ -379,3 +379,24 @@ class JobCompletionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Status is auto-set by view, not included in form
+
+
+class JobPriceUpdateForm(forms.ModelForm):
+    """Form for workers to update the price before completion."""
+    class Meta:
+        model = Job
+        fields = ['actual_price']
+        widgets = {
+            'actual_price': forms.NumberInput(attrs={
+                'class': 'form-input',
+                'placeholder': 'Leave blank to use proposed price',
+                'min': '0.01',
+                'step': '0.01',
+            }),
+        }
+
+    def clean_actual_price(self):
+        price = self.cleaned_data['actual_price']
+        if price is not None and price <= 0:
+            raise forms.ValidationError('Price must be greater than 0.')
+        return price

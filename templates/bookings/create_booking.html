@@ -1,355 +1,131 @@
 {% extends 'base.html' %}
 
-{% block content %}
+{% block title %}{% if editing %}Edit Booking{% else %}Create Booking{% endif %} — MJMS{% endblock %}
 
-<div class="booking-create-page">
-    <div class="booking-create-heading">
-        <p class="section-kicker">BOOKING</p>
-        <h2>{% if editing %}Edit Booking{% else %}Create Booking{% endif %}</h2>
-        <p>Confirm the details for your service appointment.</p>
+{% block content %}
+<section class="booking-create-page" aria-labelledby="booking-title">
+    <div class="page-heading booking-heading">
+        <div>
+            <span class="page-eyebrow">BOOKING</span>
+            <h1 id="booking-title">{% if editing %}Edit Booking{% else %}Create Booking{% endif %}</h1>
+            <p>Confirm the details for your service appointment.</p>
+        </div>
+        <a href="{% url 'service_list' %}" class="btn btn-outline-secondary">Back to Services</a>
     </div>
 
     {% if selected_service %}
-        <div class="selected-service-card">
-            <div class="selected-service-heading">
-                <div>
-                    <span class="selected-service-label">Selected service</span>
-                    <h3>{{ selected_service.name }}</h3>
-                </div>
-            </div>
-            <div class="selected-service-meta">
-                <div>
-                    <span>Category</span>
-                    <strong>{{ selected_service.category }}</strong>
-                </div>
-                <div>
-                    <span>Duration</span>
-                    <strong>{{ selected_service.duration }}</strong>
-                </div>
-                <div>
-                    <span>Location</span>
-                    <strong>{{ selected_service.location|default:'Any' }}</strong>
-                </div>
-            </div>
-        </div>
-
-        {% if selected_worker %}
-            <div class="selected-worker-row">
-                <i class="fas fa-circle-check"></i>
-                <span><strong>Worker selected:</strong> {{ selected_worker.user.get_full_name|default:selected_worker.user.username }} <small>{{ selected_worker.profession|default:'Service professional' }}</small></span>
-            </div>
-        {% elif selected_service.related_workers %}
-            <div class="available-workers-card">
-                <div class="available-workers-heading">
+    <div class="booking-create-grid">
+        <div class="booking-create-main">
+            <article class="booking-summary-card">
+                <div class="booking-summary-top">
                     <div>
-                        <span class="selected-service-label">OPTIONAL</span>
-                        <h3>Choose a worker</h3>
+                        <span class="card-eyebrow">Selected service</span>
+                        <h2>{{ selected_service.name }}</h2>
                     </div>
-                    <span class="available-workers-count">{{ selected_service.related_workers|length }} available</span>
+                    <span class="service-category-badge">{{ selected_service.category }}</span>
                 </div>
-                <p class="available-workers-intro">You can continue without choosing one. A worker can be assigned later.</p>
-                <div class="worker-card-list">
+                <div class="booking-summary-meta">
+                    <div><span>Category</span><strong>{{ selected_service.category }}</strong></div>
+                    <div><span>Duration</span><strong>{{ selected_service.duration }}</strong></div>
+                    <div><span>Location</span><strong>{{ selected_service.location|default:'Any location' }}</strong></div>
+                </div>
+            </article>
+
+            {% if selected_worker %}
+            <div class="worker-selected-card">
+                <div class="worker-selected-icon"><i class="fas fa-user-check"></i></div>
+                <div>
+                    <span class="card-eyebrow">Worker selected</span>
+                    <strong>{{ selected_worker.user.get_full_name|default:selected_worker.user.username }}</strong>
+                    <p>{{ selected_worker.profession|default:'Service professional' }}</p>
+                </div>
+            </div>
+            {% elif selected_service.related_workers %}
+            <article class="worker-choice-card">
+                <div class="section-card-heading">
+                    <div>
+                        <span class="card-eyebrow">Optional</span>
+                        <h2>Choose a worker</h2>
+                    </div>
+                    <span class="count-badge">{{ selected_service.related_workers|length }} available</span>
+                </div>
+                <p class="helper-text">You can continue without choosing a worker. One can be assigned later.</p>
+                <div class="worker-choice-list">
                     {% for worker_profile in selected_service.related_workers %}
-                        <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card available-worker-card">
-                            {% if worker_profile.user.profile_picture %}
-                                <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image">
-                            {% else %}
-                                <div class="worker-card__avatar worker-card__image"><i class="fas fa-user-tie"></i></div>
-                            {% endif %}
-                            <div class="worker-card__meta">
-                                <p class="worker-card__name">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
-                                <p class="worker-card__detail">Profession: {{ worker_profile.profession|default:'Not specified' }}</p>
-                                <p class="worker-card__detail">Skills: {{ worker_profile.skills|default:'Not specified' }}</p>
-                                <p class="worker-card__detail">Experience: {{ worker_profile.experience_years|default:0 }} years</p>
-                            </div>
-                        </a>
+                    <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-choice-item">
+                        {% if worker_profile.user.profile_picture %}
+                            <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}">
+                        {% else %}
+                            <span class="worker-choice-avatar"><i class="fas fa-user"></i></span>
+                        {% endif %}
+                        <span class="worker-choice-copy">
+                            <strong>{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</strong>
+                            <small>{{ worker_profile.profession|default:'Service professional' }} · {{ worker_profile.experience_years|default:0 }} yrs experience</small>
+                        </span>
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
                     {% endfor %}
                 </div>
-            </div>
-        {% endif %}
-    {% else %}
-        <p class="booking-empty-state">Please choose the service you want to book below.</p>
-    {% endif %}
+            </article>
+            {% endif %}
 
-    <form method="post" enctype="multipart/form-data" class="auth-form booking-form-card">
-    {% csrf_token %}
-    {% if selected_service %}<input type="hidden" name="service" value="{{ selected_service.pk }}">{% endif %}
-    {% if selected_worker %}<input type="hidden" name="worker" value="{{ selected_worker.user.pk }}">{% endif %}
-    <div class="form-grid">
-        {% for field in form %}
-            <div class="form-group{% if field.name in 'address,problem_description' %} form-group--full{% endif %}">
-                {{ field.label_tag }}
-                {{ field }}
-                {% if field.errors %}
-                    <div class="alert alert-error">{{ field.errors|striptags }}</div>
-                {% endif %}
-            </div>
-        {% endfor %}
+            <article class="booking-form-card">
+                <div class="section-card-heading">
+                    <div>
+                        <span class="card-eyebrow">Appointment details</span>
+                        <h2>Tell us about your booking</h2>
+                    </div>
+                </div>
+
+                <form method="post" enctype="multipart/form-data" class="booking-form" novalidate>
+                    {% csrf_token %}
+                    <input type="hidden" name="service" value="{{ selected_service.pk }}">
+                    {% if selected_worker %}<input type="hidden" name="worker" value="{{ selected_worker.user.pk }}">{% endif %}
+
+                    {% if form.non_field_errors %}
+                        <div class="form-alert form-alert--error">{{ form.non_field_errors|striptags }}</div>
+                    {% endif %}
+
+                    <div class="form-grid form-grid--booking">
+                        {% for field in form %}
+                        <div class="form-field{% if field.name == 'address' or field.name == 'problem_description' or field.name == 'problem_photo' %} form-field--full{% endif %}">
+                            {{ field.label_tag }}
+                            {{ field }}
+                            {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                            {% if field.errors %}<div class="field-error">{{ field.errors|striptags }}</div>{% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-actions form-actions--booking">
+                        <a href="{% url 'service_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary btn-submit-booking">
+                            <i class="fas fa-calendar-check"></i>
+                            {% if editing %}Save Changes{% else %}Submit Booking Request{% endif %}
+                        </button>
+                    </div>
+                </form>
+            </article>
+        </div>
+
+        <aside class="booking-help-card">
+            <div class="help-icon"><i class="fas fa-shield-heart"></i></div>
+            <h2>Book with confidence</h2>
+            <p>Your booking details are shared only with the service professionals involved in completing your request.</p>
+            <ul>
+                <li><i class="fas fa-check"></i> Clear appointment details</li>
+                <li><i class="fas fa-check"></i> Communicate with your worker</li>
+                <li><i class="fas fa-check"></i> Track your booking from My Bookings</li>
+            </ul>
+        </aside>
     </div>
-        <button type="submit" class="booking-submit">{% if editing %}Submit Changes{% else %}Submit Booking Request{% endif %}</button>
-    </form>
-
-    <a href="{% url 'service_list' %}" class="booking-back-link">← Back to Services</a>
-</div>
-
+    {% else %}
+        <div class="empty-state-card">
+            <i class="fas fa-calendar-xmark"></i>
+            <h2>No service selected</h2>
+            <p>Please choose a service before creating a booking.</p>
+            <a href="{% url 'service_list' %}" class="btn btn-primary">Browse Services</a>
+        </div>
+    {% endif %}
+</section>
 {% endblock %}
-
-<style>
-    .booking-create-page {
-        width: min(760px, calc(100% - 2rem));
-        margin: 0 auto;
-        padding: 2.25rem 0 3rem;
-    }
-
-    .booking-create-heading {
-        margin-bottom: 1rem;
-    }
-
-    .booking-create-heading h2 {
-        margin: .25rem 0 .25rem;
-        color: #163a56;
-        font-size: clamp(1.55rem, 4vw, 2rem);
-    }
-
-    .booking-create-heading > p:last-child {
-        margin: 0;
-        color: #607586;
-        font-size: .88rem;
-    }
-
-    .selected-service-card,
-    .booking-form-card,
-    .selected-worker-row {
-        border: 1px solid #dce7ea;
-        border-radius: 10px;
-        background: #fff;
-        box-shadow: 0 6px 18px rgba(22, 58, 86, .06);
-    }
-
-    .selected-service-card {
-        padding: 1rem 1.1rem;
-        background: #f7fbfa;
-    }
-
-    .selected-service-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: .75rem;
-    }
-
-    .selected-service-label {
-        display: block;
-        color: #087f5b;
-        font-size: .68rem;
-        font-weight: 800;
-        letter-spacing: .08em;
-        text-transform: uppercase;
-    }
-
-    .selected-service-heading h3 {
-        margin: .2rem 0 0;
-        color: #163a56;
-        font-size: 1.12rem;
-    }
-
-    .negotiation-badge {
-        flex: 0 0 auto;
-        padding: .4rem .6rem;
-        border: 1px solid #fed7aa;
-        border-radius: 999px;
-        background: #fff7ed;
-        color: #c2410c;
-        font-size: .7rem;
-        font-weight: 800;
-    }
-
-    .selected-service-meta {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: .55rem;
-        margin-top: .85rem;
-    }
-
-    .selected-service-meta > div {
-        padding: .55rem .65rem;
-        border: 1px solid #dce7ea;
-        border-radius: 7px;
-        background: #fff;
-    }
-
-    .selected-service-meta span,
-    .selected-service-meta strong {
-        display: block;
-    }
-
-    .selected-service-meta span {
-        color: #708391;
-        font-size: .66rem;
-        text-transform: uppercase;
-    }
-
-    .selected-service-meta strong {
-        margin-top: .15rem;
-        color: #29485c;
-        font-size: .78rem;
-    }
-
-    .selected-worker-row {
-        display: flex;
-        align-items: center;
-        gap: .55rem;
-        margin: .75rem 0;
-        padding: .7rem .85rem;
-        border-color: #b7e3d5;
-        background: #effaf6;
-        color: #315b51;
-        font-size: .82rem;
-    }
-
-    .selected-worker-row > i {
-        color: #087f5b;
-    }
-
-    .selected-worker-row small {
-        color: #607586;
-    }
-
-    .available-workers-card {
-        margin: .75rem 0;
-        padding: 1rem 1.1rem;
-        border: 1px solid #dce7ea;
-        border-radius: 10px;
-        background: #f8fbfa;
-    }
-
-    .available-workers-heading {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: .75rem;
-    }
-
-    .available-workers-heading h3 {
-        margin: .2rem 0 0;
-        color: #163a56;
-        font-size: 1rem;
-    }
-
-    .available-workers-count {
-        padding: .35rem .55rem;
-        border-radius: 999px;
-        background: #e4f6ef;
-        color: #087f5b;
-        font-size: .7rem;
-        font-weight: 800;
-    }
-
-    .available-workers-intro {
-        margin: .55rem 0 .75rem;
-        color: #607586;
-        font-size: .8rem;
-    }
-
-    .available-worker-card {
-        min-height: 0;
-        padding: .65rem;
-        border-color: #dce7ea;
-        box-shadow: none;
-    }
-
-    .available-worker-card:hover {
-        transform: none;
-        box-shadow: 0 5px 14px rgba(22, 58, 86, .08);
-    }
-
-    .booking-form-card {
-        margin-top: .75rem;
-        padding: 1.1rem;
-    }
-
-    .booking-empty-state {
-        margin: 0;
-        padding: .85rem 1rem;
-        border: 1px solid #fcd7aa;
-        border-radius: 9px;
-        background: #fff7ed;
-        color: #9a5b12;
-        font-size: .84rem;
-    }
-
-    .booking-form-card .form-grid {
-        gap: .8rem;
-    }
-
-    .booking-form-card .form-group label {
-        margin-bottom: .3rem;
-        color: #29485c;
-        font-size: .8rem;
-        font-weight: 700;
-    }
-
-    .booking-form-card input,
-    .booking-form-card textarea,
-    .booking-form-card select {
-        min-height: 40px;
-        padding: .55rem .65rem;
-        border-radius: 7px;
-        border-color: #cbd9dd;
-        font-size: .86rem;
-    }
-
-    .booking-form-card textarea {
-        min-height: 86px;
-    }
-
-    .booking-submit {
-        width: 100%;
-        min-height: 42px;
-        margin-top: .25rem;
-        border: 0;
-        border-radius: 7px;
-        background: #087f5b;
-        color: #fff;
-        font-weight: 800;
-        cursor: pointer;
-    }
-
-    .booking-submit:hover {
-        background: #056b4c;
-    }
-
-    .booking-back-link {
-        display: inline-block;
-        margin-top: .85rem;
-        color: #087f5b;
-        font-size: .82rem;
-        font-weight: 800;
-        text-decoration: none;
-    }
-
-    @media (max-width: 560px) {
-        .booking-create-page {
-            width: min(100% - 1rem, 760px);
-            padding-top: 1.25rem;
-        }
-
-        .selected-service-heading {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-
-        .selected-service-meta {
-            grid-template-columns: 1fr;
-        }
-
-        .booking-form-card {
-            padding: .85rem;
-        }
-
-        .available-workers-heading {
-            align-items: flex-start;
-            flex-direction: column;
-        }
-    }
-</style>

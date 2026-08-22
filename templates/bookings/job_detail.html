@@ -115,6 +115,16 @@
                             <i class="fas fa-check-circle"></i> Mark Complete
                         </a>
                     {% endif %}
+                    {% if request.user == job.worker and job.status == 'CONFIRMED' or request.user == job.worker and job.status == 'IN_PROGRESS' %}
+                        <form method="post" action="{% url 'job_update_price' job.id %}" class="d-flex align-items-center gap-2">
+                            {% csrf_token %}
+                            <label for="job-price" class="visually-hidden">Final price</label>
+                            <input id="job-price" name="actual_price" type="number" min="0.01" step="0.01" value="{{ job.actual_price|default:'' }}" placeholder="Price" class="form-control" style="width: 120px;">
+                            <button type="submit" class="btn btn-outline-primary" title="Update price">
+                                <i class="fas fa-tag"></i> Update Price
+                            </button>
+                        </form>
+                    {% endif %}
                     {% if request.user == job.customer and job.status == 'COMPLETED' and not payment_completed %}
                         <a href="{% url 'make_payment' job.id %}" class="btn btn-primary">
                             <i class="fas fa-credit-card"></i> Pay Now

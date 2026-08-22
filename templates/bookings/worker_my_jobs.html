@@ -1,248 +1,110 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}My Jobs - Worker{% endblock %}
+{% block title %}My Jobs | MJMS{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/workflow-hub.css' %}">
+{% endblock %}
 
 {% block content %}
-<style>
-    .message-unread-bell { margin-left: 7px; color: #facc15; filter: drop-shadow(0 0 2px rgba(120, 53, 15, .45)); }
-</style>
-<div class="container" style="padding: 2rem 1rem;">
-    <h1 style="margin-bottom: 2rem; color: var(--primary, #0f172a);">My Jobs</h1>
+<div class="hub-page" data-hub="worker">
+    <section class="hub-hero hub-hero--worker">
+        <div><span class="hub-eyebrow"><i class="fa-solid fa-briefcase"></i> Worker workspace</span><h1>My Jobs</h1><p>Manage your applications, assigned work, customer communication and completed services from one dashboard.</p></div>
+        <a href="{% url 'worker_available_jobs' %}" class="hub-btn hub-btn--primary"><i class="fa-solid fa-magnifying-glass"></i> Find new jobs</a>
+    </section>
 
-    <!-- Stats Section -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-        <div style="background: #e0e7ff; padding: 1.5rem; border-radius: 8px; text-align: center;">
-            <div style="font-size: 2rem; font-weight: bold; color: #4f46e5;">{{ total_jobs }}</div>
-            <div style="color: #555; font-size: 0.9rem;">Active Jobs</div>
-        </div>
-        <div style="background: #dbeafe; padding: 1.5rem; border-radius: 8px; text-align: center;">
-            <div style="font-size: 2rem; font-weight: bold; color: #0284c7;">{{ pending_applications|length }}</div>
-            <div style="color: #555; font-size: 0.9rem;">Pending Requests</div>
-        </div>
-        <div style="background: #d1fae5; padding: 1.5rem; border-radius: 8px; text-align: center;">
-            <div style="font-size: 2rem; font-weight: bold; color: #059669;">{{ total_completed }}</div>
-            <div style="color: #555; font-size: 0.9rem;">Completed Jobs</div>
-        </div>
-    </div>
+    <section class="hub-stats" aria-label="Job summary">
+        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--amber"><i class="fa-solid fa-paper-plane"></i></span><div><small>Pending applications</small><strong>{{ pending_applications|length }}</strong><span>waiting for customer</span></div></div>
+        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--violet"><i class="fa-solid fa-calendar-check"></i></span><div><small>Confirmed</small><strong>{{ confirmed_jobs|length }}</strong><span>ready to start</span></div></div>
+        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--blue"><i class="fa-solid fa-person-digging"></i></span><div><small>In progress</small><strong>{{ active_jobs|length }}</strong><span>currently working</span></div></div>
+        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--green"><i class="fa-solid fa-circle-check"></i></span><div><small>Completed</small><strong>{{ completed_jobs|length }}</strong><span>finished jobs</span></div></div>
+    </section>
 
-    <!-- Confirmed / Ready to Start -->
+    <section class="hub-toolbar">
+        <div class="hub-search"><i class="fa-solid fa-magnifying-glass"></i><input id="workerHubSearch" type="search" placeholder="Search job, customer, location or application..."></div>
+        <div class="hub-tabs" role="tablist" aria-label="Job status">
+            <button class="hub-tab is-active" type="button" data-filter="all">All</button>
+            <button class="hub-tab" type="button" data-filter="application">Applications</button>
+            <button class="hub-tab" type="button" data-filter="confirmed">Confirmed</button>
+            <button class="hub-tab" type="button" data-filter="active">In progress</button>
+            <button class="hub-tab" type="button" data-filter="completed">Completed</button>
+        </div>
+    </section>
+
+    <div id="workerHubEmpty" class="hub-empty hub-empty--filtered" hidden><i class="fa-solid fa-filter-circle-xmark"></i><h2>No matching jobs</h2><p>Try another search or choose a different status.</p></div>
+
     {% if confirmed_jobs %}
-    <section style="margin-bottom: 3rem;">
-        <h2 style="color: var(--primary, #0f172a); border-bottom: 2px solid #f59e0b; padding-bottom: 1rem; margin-bottom: 1.5rem;">
-            Confirmed Jobs ({{ confirmed_jobs|length }})
-        </h2>
-        <div style="display: grid; gap: 1.5rem;">
-            {% for job in confirmed_jobs %}
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary, #0f172a);">{{ job.title }}</h3>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Customer:</strong> {{ job.customer.get_full_name|default:job.customer.username }}</p>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Amount:</strong> <span style="color: #059669; font-weight: bold;">৳{{ job.proposed_price }}</span></p>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="display: inline-block; background: #fef3c7; color: #92400e; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">Confirmed</span>
-                    </div>
-                </div>
-                <p style="margin: 0.5rem 0; color: #666;"><strong>Service:</strong> {{ job.service_request.title }}</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
-                    <a href="{% url 'job_detail' job.pk %}" style="padding: 0.75rem 1rem; background: #4f46e5; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">View Details</a>
-                    <a href="{% url 'job_messages' job.pk %}" style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Message Customer{% if job.has_unread_customer_message %}<i class="fas fa-bell message-unread-bell" title="New message"></i>{% endif %}</a>
-                    <a href="{% url 'job_accept' job.pk %}" style="padding: 0.75rem 1rem; background: #059669; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Start Work</a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+    <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Next to start</span><h2>Confirmed Jobs</h2></div><span class="hub-count">{{ confirmed_jobs|length }}</span></div>
+        <div class="hub-list">{% for job in confirmed_jobs %}
+            <article class="hub-card hub-item" data-filter-status="confirmed" data-search="{{ job.title }} {{ job.customer.get_full_name|default:job.customer.username }} {{ job.location }}">
+                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>Customer: {{ job.customer.get_full_name|default:job.customer.username }}</p></div></div><span class="hub-status hub-status--confirmed">Confirmed</span></div>
+                <div class="hub-card__grid"><div><small><i class="fa-regular fa-calendar"></i> Schedule</small><strong>{{ job.scheduled_date|date:"M d, Y" }}{% if job.scheduled_time_start %} · {{ job.scheduled_time_start|time:"g:i A" }}{% endif %}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location }}</strong></div><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Agreed price</small><strong>৳{{ job.final_price }}</strong></div><div><small><i class="fa-solid fa-clock"></i> Created</small><strong>{{ job.created_at|date:"M d, Y" }}</strong></div></div>
+                <p class="hub-description">{{ job.description|truncatewords:30 }}</p>
+                <div class="hub-card__actions"><form method="post" action="{% url 'job_accept' job.pk %}" class="hub-inline-form">{% csrf_token %}<button class="hub-btn hub-btn--primary" type="submit"><i class="fa-solid fa-play"></i> Accept &amp; start</button></form><a class="hub-btn hub-btn--soft" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a><a class="hub-btn hub-btn--soft" href="{% url 'job_messages' job.pk %}"><i class="fa-regular fa-comments"></i> Message{% if job.has_unread_customer_message %}<b class="hub-notice-dot"></b>{% endif %}</a></div>
+            </article>
+        {% endfor %}</div>
     </section>
     {% endif %}
 
-    <!-- In Progress / Continue Work -->
     {% if active_jobs %}
-    <section style="margin-bottom: 3rem;">
-        <h2 style="color: var(--primary, #0f172a); border-bottom: 2px solid #0284c7; padding-bottom: 1rem; margin-bottom: 1.5rem;">
-            In Progress ({{ active_jobs|length }})
-        </h2>
-        <div style="display: grid; gap: 1.5rem;">
-            {% for job in active_jobs %}
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary, #0f172a);">{{ job.title }}</h3>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Customer:</strong> {{ job.customer.get_full_name|default:job.customer.username }}</p>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;"><strong>Amount:</strong> <span style="color: #059669; font-weight: bold;">৳{{ job.proposed_price }}</span></p>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="display: inline-block; background: #dbeafe; color: #0c4a6e; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">Continue Service</span>
-                    </div>
-                </div>
-                <p style="margin: 0.5rem 0; color: #666;"><strong>Service:</strong> {{ job.service_request.title }}</p>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
-                    <a href="{% url 'job_detail' job.pk %}" style="padding: 0.75rem 1rem; background: #4f46e5; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">View Details</a>
-                    <a href="{% url 'job_messages' job.pk %}" style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Message Customer{% if job.has_unread_customer_message %}<i class="fas fa-bell message-unread-bell" title="New message"></i>{% endif %}</a>
-                    <a href="{% url 'job_complete' job.pk %}" style="padding: 0.75rem 1rem; background: #059669; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">Service Done</a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+    <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Work in progress</span><h2>Active Jobs</h2></div><span class="hub-count">{{ active_jobs|length }}</span></div>
+        <div class="hub-list">{% for job in active_jobs %}
+            <article class="hub-card hub-item" data-filter-status="active" data-search="{{ job.title }} {{ job.customer.get_full_name|default:job.customer.username }} {{ job.location }}">
+                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--active"><i class="fa-solid fa-person-digging"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>Customer: {{ job.customer.get_full_name|default:job.customer.username }}</p></div></div><span class="hub-status hub-status--inprogress">In progress</span></div>
+                <div class="hub-card__grid"><div><small><i class="fa-solid fa-play"></i> Started</small><strong>{% if job.actual_start_time %}{{ job.actual_start_time|date:"M d, Y · g:i A" }}{% else %}Started{% endif %}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location }}</strong></div><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Price</small><strong>৳{{ job.final_price }}</strong></div><div><small><i class="fa-regular fa-comments"></i> Messages</small><strong>{% if job.has_unread_customer_message %}New message{% else %}Up to date{% endif %}</strong></div></div>
+                <p class="hub-description">{{ job.description|truncatewords:30 }}</p>
+                <div class="hub-card__actions"><a class="hub-btn hub-btn--success" href="{% url 'job_complete' job.pk %}"><i class="fa-solid fa-check"></i> Mark completed</a><a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a><a class="hub-btn hub-btn--soft" href="{% url 'job_messages' job.pk %}"><i class="fa-regular fa-comments"></i> Message{% if job.has_unread_customer_message %}<b class="hub-notice-dot"></b>{% endif %}</a></div>
+            </article>
+        {% endfor %}</div>
     </section>
     {% endif %}
 
-    <!-- Accepted Applications Section -->
     {% if accepted_applications %}
-    <section style="margin-bottom: 3rem;">
-        <h2 style="color: var(--primary, #0f172a); border-bottom: 2px solid #0284c7; padding-bottom: 1rem; margin-bottom: 1.5rem;">
-            Accepted Applications - Awaiting Job Start ({{ accepted_applications|length }})
-        </h2>
-        
-        <div style="display: grid; gap: 1.5rem;">
-            {% for app in accepted_applications %}
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary, #0f172a);">{{ app.service_request.title }}</h3>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
-                            <strong>Customer:</strong> {{ app.service_request.customer.get_full_name|default:app.service_request.customer.username }}
-                        </p>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
-                            <strong>Your Quote:</strong> <span style="color: #059669; font-weight: bold;">৳{{ app.proposed_price }}</span>
-                        </p>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="display: inline-block; background: #d1fae5; color: #065f46; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
-                            ✓ Accepted
-                        </span>
-                    </div>
-                </div>
-
-                <p style="margin: 0.5rem 0; color: #666;">
-                    <strong>Customer Request:</strong> {{ app.service_request.description|truncatewords:30 }}
-                </p>
-
-                <p style="margin: 0.5rem 0; color: #666;">
-                    <strong>Your Proposal:</strong> {{ app.proposal_message|truncatewords:20 }}
-                </p>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
-                    {% if app.service_request.job and app.service_request.job.status != 'CANCELLED' %}
-                    <a href="{% url 'job_messages' app.service_request.job.pk %}" 
-                       style="padding: 0.75rem 1rem; background: #0284c7; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
-                        💬 Contact Customer
-                    </a>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+    <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Customer selected you</span><h2>Accepted Applications</h2></div><span class="hub-count">{{ accepted_applications|length }}</span></div>
+        <div class="hub-list">{% for app in accepted_applications %}{% if not app.service_request.job %}
+            <article class="hub-card hub-item" data-filter-status="application" data-search="{{ app.service_request.title }} {{ app.service_request.customer.get_full_name|default:app.service_request.customer.username }} {{ app.service_request.location }}">
+                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon"><i class="fa-solid fa-user-check"></i></span><div><span class="hub-card__label">Application accepted</span><h3>{{ app.service_request.title }}</h3><p>Customer: {{ app.service_request.customer.get_full_name|default:app.service_request.customer.username }}</p></div></div><span class="hub-status hub-status--accepted">Accepted</span></div>
+                <div class="hub-card__grid"><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Your quote</small><strong>৳{{ app.proposed_price }}</strong></div><div><small><i class="fa-regular fa-calendar"></i> Start date</small><strong>{{ app.can_start_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ app.service_request.location }}</strong></div><div><small><i class="fa-solid fa-check"></i> Schedule</small><strong>{% if app.agreed_to_schedule %}Agreed{% else %}Confirm with customer{% endif %}</strong></div></div>
+                <p class="hub-description">{{ app.proposal_message|default:"Your application was accepted. Continue with the customer to finalize the job."|truncatewords:28 }}</p>
+                <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'service_request_detail' app.service_request.pk %}"><i class="fa-solid fa-eye"></i> View request</a></div>
+            </article>
+        {% endif %}{% endfor %}</div>
     </section>
     {% endif %}
 
-    <!-- Pending Applications Section -->
     {% if pending_applications %}
-    <section style="margin-bottom: 3rem;">
-        <h2 style="color: var(--primary, #0f172a); border-bottom: 2px solid #f59e0b; padding-bottom: 1rem; margin-bottom: 1.5rem;">
-            Pending Applications ({{ pending_applications|length }})
-        </h2>
-        
-        <div style="display: grid; gap: 1.5rem;">
-            {% for app in pending_applications %}
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary, #0f172a);">{{ app.service_request.title }}</h3>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
-                            <strong>Customer:</strong> {{ app.service_request.customer.get_full_name|default:app.service_request.customer.username }}
-                        </p>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
-                            <strong>Your Quote:</strong> <span style="color: #059669; font-weight: bold;">৳{{ app.proposed_price }}</span>
-                        </p>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="display: inline-block; background: #fef3c7; color: #92400e; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
-                            ⏳ Pending
-                        </span>
-                    </div>
-                </div>
-
-                <p style="margin: 0.5rem 0; color: #666;">
-                    <strong>Customer Request:</strong> {{ app.service_request.description|truncatewords:30 }}
-                </p>
-
-                <p style="margin: 0.5rem 0; color: #666;">
-                    <strong>Your Proposal:</strong> {{ app.proposal_message|truncatewords:20 }}
-                </p>
-
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; margin-top: 1rem;">
-                    <a href="{% url 'service_request_detail' app.service_request.pk %}" 
-                       style="padding: 0.75rem 1rem; background: #4f46e5; color: white; text-align: center; border-radius: 4px; text-decoration: none; font-weight: 500;">
-                        View Request
-                    </a>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
+    <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Waiting for customer</span><h2>Pending Applications</h2></div><span class="hub-count">{{ pending_applications|length }}</span></div>
+        <div class="hub-list">{% for app in pending_applications %}
+            <article class="hub-card hub-item" data-filter-status="application" data-search="{{ app.service_request.title }} {{ app.service_request.customer.get_full_name|default:app.service_request.customer.username }} {{ app.service_request.location }}">
+                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon"><i class="fa-solid fa-paper-plane"></i></span><div><span class="hub-card__label">Application #{{ app.pk }}</span><h3>{{ app.service_request.title }}</h3><p>Customer: {{ app.service_request.customer.get_full_name|default:app.service_request.customer.username }}</p></div></div><span class="hub-status hub-status--pending">Pending</span></div>
+                <div class="hub-card__grid"><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Your quote</small><strong>৳{{ app.proposed_price }}</strong></div><div><small><i class="fa-regular fa-calendar"></i> Can start</small><strong>{{ app.can_start_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ app.service_request.location }}</strong></div><div><small><i class="fa-regular fa-clock"></i> Applied</small><strong>{{ app.created_at|date:"M d, Y" }}</strong></div></div>
+                <p class="hub-description">{{ app.proposal_message|default:"No proposal message provided."|truncatewords:28 }}</p>
+                <div class="hub-card__actions"><a class="hub-btn hub-btn--soft" href="{% url 'service_request_detail' app.service_request.pk %}"><i class="fa-solid fa-eye"></i> View request</a></div>
+            </article>
+        {% endfor %}</div>
     </section>
     {% endif %}
 
-    <!-- Completed Jobs Section -->
     {% if completed_jobs %}
-    <section style="margin-bottom: 3rem;">
-        <h2 style="color: var(--primary, #0f172a); border-bottom: 2px solid #059669; padding-bottom: 1rem; margin-bottom: 1.5rem;">
-            Completed Jobs ({{ completed_jobs|length }})
-        </h2>
-        
-        <div style="display: grid; gap: 1.5rem;">
-            {% for job in completed_jobs %}
-            <div style="background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); opacity: 0.9;">
-                <div style="display: grid; grid-template-columns: 1fr auto; gap: 1rem; margin-bottom: 1rem;">
-                    <div>
-                        <h3 style="margin: 0 0 0.5rem 0; color: var(--primary, #0f172a);">{{ job.title }}</h3>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
-                            <strong>Customer:</strong> {{ job.customer.get_full_name|default:job.customer.username }}
-                        </p>
-                        <p style="margin: 0.5rem 0; color: #666; font-size: 0.95rem;">
-                            <strong>Amount Earned:</strong> <span style="color: #059669; font-weight: bold;">৳{{ job.actual_price|default:job.proposed_price }}</span>
-                        </p>
-                    </div>
-                    <div style="text-align: right;">
-                        <span style="display: inline-block; background: #d1fae5; color: #065f46; padding: 0.5rem 1rem; border-radius: 4px; font-size: 0.85rem; font-weight: 600;">
-                            ✓ Completed
-                        </span>
-                    </div>
-                </div>
-
-                {% if job.completion_notes %}
-                <p style="margin: 0.5rem 0; color: #666;">
-                    <strong>Notes:</strong> {{ job.completion_notes|truncatewords:30 }}
-                </p>
-                {% endif %}
-
-                <p style="margin: 0.5rem 0; color: #999; font-size: 0.9rem;">
-                    Completed on: {{ job.updated_at|date:"M d, Y" }}
-                </p>
-            </div>
-            {% endfor %}
-        </div>
+    <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Finished work</span><h2>Completed Jobs</h2></div><span class="hub-count">{{ completed_jobs|length }}</span></div>
+        <div class="hub-list">{% for job in completed_jobs %}
+            <article class="hub-card hub-item" data-filter-status="completed" data-search="{{ job.title }} {{ job.customer.get_full_name|default:job.customer.username }} {{ job.location }}">
+                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--done"><i class="fa-solid fa-circle-check"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>Customer: {{ job.customer.get_full_name|default:job.customer.username }}</p></div></div><span class="hub-status hub-status--completed">Completed</span></div>
+                <div class="hub-card__grid"><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Earned</small><strong>৳{{ job.final_price }}</strong></div><div><small><i class="fa-regular fa-calendar-check"></i> Completed</small><strong>{{ job.updated_at|date:"M d, Y" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location }}</strong></div><div><small><i class="fa-solid fa-credit-card"></i> Payment</small><strong>Managed in Payments</strong></div></div>
+                {% if job.completion_notes %}<p class="hub-description">{{ job.completion_notes|truncatewords:28 }}</p>{% endif %}
+                <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> View details</a></div>
+            </article>
+        {% endfor %}</div>
     </section>
     {% endif %}
 
-    <!-- Empty State -->
-    {% if not active_jobs and not pending_applications and not accepted_applications and not completed_jobs %}
-    <div style="background: #f3f4f6; border: 2px dashed #d1d5db; border-radius: 8px; padding: 3rem; text-align: center;">
-        <p style="font-size: 1.1rem; color: #666; margin-bottom: 1rem;">No jobs yet</p>
-        <p style="color: #999; margin-bottom: 1.5rem;">Browse open service requests and start applying to get your first job!</p>
-        <a href="{% url 'service_request_list' %}" 
-           style="display: inline-block; padding: 0.75rem 1.5rem; background: #4f46e5; color: white; text-decoration: none; border-radius: 4px; font-weight: 500;">
-            Browse Open Requests
-        </a>
-    </div>
+    {% if not confirmed_jobs and not active_jobs and not accepted_applications and not pending_applications and not completed_jobs %}
+    <section class="hub-empty"><span class="hub-empty__icon"><i class="fa-solid fa-briefcase"></i></span><h2>No jobs yet</h2><p>Browse customer requests that match your profession and send your first application.</p><a href="{% url 'service_request_list' %}" class="hub-btn hub-btn--primary"><i class="fa-solid fa-magnifying-glass"></i> Browse job requests</a></section>
     {% endif %}
 </div>
+{% endblock %}
 
-<style>
-    .container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-</style>
+{% block extra_js %}
+<script src="{% static 'js/workflow-hub.js' %}" defer></script>
 {% endblock %}

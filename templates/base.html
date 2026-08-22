@@ -16,6 +16,7 @@
     {% block extra_css %}{% endblock %}
 
 <link rel="stylesheet" href="{% static 'css/service-filter-fix.css' %}">
+    <link rel="stylesheet" href="{% static 'css/site-final.css' %}">
 </head>
 <body>
     {% include 'navbar.html' %}
@@ -27,32 +28,7 @@
 
     {% include 'footer.html' %}
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const menuButton = document.querySelector("[data-mobile-menu]");
-            const menu = document.querySelector("[data-nav-menu]");
-
-            if (menuButton && menu) {
-                menuButton.addEventListener("click", function () {
-                    const open = menu.classList.toggle("is-open");
-                    menuButton.setAttribute("aria-expanded", String(open));
-                });
-            }
-
-            document.querySelectorAll("[data-password-toggle]").forEach(function (button) {
-                button.addEventListener("click", function () {
-                    const input = document.getElementById(button.dataset.passwordToggle);
-                    if (!input) return;
-                    const visible = input.type === "text";
-                    input.type = visible ? "password" : "text";
-                    button.innerHTML = visible
-                        ? '<i class="fa-solid fa-eye"></i>'
-                        : '<i class="fa-solid fa-eye-slash"></i>';
-                    button.setAttribute("aria-label", visible ? "Show password" : "Hide password");
-                });
-            });
-        });
-    </script>
+    <script src="{% static 'js/site.js' %}" defer></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

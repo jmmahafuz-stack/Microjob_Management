@@ -23,6 +23,7 @@ from .forms import (
     JobApplicationReviewForm,
     JobForm,
     JobCompletionForm,
+    JobPriceUpdateForm,
     WorkerResponseForm,
 )
 from .models import Booking, BookingMessage, ServiceRequest, JobApplication, Job, WorkerResponse
@@ -41,20 +42,15 @@ def _get_related_workers(service):
 
 
 @login_required
+@login_required
 def booking_list(request):
+    """Compatibility entry point for the unified booking area."""
     if request.user.role == 'admin':
         messages.warning(request, 'Admin access is limited to reports and user management. Job workflow pages are not available to admins.')
         return redirect('dashboard_home')
-    elif request.user.role == 'worker':
-        bookings = Booking.objects.filter(worker=request.user).order_by('-created_at')
-    else:
-        bookings = Booking.objects.filter(customer=request.user).order_by('-created_at')
-
-    return render(
-        request,
-        'bookings/booking_list.html',
-        {'bookings': bookings}
-    )
+    if request.user.role == 'worker':
+        return redirect('worker_my_jobs')
+    return redirect('my_bookings')
 
 
 @login_required
@@ -114,39 +110,9 @@ def my_bookings(request):
 @login_required
 @customer_required
 def my_jobs(request):
-    """Show the customer's side of the request → accept → work → complete → pay lifecycle."""
-    verified_payment = Payment.objects.filter(
-        job=OuterRef('pk'),
-        payment_status='Verified',
-    )
-    unread_worker_message = Notification.objects.filter(
-        job=OuterRef('pk'),
-        user=request.user,
-        related_user=OuterRef('worker'),
-        notification_type='JOB_MESSAGE',
-        is_read=False,
-    )
-    job_queryset = Job.objects.annotate(
-        payment_completed=Exists(verified_payment),
-        has_unread_worker_message=Exists(unread_worker_message),
-    ).select_related('worker', 'service_request').order_by('-created_at')
-    confirmed_jobs = job_queryset.filter(customer=request.user, status='CONFIRMED')
-    active_jobs = job_queryset.filter(customer=request.user, status='IN_PROGRESS')
-    completed_jobs = job_queryset.filter(customer=request.user, status='COMPLETED')
+    """Compatibility entry point; customer job tracking now lives in My Bookings."""
+    return redirect('my_bookings')
 
-    context = {
-        'confirmed_jobs': confirmed_jobs,
-        'active_jobs': active_jobs,
-        'completed_jobs': completed_jobs,
-        'total_jobs': len(confirmed_jobs) + len(active_jobs),
-        'total_completed': len(completed_jobs),
-    }
-
-    return render(
-        request,
-        'bookings/my_jobs.html',
-        context
-    )
 
 
 @login_required
@@ -360,19 +326,14 @@ def create_booking(request):
 
 
 @login_required
+@login_required
 def booking_history(request):
+    """Compatibility entry point for the unified booking area."""
     if request.user.role == 'admin':
-        bookings = Booking.objects.all().order_by('-created_at')
-    elif request.user.role == 'worker':
-        bookings = Booking.objects.filter(worker=request.user).order_by('-created_at')
-    else:
-        bookings = Booking.objects.filter(customer=request.user).order_by('-created_at')
-
-    return render(
-        request,
-        'bookings/booking_history.html',
-        {'bookings': bookings}
-    )
+        return redirect('dashboard_home')
+    if request.user.role == 'worker':
+        return redirect('worker_my_jobs')
+    return redirect('my_bookings')
 
 
 @customer_required
@@ -877,6 +838,36 @@ def job_complete(request, pk):
 
 
 @login_required
+@worker_required
+def job_update_price(request, pk):
+    """Worker updates the price while the job is not yet completed."""
+    job = get_object_or_404(Job, pk=pk)
+
+    if job.worker != request.user:
+        messages.error(request, 'Only the assigned worker can update this job price.')
+        return redirect('job_detail', pk=job.pk)
+
+    if job.status not in ['CONFIRMED', 'IN_PROGRESS']:
+        messages.error(request, 'The price can only be changed before the job is completed.')
+        return redirect('job_detail', pk=job.pk)
+
+    if Payment.objects.filter(job=job, payment_status='Verified').exists():
+        messages.error(request, 'The price cannot be changed after payment is verified.')
+        return redirect('job_detail', pk=job.pk)
+
+    if request.method != 'POST':
+        return redirect('job_detail', pk=job.pk)
+
+    form = JobPriceUpdateForm(request.POST, instance=job)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Job price updated successfully.')
+    else:
+        messages.error(request, form.errors.get('actual_price', ['Enter a valid price.'])[0])
+    return redirect('job_detail', pk=job.pk)
+
+
+@login_required
 @customer_required
 def cancel_job(request, pk):
     """Customer cancels a job"""
@@ -971,6 +962,10 @@ def job_accept(request, pk):
 
     if job.worker != request.user:
         messages.error(request, 'You can only accept jobs assigned to you.')
+        return redirect('worker_my_jobs')
+
+    if request.method != 'POST':
+        messages.info(request, 'Please use the Accept & start button to begin this job.')
         return redirect('worker_my_jobs')
 
     if request.user.worker_status != 'APPROVED':

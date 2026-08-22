@@ -161,8 +161,10 @@ def service_list(request):
         if service.featured
     ][:4]
 
+    featured_ids = {service.pk for service in featured_services}
+    popular_pool = [service for service in services if service.pk not in featured_ids]
     popular_services = sorted(
-        services,
+        popular_pool,
         key=lambda service: service.booking_count,
         reverse=True
     )[:4]
