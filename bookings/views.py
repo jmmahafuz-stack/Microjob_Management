@@ -702,7 +702,7 @@ def job_application_review(request, pk):
                     description=application.service_request.description,
                     proposed_price=application.proposed_price,
                     estimated_duration=application.estimated_duration,
-                    scheduled_date=application.can_start_date,
+                    scheduled_date=application.service_request.preferred_date,
                     scheduled_time_start=application.service_request.preferred_time_start,
                     scheduled_time_end=application.service_request.preferred_time_end,
                     location=application.service_request.location,
@@ -1069,6 +1069,22 @@ def job_messages(request, pk):
         messages.info(request, 'Messaging is closed because payment has been completed for this service.')
         return redirect('job_detail', pk=job.pk)
 
+    price_form = JobPriceUpdateForm(instance=job)
+
+    if request.method == 'POST' and 'update_price' in request.POST:
+        if request.user != job.worker:
+            messages.error(request, 'Only the assigned worker can update the job price.')
+            return redirect('job_messages', pk=job.pk)
+        if job.status not in ['CONFIRMED', 'IN_PROGRESS']:
+            messages.error(request, 'The price can only be changed before the job is completed.')
+            return redirect('job_messages', pk=job.pk)
+
+        price_form = JobPriceUpdateForm(request.POST, instance=job)
+        if price_form.is_valid():
+            price_form.save()
+            messages.success(request, 'Job price updated successfully.')
+            return redirect('job_messages', pk=job.pk)
+
     if request.method == 'POST' and 'agree_price' in request.POST:
         if request.user != job.customer:
             messages.error(request, 'Only the customer can agree to the job price.')
@@ -1136,6 +1152,7 @@ def job_messages(request, pk):
         'messages': job_messages,
         'payment_completed': payment_completed,
         'price_agreed': price_agreed,
+        'price_form': price_form,
     }
     return render(request, 'bookings/job_messages.html', context)
 

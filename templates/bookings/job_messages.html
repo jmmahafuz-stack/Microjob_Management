@@ -31,14 +31,16 @@
     .message-page .quick-action:last-child { margin-bottom: 0; }
     .message-page .job-info-row { padding: .7rem 0; border-bottom: 1px solid #edf2f4; }
     .message-page .job-info-row:last-child { border-bottom: 0; padding-bottom: 0; }
-    .message-page .job-info-row small { color: #526b7b; font-size: 1rem; }
+    .message-page .job-info-row small { display: block; color: #526b7b; font-size: 1rem; overflow-wrap: anywhere; }
+    .message-page .job-info-row .job-info-price { color: #0f766e; font-size: 1.35rem; font-weight: 800; }
     .message-page .form-label { font-size: 1rem; }
     .message-page .btn { font-size: 1rem; }
     .message-page .conversation-actions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
     .message-page .conversation-actions form { margin: 0; }
     .message-page .conversation-actions .quick-action { margin-bottom: 0; }
     .message-page .agreement-note { padding: .8rem 1rem; border: 1px solid #b7e3d5; border-radius: 8px; background: #effaf6; color: #166534; font-size: .92rem; }
-    .message-page .message-layout { align-items: start; }
+    .message-page .message-layout { align-items: start; grid-template-columns: minmax(0, 1.25fr) minmax(430px, 1fr); }
+    .message-page .message-main, .message-page .message-sidebar { width: 100%; max-width: none; }
     .message-page .job-hero { border: 0; background: #163a56; color: #fff; box-shadow: 0 12px 30px rgba(22, 58, 86, .18); }
     .message-page .job-hero .card-header { padding: 1.4rem 1.5rem; background: transparent !important; border-bottom: 1px solid rgba(255, 255, 255, .16); }
     .message-page .job-hero .job-reference { color: #9ee6cf; }
@@ -65,7 +67,12 @@
     .message-page .composer-actions form { margin: 0; }
     .message-page .action-card .conversation-actions { justify-content: flex-start; }
     .message-page .action-card .conversation-actions .btn { flex: 1 1 auto; }
-    .message-page .info-card { margin-top: 1.25rem; }
+    .message-page .info-card { min-height: 430px; margin-top: 1.25rem; }
+    .message-page .info-card .card-header { padding: 1.35rem 1.5rem; }
+    .message-page .info-card .card-body { padding: 2rem 1.75rem; }
+    .message-page .price-form { padding-top: .9rem; border-top: 1px solid #edf2f4; }
+    .message-page .price-form .form-control { max-width: 180px; }
+    @media (max-width: 900px) { .message-page .message-layout { grid-template-columns: 1fr; } }
     @media (max-width: 767px) { .message-page { padding-top: 1.5rem; } .message-page .message-bubble { max-width: 94%; } }
 </style>
 <div class="container message-page">
@@ -98,7 +105,21 @@
                         </div>
                         <div class="col-md-6">
                             <strong>Price:</strong><br>
-                            ৳{{ job.final_price }}
+                            ৳{{ job.final_price|floatformat:2 }}
+                            {% if request.user == job.worker and job.status in 'CONFIRMED,IN_PROGRESS' %}
+                                <form method="post" class="main-price-form">
+                                    {% csrf_token %}
+                                    <label for="id_actual_price" class="visually-hidden">Final price</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text">৳</span>
+                                        {{ price_form.actual_price }}
+                                        <button type="submit" name="update_price" class="btn btn-success">Save</button>
+                                    </div>
+                                    {% if price_form.actual_price.errors %}
+                                        <div class="text-danger small mt-1">{{ price_form.actual_price.errors|striptags }}</div>
+                                    {% endif %}
+                                </form>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -215,7 +236,11 @@
                     </div>
                     <div class="mb-3 job-info-row">
                         <strong>Scheduled Date:</strong><br>
-                        <small class="text-muted">{{ job.scheduled_date|date:"M d, Y" }}</small>
+                        <small class="text-muted">{{ job.scheduled_date|date:"F j, Y" }}</small>
+                    </div>
+                    <div class="mb-3 job-info-row">
+                        <strong>Current Price:</strong><br>
+                        <small class="job-info-price">৳{{ job.final_price|floatformat:2 }}</small>
                     </div>
                 </div>
             </div>

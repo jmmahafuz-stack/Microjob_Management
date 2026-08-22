@@ -6,3 +6,5 @@
 @media (max-width:430px){.hub-stats{grid-template-columns:1fr}.hub-card__grid{grid-template-columns:1fr}.hub-card__actions .hub-btn{flex-basis:100%}}
 
 .hub-inline-form{display:inline-flex;margin:0}.hub-inline-form .hub-btn{font:inherit}
+
+.hub-hero h1{color:#fff}

@@ -6,10 +6,10 @@
 {% endblock %}
 
 {% block content %}
-<section class="auth-page auth-page--register">
+<section class="auth-page auth-page--register facebook-login-container">
     <!-- Left Side: Branding & Info -->
-    <div class="auth-hero">
-        <div>
+    <div class="auth-hero facebook-login-left">
+        <div class="register-hero-content">
             <span class="auth-badge"><i class="fa-solid fa-shield-halved"></i> Trusted service marketplace</span>
             <h1>Join MJMS today</h1>
             <p>Get started in less than 2 minutes</p>
@@ -32,15 +32,16 @@
     </div>
 
     <!-- Right Side: Registration Form -->
-    <div class="auth-card auth-card--register">
-        <div class="auth-card__header">
+    <div class="facebook-login-right">
+        <div class="auth-card auth-card--register">
+            <div class="auth-card__header">
             <h2>Create Account</h2>
             <p>Select your role and fill in your details</p>
-        </div>
+            </div>
 
-        {% include 'partials/messages.html' %}
+            {% include 'partials/messages.html' %}
 
-        <form method="POST" class="register-form" id="registerForm">
+            <form method="POST" class="register-form" id="registerForm">
             {% csrf_token %}
 
             <!-- Role Selection -->
@@ -173,7 +174,8 @@
             <p class="login-switch">
                 Already have an account? <a href="{% url 'login' %}">Sign in</a>
             </p>
-        </form>
+            </form>
+        </div>
     </div>
 </section>
 
