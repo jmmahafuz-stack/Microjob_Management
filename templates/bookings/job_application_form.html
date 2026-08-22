@@ -4,13 +4,17 @@
 {% block title %}Apply for Job{% endblock %}
 
 {% block content %}
-<div class="container" style="margin-top: 100px; margin-bottom: 50px;">
+<div class="container application-page">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <h1 style="margin-bottom: 30px;">Submit Your Application</h1>
+            <div class="application-heading">
+                <p class="section-kicker">WORKER APPLICATION</p>
+                <h1>Submit Your Application</h1>
+                <p>Review the job details and send the customer a clear proposal.</p>
+            </div>
             
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
+            <div class="card application-card job-opportunity-card">
+                <div class="card-header">
                     <h5 class="mb-0">Job Opportunity</h5>
                 </div>
                 <div class="card-body">
@@ -48,8 +52,8 @@
                 </div>
             </div>
             
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
+            <div class="card application-card">
+                <div class="card-header">
                     <h5 class="mb-0">Your Application</h5>
                 </div>
                 <div class="card-body p-4">
@@ -73,19 +77,21 @@
                         
                         <div class="mb-3">
                             <label class="form-label"><strong>Estimated Duration *</strong></label>
-                            <div class="row g-2">
-                                <div class="col-6">
+                            <div class="duration-box">
+                                <div class="duration-fields">
+                                    <div>
                                     <label for="{{ form.duration_hours.id_for_label }}" class="small text-muted">Hours</label>
                                     {{ form.duration_hours }}
-                                </div>
-                                <div class="col-6">
+                                    </div>
+                                    <div>
                                     <label for="{{ form.duration_minutes.id_for_label }}" class="small text-muted">Minutes</label>
                                     {{ form.duration_minutes }}
+                                    </div>
                                 </div>
+                                <small class="form-text text-muted">Choose the expected time to complete the service.</small>
                             </div>
                             {% if form.duration_hours.errors %}<div class="invalid-feedback d-block">{{ form.duration_hours.errors.0 }}</div>{% endif %}
                             {% if form.duration_minutes.errors %}<div class="invalid-feedback d-block">{{ form.duration_minutes.errors.0 }}</div>{% endif %}
-                            <small class="form-text text-muted">Choose the expected time to complete the service.</small>
                         </div>
                         
                         <div class="mb-3">
@@ -100,24 +106,9 @@
                             {% endif %}
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="{{ form.proposal_message.id_for_label }}" class="form-label">
-                                <strong>Proposal Message *</strong>
-                            </label>
-                            {{ form.proposal_message }}
-                            {% if form.proposal_message.errors %}
-                                <div class="invalid-feedback d-block">
-                                    {{ form.proposal_message.errors.0 }}
-                                </div>
-                            {% endif %}
-                            <small class="form-text text-muted">
-                                Explain why you're the best choice for this job. Highlight your experience, approach, and how you'll deliver quality work.
-                            </small>
-                        </div>
-
-                        <div class="mb-3 form-check">
+                        <div class="agreement-row">
                             {{ form.agreed_to_schedule }}
-                            <label for="{{ form.agreed_to_schedule.id_for_label }}" class="form-check-label">
+                            <label for="{{ form.agreed_to_schedule.id_for_label }}">
                                 {{ form.agreed_to_schedule.label }}
                             </label>
                             {% if form.agreed_to_schedule.errors %}
@@ -126,7 +117,22 @@
                                 </div>
                             {% endif %}
                         </div>
-                        
+
+                        <div class="mb-3">
+                            <label for="{{ form.proposal_message.id_for_label }}" class="form-label">
+                                <strong>Proposal Message (optional)</strong>
+                            </label>
+                            {{ form.proposal_message }}
+                            {% if form.proposal_message.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.proposal_message.errors.0 }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">
+                                Add a short explanation of your experience or approach, or leave this blank.
+                            </small>
+                        </div>
+
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">
                                 {{ form.non_field_errors.0 }}
@@ -149,6 +155,124 @@
 </div>
 
 <style>
+    .application-page {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 4rem 1rem 3rem;
+    }
+
+    .application-heading {
+        margin-bottom: 1.5rem;
+    }
+
+    .application-heading h1 {
+        margin: .35rem 0 .45rem;
+        color: #163a56;
+        font-size: clamp(1.8rem, 4vw, 2.5rem);
+        font-weight: 800;
+    }
+
+    .application-heading > p:last-child {
+        margin: 0;
+        color: #607586;
+    }
+
+    .application-card {
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+        border: 1px solid #dce7ea;
+        border-radius: 14px;
+        background: #fff;
+        box-shadow: 0 10px 26px rgba(22, 58, 86, .07);
+    }
+
+    .application-card .card-header {
+        padding: 1rem 1.35rem;
+        border-bottom: 1px solid #dce7ea;
+        background: #f3f8f7;
+        color: #163a56;
+    }
+
+    .application-card .card-header h5 {
+        margin: 0;
+        font-weight: 800;
+    }
+
+    .application-card .card-body {
+        padding: 1.35rem;
+    }
+
+    .application-card .form-label {
+        color: #29485c;
+    }
+
+    .application-card .form-text {
+        display: block;
+        margin-top: .4rem;
+        color: #708391;
+        line-height: 1.45;
+    }
+
+    .duration-box {
+        padding: .85rem;
+        border: 1px solid #dce7ea;
+        border-radius: 8px;
+        background: #f8fbfa;
+    }
+
+    .duration-fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .75rem;
+    }
+
+    .duration-fields label {
+        display: block;
+        margin-bottom: .3rem;
+    }
+
+    .duration-box .form-text {
+        margin-bottom: 0;
+    }
+
+    .agreement-row {
+        display: flex;
+        align-items: center;
+        gap: .55rem;
+        margin: .25rem 0 1.15rem;
+        padding: .7rem .8rem;
+        border: 1px solid #cce8df;
+        border-radius: 8px;
+        background: #f3fbf8;
+    }
+
+    .agreement-row .form-check-input {
+        width: .75rem;
+        height: .75rem;
+        flex: 0 0 .75rem;
+        margin: 0;
+        accent-color: #087f5b;
+    }
+
+    .agreement-row label {
+        color: #315b51;
+        font-size: .86rem;
+        font-weight: 700;
+        line-height: 1.35;
+        white-space: nowrap;
+        cursor: pointer;
+    }
+
+    .agreement-row .invalid-feedback {
+        flex-basis: 100%;
+    }
+
+    .application-card .btn {
+        min-height: 42px;
+        border-radius: 8px;
+        font-weight: 700;
+    }
+
     .form-input, .form-textarea, .form-select {
         border-radius: 0.375rem;
         border: 1px solid #ddd;
@@ -162,6 +286,24 @@
         border-color: #007bff;
         box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
         outline: none;
+    }
+
+    @media (max-width: 576px) {
+        .application-page {
+            padding-top: 2rem;
+        }
+
+        .application-card .card-body {
+            padding: 1rem;
+        }
+
+        .application-card .d-grid {
+            display: grid !important;
+        }
+
+        .duration-fields {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 {% endblock %}

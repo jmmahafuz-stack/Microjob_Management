@@ -12,7 +12,7 @@
                     <div style="font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:#4f46e5; font-weight:700;">Selected service</div>
                     <h3 style="margin:4px 0 0; font-size:1.2rem;">{{ selected_service.name }}</h3>
                 </div>
-                <div style="background:#fff; border:1px solid #dbeafe; padding:8px 12px; border-radius:999px; font-weight:700; color:#1d4ed8;">৳{{ selected_service.price }}</div>
+                <div style="background:#fff7ed; border:1px solid #fed7aa; padding:8px 12px; border-radius:999px; font-weight:700; color:#c2410c;">Price to be agreed</div>
             </div>
             <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin-top:10px;">
                 <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:10px 12px;">
@@ -30,7 +30,13 @@
             </div>
         </div>
 
-        {% if selected_service.related_workers %}
+        {% if selected_worker %}
+            <div style="margin-bottom:18px; padding:14px 18px; border:1px solid #b7e3d5; border-radius:14px; background:#effaf6;">
+                <strong>Selected worker:</strong>
+                {{ selected_worker.user.get_full_name|default:selected_worker.user.username }}
+                <span style="color:#526b7b;">({{ selected_worker.profession|default:'Service professional' }})</span>
+            </div>
+        {% elif selected_service.related_workers %}
             <div style="margin-bottom:18px; padding:18px 20px; border:1px solid #d9e2ec; border-radius:14px; background:#f8fbff; box-shadow:0 4px 14px rgba(15,23,42,0.04);">
                 <h3 style="margin-top:0; margin-bottom:8px;">Recommended workers for this service</h3>
                 <p style="margin-top:0; margin-bottom:12px; color:#4b5563;">Choose a verified worker for this booking or continue with the service request below.</p>
@@ -57,8 +63,10 @@
         <p style="padding:12px 14px; border:1px solid #e2e8f0; border-radius:10px; background:#f8fafc;">Please choose the service you want to book below.</p>
     {% endif %}
 
-    <form method="post" class="auth-form" style="margin-top:6px;">
+    <form method="post" enctype="multipart/form-data" class="auth-form" style="margin-top:6px;">
     {% csrf_token %}
+    {% if selected_service %}<input type="hidden" name="service" value="{{ selected_service.pk }}">{% endif %}
+    {% if selected_worker %}<input type="hidden" name="worker" value="{{ selected_worker.user.pk }}">{% endif %}
     <div class="form-grid">
         {% for field in form %}
             <div class="form-group{% if field.name in 'address,problem_description' %} form-group--full{% endif %}">

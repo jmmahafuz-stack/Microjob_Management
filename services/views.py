@@ -69,12 +69,15 @@ def _get_related_workers(service, limit=None):
         user__role='worker',
         user__worker_status='APPROVED',
         user__is_blocked=False,
-        categories=service.category,
+    ).filter(
+        Q(categories=service.category)
+        | Q(service__category=service.category)
+        | Q(service_category__iexact=service.category.name)
     ).distinct().select_related('user').order_by(
         '-average_rating_cached',
         '-completed_jobs',
         'user__username',
-    )
+    ).annotate(review_count=Count('user__worker_reviews', distinct=True))
 
     return workers[:limit] if limit else workers
 
@@ -192,7 +195,7 @@ def service_detail(request, pk):
 
     all_workers = _get_related_workers(service)
     show_all_workers = request.GET.get('show') == 'all'
-    verified_workers = all_workers if show_all_workers else all_workers[:3]
+    verified_workers = all_workers if show_all_workers else all_workers[:2]
 
     service.related_workers = verified_workers
 

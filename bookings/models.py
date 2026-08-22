@@ -37,6 +37,11 @@ class Booking(models.Model):
     booking_time = models.TimeField()
     address = models.TextField()
     problem_description = models.TextField()
+    problem_photo = models.ImageField(
+        upload_to='booking_problem_photos/',
+        blank=True,
+        null=True,
+    )
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
@@ -279,7 +284,10 @@ class JobApplication(models.Model):
     # Proposal
     proposed_price = models.DecimalField(max_digits=10, decimal_places=2)
     estimated_duration = models.DurationField(help_text="Estimated time to complete the job")
-    proposal_message = models.TextField(help_text="Why you're the best choice for this job")
+    proposal_message = models.TextField(
+        blank=True,
+        help_text="Optional message explaining why you're the best choice for this job"
+    )
     
     # Availability
     can_start_date = models.DateField(help_text="When you can start working")

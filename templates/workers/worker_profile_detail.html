@@ -54,6 +54,36 @@
             </div>
         {% endif %}
 
+        {% if worker_services %}
+            <div class="worker-hire-panel">
+                <div>
+                    <p class="section-kicker">HIRE THIS WORKER</p>
+                    <h3>Select a service</h3>
+                    <p>Choose a service to book this worker directly with your problem details.</p>
+                </div>
+                <div class="worker-hire-services">
+                    {% for service in worker_services %}
+                        {% if user.is_authenticated and user.role == 'customer' %}
+                            <a href="{% url 'create_booking' %}?service={{ service.pk }}&worker={{ worker_profile.user.pk }}" class="btn btn-primary">
+                                <i class="fas fa-handshake"></i> Hire Me for {{ service.name }}
+                            </a>
+                        {% elif not user.is_authenticated %}
+                            <a href="{% url 'login' %}?next={% url 'create_booking' %}?service={{ service.pk }}&worker={{ worker_profile.user.pk }}" class="btn btn-primary">
+                                <i class="fas fa-right-to-bracket"></i> Login to Hire
+                            </a>
+                        {% else %}
+                            <span class="worker-hire-note">Customer booking only</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div class="worker-hire-panel worker-hire-panel--unavailable">
+                <h3>This worker has no active service assigned</h3>
+                <p>An administrator must assign a service category before customers can hire this worker.</p>
+            </div>
+        {% endif %}
+
         {% if reviews %}
             <div style="margin-top:18px; background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:14px;">
                 <h3 style="margin-top:0; margin-bottom:8px;">Recent reviews</h3>

@@ -198,7 +198,21 @@
                                             class="worker-card__detail"
                                             style="margin:0;"
                                         >
-                                            {{ worker_profile.skills }}
+                                            Rating: {{ worker_profile.average_rating_cached|floatformat:1 }} ({{ worker_profile.review_count }} review{{ worker_profile.review_count|pluralize }})
+                                        </p>
+
+                                        <p
+                                            class="worker-card__detail"
+                                            style="margin:0;"
+                                        >
+                                            Experience: {{ worker_profile.experience_years|default:0 }} yrs
+                                        </p>
+
+                                        <p
+                                            class="worker-card__detail"
+                                            style="margin:0;"
+                                        >
+                                            Skills: {{ worker_profile.skills|default:'Not specified' }}
                                         </p>
 
                                     </div>
@@ -346,7 +360,21 @@
                                             class="worker-card__detail"
                                             style="margin:0;"
                                         >
-                                            {{ worker_profile.skills }}
+                                            Rating: {{ worker_profile.average_rating_cached|floatformat:1 }} ({{ worker_profile.review_count }} review{{ worker_profile.review_count|pluralize }})
+                                        </p>
+
+                                        <p
+                                            class="worker-card__detail"
+                                            style="margin:0;"
+                                        >
+                                            Experience: {{ worker_profile.experience_years|default:0 }} yrs
+                                        </p>
+
+                                        <p
+                                            class="worker-card__detail"
+                                            style="margin:0;"
+                                        >
+                                            Skills: {{ worker_profile.skills|default:'Not specified' }}
                                         </p>
 
                                     </div>
@@ -512,7 +540,21 @@
                                         class="worker-card__detail"
                                         style="margin:0;"
                                     >
-                                        {{ worker_profile.skills }}
+                                        Rating: {{ worker_profile.average_rating_cached|floatformat:1 }} ({{ worker_profile.review_count }} review{{ worker_profile.review_count|pluralize }})
+                                    </p>
+
+                                    <p
+                                        class="worker-card__detail"
+                                        style="margin:0;"
+                                    >
+                                        Experience: {{ worker_profile.experience_years|default:0 }} yrs
+                                    </p>
+
+                                    <p
+                                        class="worker-card__detail"
+                                        style="margin:0;"
+                                    >
+                                        Skills: {{ worker_profile.skills|default:'Not specified' }}
                                     </p>
 
                                 </div>

@@ -359,7 +359,13 @@
     border-color: #2563eb;
 }
 
-.filter-tag--all:hover, .filter-tag--all.active { border-color: #334155; color: #fff; background: #334155; }
+.filter-tag--all { border-color: #cbd5e1; color: #475569; background: #f8fafc; }
+.filter-tag--open { border-color: #67e8f9; color: #0e7490; background: #ecfeff; }
+.filter-tag--assigned { border-color: #93c5fd; color: #1d4ed8; background: #eff6ff; }
+.filter-tag--in-progress { border-color: #fcd34d; color: #b45309; background: #fffbeb; }
+.filter-tag--completed { border-color: #86efac; color: #15803d; background: #f0fdf4; }
+
+.filter-tag--all:hover, .filter-tag--all.active { border-color: #475569; color: #fff; background: #475569; }
 .filter-tag--open:hover, .filter-tag--open.active { border-color: #0891b2; color: #fff; background: #0891b2; }
 .filter-tag--assigned:hover, .filter-tag--assigned.active { border-color: #2563eb; color: #fff; background: #2563eb; }
 .filter-tag--in-progress:hover, .filter-tag--in-progress.active { border-color: #d97706; color: #fff; background: #d97706; }
@@ -434,18 +440,18 @@
 }
 
 .request-status-badge--open {
-    background: #dbeafe;
-    color: #1e40af;
+    background: #cffafe;
+    color: #0e7490;
 }
 
 .request-status-badge--assigned {
-    background: #dcfce7;
-    color: #15803d;
+    background: #dbeafe;
+    color: #1d4ed8;
 }
 
 .request-status-badge--in-progress {
-    background: #cffafe;
-    color: #0c4a6e;
+    background: #fef3c7;
+    color: #b45309;
 }
 
 .request-status-badge--completed {

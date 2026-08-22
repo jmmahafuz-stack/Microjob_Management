@@ -261,17 +261,21 @@
         <p class="no-messages">No messages yet. Start the conversation!</p>
         {% endif %}
 
-        <!-- Send Message Form -->
-        <form method="post" class="send-message-form">
-            {% csrf_token %}
-            <input type="hidden" name="send_message" value="1">
-            <div class="message-input-group">
-                {{ message_form.as_p }}
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-paper-plane"></i> Send
-                </button>
-            </div>
-        </form>
+        {% if booking.worker %}
+            <p class="message-helper">Discuss the work details, availability, and final price directly with your assigned worker.</p>
+            <form method="post" class="send-message-form">
+                {% csrf_token %}
+                <input type="hidden" name="send_message" value="1">
+                <div class="message-input-group">
+                    {{ message_form.as_p }}
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send message
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <p class="message-helper message-helper--pending"><i class="fas fa-hourglass-half"></i> Messaging will be available after a worker is assigned to this booking.</p>
+        {% endif %}
     </div>
 
     <!-- Invoice Link -->

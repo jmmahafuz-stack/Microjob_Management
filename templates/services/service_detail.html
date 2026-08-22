@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% block title %}{{ service.name }} — MJMS{% endblock %}
+
 {% block content %}
 <div class="service-detail-shell">
     <div class="service-detail-card">
@@ -7,6 +9,7 @@
             <div>
                 <span class="service-badge">{{ service.category }}</span>
                 <h2>{{ service.name }}</h2>
+                <p class="service-detail-subtitle">A trusted local professional service, ready when you need it.</p>
             </div>
         </div>
 
@@ -42,30 +45,21 @@
                 <div class="service-description-box">
                     <h3>Service description</h3>
                     <p>{{ service.description }}</p>
+                    <p class="service-negotiation-note"><i class="fas fa-comments"></i> Price is discussed and agreed between the customer and worker through messages.</p>
                 </div>
 
                 {% if user.is_authenticated and user.role == 'customer' %}
                     <div class="detail-action-group">
-                        <a href="{% url 'service_request_create' %}?service={{ service.id }}" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i> Request This Service
+                        <a href="{% url 'create_booking' %}?service={{ service.id }}" class="btn btn-primary">
+                            <i class="fas fa-calendar-check"></i> Book This Service
                         </a>
                     </div>
                 {% elif not user.is_authenticated %}
                     <p class="detail-login-message">
-                        <a href="{% url 'login' %}?next={{ request.path }}">Login to request this service</a>
+                        <a href="{% url 'login' %}?next={{ request.path }}">Login to book this service</a>
                     </p>
                 {% endif %}
             </div>
-        </div>
-
-        <div class="time-slot-box">
-            <h3>Suggested time slots</h3>
-            <ul class="time-slot-list">
-                <li>10:00 AM</li>
-                <li>12:00 PM</li>
-                <li>02:00 PM</li>
-                <li>04:00 PM</li>
-            </ul>
         </div>
 
         {% if verified_workers %}
@@ -80,7 +74,7 @@
                 </div>
                 <div class="worker-card-list">
                     {% for worker_profile in verified_workers %}
-                        <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card">
+                        <div class="worker-card">
                             {% if worker_profile.user.profile_picture %}
                                 <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image">
                             {% else %}
@@ -91,22 +85,33 @@
                                 <span class="worker-card__verified"><i class="fas fa-circle-check"></i> Verified worker</span>
                                 <p class="worker-card__profession">{{ worker_profile.profession|default:'Service professional' }}</p>
                                 <div class="worker-card__stats">
-                                    <span><i class="fas fa-star"></i> {{ worker_profile.average_rating_cached|floatformat:1 }}</span>
+                                    <span><i class="fas fa-star"></i> {{ worker_profile.average_rating_cached|floatformat:1 }} ({{ worker_profile.review_count }} review{{ worker_profile.review_count|pluralize }})</span>
                                     <span><i class="fas fa-briefcase"></i> {{ worker_profile.experience_years|default:0 }} yrs</span>
                                 </div>
                                 {% if worker_profile.skills %}
                                     <p class="worker-card__skills">{{ worker_profile.skills|truncatewords:10 }}</p>
                                 {% endif %}
-                                <span class="worker-card__link">View profile <i class="fas fa-arrow-right"></i></span>
+                                <div class="worker-card__actions">
+                                    <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-card__link">View profile <i class="fas fa-arrow-right"></i></a>
+                                    {% if user.is_authenticated and user.role == 'customer' %}
+                                        <a href="{% url 'create_booking' %}?service={{ service.pk }}&worker={{ worker_profile.user.pk }}" class="btn btn-primary">Book this worker</a>
+                                    {% endif %}
+                                </div>
                             </div>
-                        </a>
+                        </div>
                     {% endfor %}
                 </div>
-                {% if not show_all_workers and total_workers > 3 %}
-                    <a href="?show=all" class="btn btn-outline-secondary">More workers ({{ total_workers|add:'-3' }} more)</a>
-                {% elif show_all_workers and total_workers > 3 %}
-                    <a href="{{ request.path }}" class="btn btn-outline-secondary">Show top 3 workers</a>
+                {% if not show_all_workers and total_workers > 2 %}
+                    <a href="?show=all" class="btn btn-outline-secondary">See all workers ({{ total_workers|add:'-2' }} more)</a>
+                {% elif show_all_workers and total_workers > 2 %}
+                    <a href="{{ request.path }}" class="btn btn-outline-secondary">Show top 2 workers</a>
                 {% endif %}
+            </div>
+        {% elif user.is_authenticated and user.role == 'customer' %}
+            <div class="recommended-workers-box">
+                <div class="empty-workers-icon"><i class="fas fa-user-clock"></i></div>
+                <h3>We will find the right worker for you</h3>
+                <p>No worker is currently listed for this service. Continue with booking and we will keep your request ready for an eligible worker.</p>
             </div>
         {% endif %}
 

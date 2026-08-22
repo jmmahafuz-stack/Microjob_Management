@@ -1,7 +1,7 @@
 from datetime import timedelta
 
 from django import forms
-
+from django.db.models import Q
 from accounts.models import CustomUser
 from services.models import Service
 
@@ -12,29 +12,13 @@ class BookingCreateForm(forms.ModelForm):
     class Meta:
         model = Booking
         fields = [
-            'customer',
-            'service',
-            'worker',
             'booking_date',
             'booking_time',
             'address',
             'problem_description',
+            'problem_photo',
         ]
 
-    customer = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(role='customer'),
-        required=False,
-        label='Customer'
-    )
-    service = forms.ModelChoiceField(
-        queryset=Service.objects.all(),
-        label='Service'
-    )
-    worker = forms.ModelChoiceField(
-        queryset=CustomUser.objects.filter(role='worker', worker_status='APPROVED'),
-        required=False,
-        label='Preferred Worker (optional)'
-    )
     booking_date = forms.DateField(
         widget=forms.DateInput(attrs={'type': 'date'}),
         label='Booking Date'
@@ -45,17 +29,9 @@ class BookingCreateForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        selected_service = kwargs.pop('selected_service', None)
+        kwargs.pop('selected_service', None)
+        kwargs.pop('selected_worker', None)
         super().__init__(*args, **kwargs)
-
-        if selected_service is not None:
-            queryset = Service.objects.all()
-            queryset = queryset | Service.objects.filter(pk=selected_service.pk)
-            self.fields['service'].queryset = queryset.order_by('name')
-            if not self.data.get('service'):
-                self.initial['service'] = selected_service
-        else:
-            self.fields['service'].queryset = Service.objects.all().order_by('name')
 
 
 class BookingUpdateForm(forms.ModelForm):
@@ -223,6 +199,15 @@ class JobApplicationForm(forms.ModelForm):
         required=True,
         label="I agree to the customer's requested date and time"
     )
+    proposal_message = forms.CharField(
+        required=False,
+        label='Proposal Message (optional)',
+        widget=forms.Textarea(attrs={
+            'class': 'form-textarea',
+            'rows': 6,
+            'placeholder': 'Add an optional message about your experience and approach.'
+        })
+    )
 
     class Meta:
         model = JobApplication
@@ -238,11 +223,6 @@ class JobApplicationForm(forms.ModelForm):
                 'placeholder': 'Your proposed price',
                 'min': '0',
                 'step': '0.01'
-            }),
-            'proposal_message': forms.Textarea(attrs={
-                'class': 'form-textarea',
-                'rows': 6,
-                'placeholder': 'Why are you the best choice for this job? Highlight your experience, skills, and approach to the work.'
             }),
             'can_start_date': forms.DateInput(attrs={
                 'type': 'date',

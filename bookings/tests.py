@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from accounts.models import CustomUser
 from bookings.models import Booking, ServiceRequest
-from services.models import Service
+from services.models import Category, Service
 from workers.models import WorkerProfile
 
 
@@ -84,6 +84,48 @@ class BookingCreationTests(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Booking.objects.filter(service=service, customer=self.customer).exists())
+
+    def test_customer_can_select_related_worker_for_booking(self):
+        category = Category.objects.create(name='Selected Worker Electrical')
+        service = Service.objects.create(
+            name='Selected Worker Service',
+            category=category,
+            description='A service with worker selection.',
+            price='100.00',
+            image='service_images/test.png',
+            duration='1 hour',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            username='selectedworker',
+            email='selected@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        profile = WorkerProfile.objects.create(
+            user=worker,
+            profession='Electrician',
+            experience_years=3,
+        )
+        profile.categories.add(category)
+
+        self.client.force_login(self.customer)
+        response = self.client.post(
+            reverse('create_booking'),
+            {
+                'service': service.pk,
+                'worker': worker.pk,
+                'booking_date': '2026-08-10',
+                'booking_time': '10:00:00',
+                'address': 'Selected worker address',
+                'problem_description': 'Please assign this worker.',
+            },
+        )
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Booking.objects.filter(service=service, worker=worker).exists())
 
     def test_service_and_booking_pages_show_related_worker_profiles(self):
         service = Service.objects.create(

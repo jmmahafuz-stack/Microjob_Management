@@ -29,24 +29,15 @@ from .models import Booking, BookingMessage, ServiceRequest, JobApplication, Job
 
 
 def _get_related_workers(service):
-    category_matches = WorkerProfile.objects.filter(
+    return WorkerProfile.objects.filter(
         user__role='worker',
         user__worker_status='APPROVED',
-        service_category__icontains=service.category,
-    )
-    skill_matches = WorkerProfile.objects.filter(
-        user__role='worker',
-        user__worker_status='APPROVED',
-        skills__icontains=service.category,
-    )
-    direct_matches = WorkerProfile.objects.filter(
-        user__role='worker',
-        user__worker_status='APPROVED',
-        service=service,
-    )
-
-    combined = (category_matches | skill_matches | direct_matches).distinct().select_related('user')[:4]
-    return combined
+        user__is_blocked=False,
+    ).filter(
+        Q(categories=service.category)
+        | Q(service__category=service.category)
+        | Q(service_category__iexact=service.category.name)
+    ).distinct().select_related('user')[:4]
 
 
 @login_required
@@ -289,33 +280,73 @@ def reject_worker_response(request, response_id):
 @customer_required
 def create_booking(request):
     selected_service = None
+    selected_worker = None
     service_id = request.GET.get('service') or request.POST.get('service')
+    if not service_id:
+        messages.error(request, 'Please choose a service before creating a booking.')
+        return redirect('service_list')
+
     if service_id:
         selected_service = get_object_or_404(Service, pk=service_id)
         selected_service.related_workers = _get_related_workers(selected_service)
 
+        worker_id = request.GET.get('worker') or request.POST.get('worker')
+        if worker_id:
+            selected_worker = next(
+                (
+                    worker for worker in selected_service.related_workers
+                    if str(worker.user_id) == worker_id
+                ),
+                None,
+            )
+
     if request.method == 'POST':
-        form = BookingCreateForm(request.POST, selected_service=selected_service)
+        form = BookingCreateForm(
+            request.POST,
+            request.FILES,
+            selected_service=selected_service,
+            selected_worker=selected_worker,
+        )
         if form.is_valid():
             booking = form.save(commit=False)
-            if request.user.role == 'admin' and booking.customer_id:
-                booking.customer = booking.customer
-            else:
-                booking.customer = request.user
+            booking.customer = request.user
+            booking.service = selected_service
+            booking.worker = selected_worker.user if selected_worker else None
             booking.status = 'Pending'
-            
-            # Auto-assign a suitable worker if none selected
-            if not booking.worker and booking.service:
-                related_workers = _get_related_workers(booking.service)
-                if related_workers.exists():
-                    booking.worker = related_workers.first().user
-                    booking.status = 'Assigned'
+
+            if booking.worker_id and Booking.objects.filter(
+                worker=booking.worker,
+                booking_date=booking.booking_date,
+                booking_time=booking.booking_time,
+            ).exclude(status='Cancelled').exists():
+                form.add_error(
+                    'booking_time',
+                    'This worker is not available at this date and time. Please choose another time.',
+                )
+                return render(
+                    request,
+                    'bookings/create_booking.html',
+                    {
+                        'form': form,
+                        'selected_service': selected_service,
+                        'selected_worker': selected_worker,
+                    },
+                )
             
             booking.save()
-            messages.success(request, 'Booking request created successfully.')
+            if booking.worker:
+                booking.status = 'Assigned'
+                booking.save(update_fields=['worker', 'status'])
+                messages.success(request, 'Booking created. You can now message your selected worker.')
+            else:
+                messages.success(request, 'Booking request created. An available worker will be assigned soon.')
             return redirect('booking_detail', pk=booking.pk)
     else:
-        form = BookingCreateForm(initial={'service': selected_service}, selected_service=selected_service)
+        form = BookingCreateForm(
+            initial={'service': selected_service, 'worker': selected_worker.user if selected_worker else None},
+            selected_service=selected_service,
+            selected_worker=selected_worker,
+        )
 
     return render(
         request,
@@ -323,6 +354,7 @@ def create_booking(request):
         {
             'form': form,
             'selected_service': selected_service,
+            'selected_worker': selected_worker,
         }
     )
 

@@ -1356,6 +1356,12 @@ input[type="button"]:hover {
     letter-spacing: -.02em;
 }
 
+.service-detail-subtitle {
+    margin: .55rem 0 0;
+    color: var(--mjms-muted);
+    font-size: .92rem;
+}
+
 .service-detail-header .service-badge {
     margin: 0;
     padding: .35rem .7rem;
@@ -1429,10 +1435,51 @@ input[type="button"]:hover {
     line-height: 1.7;
 }
 
+.service-description-box .service-negotiation-note {
+    display: flex;
+    align-items: flex-start;
+    gap: .45rem;
+    margin-top: .85rem;
+    padding-top: .75rem;
+    border-top: 1px solid var(--mjms-line);
+    color: #9a5b12;
+    font-size: .82rem;
+    font-weight: 700;
+    line-height: 1.5;
+}
+
+.service-negotiation-note i {
+    margin-top: .15rem;
+    color: #d97706;
+}
+
 .detail-action-group {
     display: flex;
     flex-wrap: wrap;
     gap: .6rem;
+    margin-top: .35rem;
+}
+
+.detail-action-group .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    min-height: 44px;
+    padding: .7rem 1rem;
+    border-radius: 9px;
+    font-weight: 800;
+}
+
+.empty-workers-icon {
+    display: grid;
+    width: 42px;
+    height: 42px;
+    margin-bottom: .7rem;
+    place-items: center;
+    border-radius: 10px;
+    background: #fff0d2;
+    color: #a66b12;
+    font-size: 1.1rem;
 }
 
 .time-slot-box,
@@ -1558,8 +1605,115 @@ input[type="button"]:hover {
     font-weight: 800;
 }
 
+.worker-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .65rem;
+    margin-top: .5rem;
+}
+
+.worker-card__actions .btn {
+    padding: .45rem .7rem;
+    border-radius: 7px;
+    font-size: .75rem;
+    font-weight: 800;
+}
+
 .detail-footer-link {
     border-top-color: var(--mjms-line);
+}
+
+.worker-hire-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1.1rem;
+    padding: 1rem;
+    border: 1px solid #b7e3d5;
+    border-radius: 12px;
+    background: #effaf6;
+}
+
+.worker-hire-panel h3 {
+    margin: 0;
+    color: var(--mjms-ink);
+    font-size: 1rem;
+}
+
+.worker-hire-panel p {
+    margin: .35rem 0 0;
+    color: #526b7b;
+    font-size: .82rem;
+}
+
+.worker-hire-panel .section-kicker {
+    margin: 0 0 .25rem;
+    color: #087f5b;
+    font-size: .68rem;
+    font-weight: 800;
+}
+
+.worker-hire-services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.worker-hire-services .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .6rem .75rem;
+    border-radius: 8px;
+    font-size: .78rem;
+    font-weight: 800;
+}
+
+.worker-hire-note {
+    color: #526b7b;
+    font-size: .78rem;
+    font-weight: 700;
+}
+
+.worker-hire-panel h3,
+.worker-hire-panel p {
+    margin: 0;
+}
+
+.worker-hire-panel h3 {
+    color: var(--mjms-ink);
+    font-size: 1rem;
+}
+
+.worker-hire-panel p:not(.section-kicker) {
+    margin-top: .35rem;
+    color: #526b7b;
+    font-size: .82rem;
+}
+
+.worker-hire-services {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: .5rem;
+}
+
+.worker-hire-services .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .6rem .75rem;
+    border-radius: 8px;
+    font-size: .78rem;
+    font-weight: 800;
+}
+
+.worker-hire-panel--unavailable {
+    display: block;
+    border-color: #fed7aa;
+    background: #fff7ed;
 }
 
 .detail-footer-link a,

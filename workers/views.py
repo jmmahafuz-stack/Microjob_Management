@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -221,6 +222,13 @@ def worker_profile_detail(request, pk):
     worker_profile = get_object_or_404(WorkerProfile, pk=pk)
     reviews = Review.objects.filter(worker=worker_profile.user).select_related('customer')
     categories = worker_profile.categories.all()
+    worker_services = Service.objects.filter(
+        is_available=True,
+    ).filter(
+        Q(category__in=categories)
+        | Q(pk=worker_profile.service_id)
+        | Q(category__name__iexact=worker_profile.service_category)
+    ).distinct().order_by('name')
 
     return render(
         request,
@@ -229,6 +237,7 @@ def worker_profile_detail(request, pk):
             'worker_profile': worker_profile,
             'categories': categories,
             'reviews': reviews,
+            'worker_services': worker_services,
         }
     )
 
