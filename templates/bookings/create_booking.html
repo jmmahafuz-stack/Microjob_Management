@@ -36,7 +36,7 @@
                 <div class="worker-selected-icon"><i class="fas fa-user-check"></i></div>
                 <div>
                     <span class="card-eyebrow">Worker selected</span>
-                    <strong>{{ selected_worker.user.get_full_name|default:selected_worker.user.username }}</strong>
+                    <strong>{{ selected_worker.user.get_full_name|default:selected_worker.user.email }}</strong>
                     <p>{{ selected_worker.profession|default:'Service professional' }}</p>
                 </div>
             </div>
@@ -54,12 +54,12 @@
                     {% for worker_profile in selected_service.related_workers %}
                     <a href="{% url 'worker_profile_detail' worker_profile.pk %}" class="worker-choice-item">
                         {% if worker_profile.user.profile_picture %}
-                            <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}">
+                            <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}">
                         {% else %}
                             <span class="worker-choice-avatar"><i class="fas fa-user"></i></span>
                         {% endif %}
                         <span class="worker-choice-copy">
-                            <strong>{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</strong>
+                            <strong>{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}</strong>
                             <small>{{ worker_profile.profession|default:'Service professional' }} · {{ worker_profile.experience_years|default:0 }} yrs experience</small>
                         </span>
                         <i class="fas fa-chevron-right"></i>

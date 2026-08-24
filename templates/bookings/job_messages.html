@@ -88,11 +88,11 @@
                     <div class="row job-overview">
                         <div class="col-md-6">
                             <strong>Customer:</strong><br>
-                            {{ job.customer.get_full_name|default:job.customer.username }}
+                            {{ job.customer.get_full_name|default:job.customer.email }}
                         </div>
                         <div class="col-md-6">
                             <strong>Worker:</strong><br>
-                            {{ job.worker.get_full_name|default:job.worker.username }}
+                            {{ job.worker.get_full_name|default:job.worker.email }}
                         </div>
                     </div>
                     <hr>
@@ -136,7 +136,7 @@
                             <div class="mb-3 p-3 message-bubble {% if msg.sender == request.user %}message-bubble--mine{% endif %}">
                                 <div class="d-flex justify-content-between align-items-start">
                                     <div>
-                                        <strong>{{ msg.sender.get_full_name|default:msg.sender.username }}</strong>
+                                        <strong>{{ msg.sender.get_full_name|default:msg.sender.email }}</strong>
                                         <small class="text-muted d-block">{{ msg.created_at|date:"M d, Y H:i" }}</small>
                                     </div>
                                     {% if msg.sender == request.user %}

@@ -10,7 +10,7 @@
     <div class="booking-page__header">
         <div>
             <p class="section-kicker">Admin Management</p>
-            <h2>User Profile - {{ user.get_full_name|default:user.username }}</h2>
+            <h2>User Profile - {{ user.get_full_name|default:user.email }}</h2>
         </div>
         <a href="{% url 'admin_users_list' %}" class="btn btn-outline-secondary">Back to Users</a>
     </div>
@@ -21,14 +21,14 @@
             <div class="card mb-3">
                 <div class="card-body text-center">
                     {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="img-fluid rounded-circle mb-3 admin-profile-avatar">
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.email }}" class="img-fluid rounded-circle mb-3 admin-profile-avatar">
                     {% else %}
                         <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center admin-profile-avatar">
                             <i class="fas fa-user fa-3x text-muted"></i>
                         </div>
                     {% endif %}
-                    <h5 class="card-title">{{ user.get_full_name|default:user.username }}</h5>
-                    <p class="text-muted">@{{ user.username }}</p>
+                    <h5 class="card-title">{{ user.get_full_name|default:user.email }}</h5>
+                    <p class="text-muted">@{{ user.email }}</p>
                     <p class="text-muted">{{ user.email }}</p>
                     
                     {% if user.phone %}

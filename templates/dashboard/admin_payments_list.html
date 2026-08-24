@@ -38,8 +38,8 @@
                 {% for payment in payments %}
                 <tr>
                     <td>#{{ payment.id }}</td>
-                    <td>{{ payment.job.customer.get_full_name|default:payment.job.customer.username }}</td>
-                    <td>{{ payment.job.worker.get_full_name|default:payment.job.worker.username }}</td>
+                    <td>{{ payment.job.customer.get_full_name|default:payment.job.customer.email }}</td>
+                    <td>{{ payment.job.worker.get_full_name|default:payment.job.worker.email }}</td>
                     <td>৳{{ payment.customer_amount }}</td>
                     <td>{{ payment.payment_status }}</td>
                     <td>{{ payment.payment_date }}</td>

@@ -17,7 +17,7 @@ class BookingAdmin(admin.ModelAdmin):
         'created_at'
     )
     list_filter = ('status', 'booking_date', 'service')
-    search_fields = ('customer__username', 'worker__username', 'service__name')
+    search_fields = ('customer__email', 'worker__email', 'service__name')
     readonly_fields = ('created_at', 'updated_at')
 
 
@@ -70,7 +70,7 @@ class ServiceRequestAdmin(admin.ModelAdmin):
     search_fields = (
         'title',
         'description',
-        'customer__username',
+        'customer__email',
         'address'
     )
     
@@ -132,7 +132,7 @@ class JobApplicationAdmin(admin.ModelAdmin):
     )
     
     search_fields = (
-        'worker__username',
+        'worker__email',
         'service_request__title',
         'proposal_message'
     )
@@ -224,8 +224,8 @@ class JobAdmin(admin.ModelAdmin):
     search_fields = (
         'title',
         'description',
-        'customer__username',
-        'worker__username'
+        'customer__email',
+        'worker__email'
     )
     
     readonly_fields = ('created_at', 'updated_at', 'worker_status_badge', 'time_conflict_status')

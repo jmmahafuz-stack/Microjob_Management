@@ -29,8 +29,8 @@ class PaymentAdmin(admin.ModelAdmin):
         'transaction_id',
         'booking__id',
         'job__id',
-        'job__customer__username',
-        'job__worker__username',
+        'job__customer__email',
+        'job__worker__email',
     )
 
     readonly_fields = (
@@ -99,12 +99,12 @@ class PaymentAdmin(admin.ModelAdmin):
         if obj.job:
             customer = (
                 obj.job.customer.get_full_name()
-                or obj.job.customer.username
+                or obj.job.customer.email
             )
 
             worker = (
                 obj.job.worker.get_full_name()
-                or obj.job.worker.username
+                or obj.job.worker.email
                 if obj.job.worker
                 else "Unassigned"
             )
@@ -187,7 +187,7 @@ class PayoutRequestAdmin(admin.ModelAdmin):
     )
 
     search_fields = (
-        'worker__username',
+        'worker__email',
         'worker__first_name',
         'worker__last_name',
     )
@@ -238,7 +238,7 @@ class PayoutRequestAdmin(admin.ModelAdmin):
             '<strong>{}</strong><br/>'
             'Available: {}<br/>'
             'Withdrawn: {}',
-            obj.worker.get_full_name() or obj.worker.username,
+            obj.worker.get_full_name() or obj.worker.email,
             worker_profile.available_earnings,
             worker_profile.withdrawn_earnings,
         )

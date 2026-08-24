@@ -22,7 +22,7 @@
                     ">
                         <div class="service-list-item__body">
                             <h4>{{ booking.service.name }}</h4>
-                            <p class="service-category">Customer: {{ booking.customer.get_full_name|default:booking.customer.username }}</p>
+                            <p class="service-category">Customer: {{ booking.customer.get_full_name|default:booking.customer.email }}</p>
                             <p><strong>Problem:</strong> {{ booking.problem_description|truncatewords:15 }}</p>
                             <p><strong>Location:</strong> {{ booking.address }}</p>
                             <p><strong>Scheduled:</strong> {{ booking.booking_date }} at {{ booking.booking_time }}</p>
@@ -84,7 +84,7 @@
                     ">
                         <div class="service-list-item__body">
                             <h4>{{ job.title }}</h4>
-                            <p class="service-category">Customer: {{ job.customer.get_full_name|default:job.customer.username }}</p>
+                            <p class="service-category">Customer: {{ job.customer.get_full_name|default:job.customer.email }}</p>
                             <p><strong>Service:</strong> {{ job.service_request.service.name }}</p>
                             <p><strong>Description:</strong> {{ job.description|truncatewords:15 }}</p>
                             <p><strong>Location:</strong> {{ job.address }}</p>

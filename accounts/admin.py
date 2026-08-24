@@ -26,7 +26,6 @@ class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
         fields = (
-            'username',
             'email',
             'role',
             'phone',
@@ -48,6 +47,7 @@ class CustomUserChangeForm(UserChangeForm):
 class CustomUserAdmin(UserAdmin):
     form = CustomUserChangeForm
     add_form = CustomUserCreationForm
+    ordering = ('email',)
 
     def get_form(self, request, obj=None, **kwargs):
         form = super().get_form(request, obj, **kwargs)
@@ -138,7 +138,6 @@ class CustomUserAdmin(UserAdmin):
     unblock_users.short_description = "Unblock selected users"
     
     list_display = (
-        'username',
         'email',
         'role',
         'worker_status_badge',
@@ -156,7 +155,10 @@ class CustomUserAdmin(UserAdmin):
         'created_at',
     )
 
-    fieldsets = UserAdmin.fieldsets + (
+    fieldsets = (
+        (None, {'fields': ('email', 'password')}),
+        ('Personal info', {'fields': ('first_name', 'last_name')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         (
             'Additional Information',
             {
@@ -176,7 +178,8 @@ class CustomUserAdmin(UserAdmin):
         ),
     )
 
-    add_fieldsets = UserAdmin.add_fieldsets + (
+    add_fieldsets = (
+        (None, {'classes': ('wide',), 'fields': ('email', 'password1', 'password2')}),
         (
             'Additional Information',
             {

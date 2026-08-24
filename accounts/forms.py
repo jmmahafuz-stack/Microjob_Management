@@ -1,9 +1,9 @@
 import re
 
 from django import forms
+from django.contrib.auth import authenticate
 from django.contrib.auth.forms import (
     UserCreationForm,
-    AuthenticationForm,
     PasswordChangeForm
 )
 from services.models import Category
@@ -84,7 +84,6 @@ class RegisterForm(UserCreationForm):
         fields = [
             'first_name',
             'last_name',
-            'username',
             'email',
             'phone',
             'address',
@@ -170,13 +169,12 @@ class RegisterForm(UserCreationForm):
         return user
 
 
-class LoginForm(AuthenticationForm):
-    username = forms.CharField(
-        max_length=150,
+class LoginForm(forms.Form):
+    email = forms.EmailField(
         widget=forms.TextInput(attrs={
             "class": "facebook-input",
-            "placeholder": "Email or username",
-            "autocomplete": "username",
+            "placeholder": "Email address",
+            "autocomplete": "email",
         }),
     )
     password = forms.CharField(
@@ -186,6 +184,30 @@ class LoginForm(AuthenticationForm):
             "autocomplete": "current-password",
         }),
     )
+
+    def __init__(self, request=None, *args, **kwargs):
+        self.request = request
+        self.user_cache = None
+        super().__init__(*args, **kwargs)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        password = cleaned_data.get('password')
+        if email and password:
+            self.user_cache = authenticate(
+                self.request,
+                email=email,
+                password=password,
+            )
+            if self.user_cache is None:
+                raise forms.ValidationError('Please enter a valid email and password.')
+            if not self.user_cache.is_active:
+                raise forms.ValidationError('This account is inactive.')
+        return cleaned_data
+
+    def get_user(self):
+        return self.user_cache
 
 
 class ProfileUpdateForm(forms.ModelForm):

@@ -92,7 +92,7 @@ def login_view(request):
         # Django rotates the current session key when logging in.
         # This affects only the browser/device making this request.
         login(request, user)
-        messages.success(request, f"Welcome {user.first_name or user.username}!")
+        messages.success(request, f"Welcome {user.first_name or user.email}!")
         
         # Show warning if worker is still pending approval
         if user.role == "worker" and user.worker_status == "PENDING":

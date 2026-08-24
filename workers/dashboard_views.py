@@ -84,7 +84,7 @@ def worker_dashboard(request):
         service_request = getattr(job, 'service_request', None)
         service = getattr(service_request, 'service', None)
         payment.service_name = getattr(service, 'name', None) or getattr(job, 'title', None) or (service_request.title if service_request else 'Service')
-        payment.customer_name = getattr(job.customer, 'get_full_name', lambda: None)() or job.customer.username
+        payment.customer_name = getattr(job.customer, 'get_full_name', lambda: None)() or job.customer.email
         payment.paid_amount = payment.customer_amount
     
     # Recent payouts

@@ -42,7 +42,7 @@
                 {% for user in users %}
                 <tr>
                     <td>
-                        <strong>{{ user.get_full_name|default:user.username }}</strong><br>
+                        <strong>{{ user.get_full_name|default:user.email }}</strong><br>
                         <small>{{ user.email }}</small>
                     </td>
                     <td>{{ user.role|title }}</td>

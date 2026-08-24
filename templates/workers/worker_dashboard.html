@@ -32,7 +32,7 @@
                 {% for job in active_jobs %}
                     <tr>
                         <td><strong>{{ job.title }}</strong></td>
-                        <td>{{ job.customer.get_full_name|default:job.customer.username }}</td>
+                        <td>{{ job.customer.get_full_name|default:job.customer.email }}</td>
                         <td>{{ job.get_status_display }}</td>
                         <td>{% if job.payment and job.payment.payment_status == 'Verified' %}<span class="status-chip">Paid</span>{% else %}Awaiting payment{% endif %}</td>
                         <td><div class="job-actions">
@@ -62,7 +62,7 @@
     <section class="dashboard-section dashboard-card">
         <div class="booking-page__header"><div><span class="card-eyebrow">Payment Summary</span><h2>Recent Customer Payments</h2></div></div>
         {% if recent_payments %}
-        <div class="table-responsive"><table><thead><tr><th>Service</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead><tbody>{% for payment in recent_payments %}<tr><td>{{ payment.service_name|default:payment.job.title }}</td><td>{{ payment.customer_name|default:payment.job.customer.username }}</td><td>৳{{ payment.paid_amount|floatformat:2 }}</td><td><span class="status-chip">{{ payment.payment_status }}</span></td></tr>{% endfor %}</tbody></table></div>
+        <div class="table-responsive"><table><thead><tr><th>Service</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead><tbody>{% for payment in recent_payments %}<tr><td>{{ payment.service_name|default:payment.job.title }}</td><td>{{ payment.customer_name|default:payment.job.customer.email }}</td><td>৳{{ payment.paid_amount|floatformat:2 }}</td><td><span class="status-chip">{{ payment.payment_status }}</span></td></tr>{% endfor %}</tbody></table></div>
         {% else %}<p class="empty-state">No customer payments confirmed yet. Once a completed job is paid, it will appear here.</p>{% endif %}
     </section>
 

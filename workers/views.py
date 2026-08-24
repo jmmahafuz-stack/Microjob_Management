@@ -52,7 +52,7 @@ def _get_worker_earnings_data(user, period='monthly'):
         job_entries.append({
             'job': job,
             'date': payment.payment_date.date(),
-            'customer': job.customer.get_full_name() or job.customer.username,
+            'customer': job.customer.get_full_name() or job.customer.email,
             'service_title': service_name,
             'amount': amount,
         })

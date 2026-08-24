@@ -172,7 +172,7 @@
 
                                     <img
                                         src="{{ worker_profile.user.profile_picture.url }}"
-                                        alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}"
+                                        alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}"
                                         class="worker-card__image"
                                         style="width:34px; height:34px;"
                                     >
@@ -199,7 +199,7 @@
                                             class="worker-card__name"
                                             style="font-size:0.84rem;"
                                         >
-                                            {{ worker_profile.user.get_full_name|default:worker_profile.user.username }}
+                                            {{ worker_profile.user.get_full_name|default:worker_profile.user.email }}
                                         </p>
 
                                         <p
@@ -334,7 +334,7 @@
 
                                     <img
                                         src="{{ worker_profile.user.profile_picture.url }}"
-                                        alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}"
+                                        alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}"
                                         class="worker-card__image"
                                         style="width:34px; height:34px;"
                                     >
@@ -361,7 +361,7 @@
                                             class="worker-card__name"
                                             style="font-size:0.84rem;"
                                         >
-                                            {{ worker_profile.user.get_full_name|default:worker_profile.user.username }}
+                                            {{ worker_profile.user.get_full_name|default:worker_profile.user.email }}
                                         </p>
 
                                         <p
@@ -514,7 +514,7 @@
 
                                 <img
                                     src="{{ worker_profile.user.profile_picture.url }}"
-                                    alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}"
+                                    alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}"
                                     class="worker-card__image"
                                     style="width:34px; height:34px;"
                                 >
@@ -541,7 +541,7 @@
                                         class="worker-card__name"
                                         style="font-size:0.84rem;"
                                     >
-                                        {{ worker_profile.user.get_full_name|default:worker_profile.user.username }}
+                                        {{ worker_profile.user.get_full_name|default:worker_profile.user.email }}
                                     </p>
 
                                     <p

@@ -149,7 +149,7 @@ class WorkerProfile(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.user.username} - {self.verification_status}"
+        return f"{self.user.email} - {self.verification_status}"
 
     @property
     def average_rating(self):

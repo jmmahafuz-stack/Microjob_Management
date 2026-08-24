@@ -78,7 +78,7 @@ class WorkerProfileAdmin(admin.ModelAdmin):
     )
     
     search_fields = (
-        'user__username',
+        'user__email',
         'user__email',
         'profession',
         'skills',

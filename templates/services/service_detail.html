@@ -76,12 +76,12 @@
                     {% for worker_profile in verified_workers %}
                         <div class="worker-card">
                             {% if worker_profile.user.profile_picture %}
-                                <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}" class="worker-card__image">
+                                <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}" class="worker-card__image">
                             {% else %}
                                 <div class="worker-card__avatar worker-card__image"><i class="fas fa-user-tie"></i></div>
                             {% endif %}
                             <div class="worker-card__meta">
-                                <p class="worker-card__name">{{ worker_profile.user.get_full_name|default:worker_profile.user.username }}</p>
+                                <p class="worker-card__name">{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}</p>
                                 <span class="worker-card__verified"><i class="fas fa-circle-check"></i> Verified worker</span>
                                 <p class="worker-card__profession">{{ worker_profile.profession|default:'Service professional' }}</p>
                                 <div class="worker-card__stats">

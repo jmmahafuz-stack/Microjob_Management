@@ -547,9 +547,9 @@ def service_request_list(request):
         if profile.profession:
             service_filter |= __import__('django.db.models', fromlist=['Q']).Q(service__category__name__icontains=profile.profession)
         service_requests = ServiceRequest.objects.filter(status='OPEN').filter(service_filter).exclude(
-            customer__username__istartswith=demo_test_user_prefixes[0]
+            customer__email__istartswith=demo_test_user_prefixes[0]
         ).exclude(
-            customer__username__istartswith=demo_test_user_prefixes[1]
+            customer__email__istartswith=demo_test_user_prefixes[1]
         )
 
         for fake_title in demo_test_titles:
@@ -1101,7 +1101,7 @@ def job_messages(request, pk):
         Notification.create_notification(
             user=job.worker,
             title=f'Price agreed for Job #{job.pk}',
-            message=f'{request.user.username} agreed to the service price of ৳{job.final_price}.',
+            message=f'{request.user.email} agreed to the service price of ৳{job.final_price}.',
             notification_type='JOB_MESSAGE',
             job=job,
             related_user=request.user,
@@ -1135,9 +1135,9 @@ def job_messages(request, pk):
                 user=recipient,
                 title=f"New message in job: {job.title}",
                 message=(
-                    f"{request.user.username}: {message_text[:50]}..."
+                    f"{request.user.email}: {message_text[:50]}..."
                     if message_text else
-                    f"{request.user.username} sent an attachment."
+                    f"{request.user.email} sent an attachment."
                 ),
                 notification_type='JOB_MESSAGE',
                 job=job,

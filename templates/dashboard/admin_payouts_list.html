@@ -26,7 +26,7 @@
                 {% for payout in payouts %}
                 <tr>
                     <td>#{{ payout.id }}</td>
-                    <td>{{ payout.worker.get_full_name|default:payout.worker.username }}</td>
+                    <td>{{ payout.worker.get_full_name|default:payout.worker.email }}</td>
                     <td>৳{{ payout.requested_amount }}</td>
                     <td>{{ payout.status }}</td>
                     <td>{{ payout.payout_method }}</td>

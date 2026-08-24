@@ -40,8 +40,8 @@
                 <tr>
                     <td>#{{ job.id }}</td>
                     <td>{{ job.title }}</td>
-                    <td>{{ job.customer.get_full_name|default:job.customer.username }}</td>
-                    <td>{{ job.worker.get_full_name|default:job.worker.username }}</td>
+                    <td>{{ job.customer.get_full_name|default:job.customer.email }}</td>
+                    <td>{{ job.worker.get_full_name|default:job.worker.email }}</td>
                     <td>{{ job.status }}</td>
                     <td>৳{{ job.actual_price|default:job.proposed_price|default:'0.00' }}</td>
                 </tr>

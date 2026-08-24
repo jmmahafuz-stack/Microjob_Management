@@ -313,7 +313,7 @@ class PayoutRequest(models.Model):
     def __str__(self):
         return (
             f"Payout Request #{self.pk} - "
-            f"{self.worker.username} - "
+            f"{self.worker.email} - "
             f"৳{self.requested_amount} ({self.status})"
         )
 

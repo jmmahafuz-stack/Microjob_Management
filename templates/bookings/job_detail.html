@@ -89,8 +89,8 @@
                     <p class="job-reference">Job #{{ job.id }}</p>
                     <h1 class="job-title">{{ job.title }}</h1>
                     <div class="job-participants">
-                        <span><strong>Customer:</strong> {{ job.customer.get_full_name|default:job.customer.username }}</span>
-                        <span><strong>Worker:</strong> {{ job.worker.get_full_name|default:job.worker.username }}</span>
+                        <span><strong>Customer:</strong> {{ job.customer.get_full_name|default:job.customer.email }}</span>
+                        <span><strong>Worker:</strong> {{ job.worker.get_full_name|default:job.worker.email }}</span>
                     </div>
                     <p class="job-price"><span class="job-price-label">Price</span>৳{{ job.final_price }}</p>
                 </div>

@@ -65,7 +65,7 @@
                                 <h3 class="earnings-card__title">{{ payment.job.title|default:"Service" }}</h3>
                                 {% if payment.job.customer %}
                                 <p class="earnings-card__customer">
-                                    <i class="fas fa-user"></i> {{ payment.job.customer.get_full_name|default:payment.job.customer.username }}
+                                    <i class="fas fa-user"></i> {{ payment.job.customer.get_full_name|default:payment.job.customer.email }}
                                 </p>
                                 {% endif %}
                             </div>

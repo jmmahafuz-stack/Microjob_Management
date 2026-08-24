@@ -84,7 +84,7 @@ class Notification(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.title} - {self.user.username}"
+        return f"{self.title} - {self.user.email}"
 
     def mark_as_read(self):
         """Mark notification as read."""

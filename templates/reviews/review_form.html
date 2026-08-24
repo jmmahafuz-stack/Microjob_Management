@@ -4,7 +4,7 @@
 <div class="card">
     <p class="section-kicker">Customer Experience</p>
     <h1>Review Your Service</h1>
-    <p>Share your experience with {% if job %}{{ job.worker.get_full_name|default:job.worker.username }}{% else %}{{ booking.worker.get_full_name|default:booking.worker.username }}{% endif %}.</p>
+    <p>Share your experience with {% if job %}{{ job.worker.get_full_name|default:job.worker.email }}{% else %}{{ booking.worker.get_full_name|default:booking.worker.email }}{% endif %}.</p>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

@@ -11,7 +11,7 @@
             </div>
             <div class="completion-text">
                 <h3>✓ Work Completed!</h3>
-                <p>{{ booking.worker.get_full_name|default:booking.worker.username }} has completed the service. Review the details below and proceed with payment.</p>
+                <p>{{ booking.worker.get_full_name|default:booking.worker.email }} has completed the service. Review the details below and proceed with payment.</p>
             </div>
             {% if user.role == 'customer' and booking.customer == user %}
             <a href="{% url 'payment_history' %}" class="btn btn-success btn-lg">
@@ -76,7 +76,7 @@
                     <!-- Customer Info -->
                     <div class="info-row full-width">
                         <label><i class="fas fa-user"></i> Customer</label>
-                        <p class="info-value">{{ booking.customer.get_full_name|default:booking.customer.username }}</p>
+                        <p class="info-value">{{ booking.customer.get_full_name|default:booking.customer.email }}</p>
                     </div>
                 </div>
             </div>
@@ -93,7 +93,7 @@
                             <i class="fas fa-user-circle"></i>
                         </div>
                         <div class="worker-details">
-                            <h4>{{ booking.worker.get_full_name|default:booking.worker.username }}</h4>
+                            <h4>{{ booking.worker.get_full_name|default:booking.worker.email }}</h4>
                             <p class="worker-email">{{ booking.worker.email }}</p>
                             {% if booking.worker.worker_profile.phone_number %}
                             <p class="worker-phone"><i class="fas fa-phone"></i> {{ booking.worker.worker_profile.phone_number }}</p>
@@ -213,7 +213,7 @@
                             <span class="response-date">{{ response.created_at|date:"M d, Y" }}</span>
                         </div>
                         <div class="response-body">
-                            <p><strong>{{ response.worker.get_full_name|default:response.worker.username }}</strong></p>
+                            <p><strong>{{ response.worker.get_full_name|default:response.worker.email }}</strong></p>
                             <p class="response-message">{{ response.message }}</p>
                         </div>
                         {% if user.role == 'customer' and booking.customer == user and not response.customer_accepted and response.status == 'ACCEPTED' %}
@@ -249,7 +249,7 @@
                 </div>
                 <div class="message-content">
                     <div class="message-header">
-                        <strong>{{ message.sender.get_full_name|default:message.sender.username }}</strong>
+                        <strong>{{ message.sender.get_full_name|default:message.sender.email }}</strong>
                         <span class="message-time">{{ message.created_at|date:"M d, Y g:i A" }}</span>
                     </div>
                     <p class="message-text">{{ message.message }}</p>

@@ -10,7 +10,6 @@ from workers.models import WorkerProfile
 class BookingCreationTests(TestCase):
     def setUp(self):
         self.customer = CustomUser.objects.create_user(
-            username='customer1',
             email='customer@example.com',
             password='testpass123',
             role='customer',
@@ -28,7 +27,6 @@ class BookingCreationTests(TestCase):
             is_available=True,
         )
         worker = CustomUser.objects.create_user(
-            username='workerinvoice',
             email='workerinvoice@example.com',
             password='testpass123',
             role='worker',
@@ -45,7 +43,6 @@ class BookingCreationTests(TestCase):
             status='Completed',
         )
         admin = CustomUser.objects.create_user(
-            username='admininvoice',
             email='admininvoice@example.com',
             password='testpass123',
             role='admin',
@@ -98,7 +95,6 @@ class BookingCreationTests(TestCase):
             is_available=True,
         )
         worker = CustomUser.objects.create_user(
-            username='selectedworker',
             email='selected@example.com',
             password='testpass123',
             role='worker',
@@ -139,7 +135,6 @@ class BookingCreationTests(TestCase):
             is_available=True,
         )
         worker = CustomUser.objects.create_user(
-            username='worker1',
             email='worker@example.com',
             password='testpass123',
             role='worker',
@@ -159,12 +154,12 @@ class BookingCreationTests(TestCase):
         detail_response = self.client.get(reverse('service_detail', args=[service.pk]))
         self.assertEqual(detail_response.status_code, 200)
         self.assertContains(detail_response, 'Recommended workers for this service')
-        self.assertContains(detail_response, worker.username)
+        self.assertContains(detail_response, worker.email)
 
         booking_response = self.client.get(reverse('create_booking'), {'service': service.pk})
         self.assertEqual(booking_response.status_code, 200)
         self.assertContains(booking_response, 'Recommended workers for this service')
-        self.assertContains(booking_response, worker.username)
+        self.assertContains(booking_response, worker.email)
 
     def test_service_pages_show_workers_matched_by_category(self):
         service = Service.objects.create(
@@ -178,7 +173,6 @@ class BookingCreationTests(TestCase):
             is_available=True,
         )
         worker = CustomUser.objects.create_user(
-            username='worker2',
             email='worker2@example.com',
             password='testpass123',
             role='worker',
@@ -196,7 +190,7 @@ class BookingCreationTests(TestCase):
 
         response = self.client.get(reverse('service_detail', args=[service.pk]))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, worker.username)
+        self.assertContains(response, worker.email)
 
     def test_booking_page_uses_compact_worker_card_markup(self):
         service = Service.objects.create(
@@ -210,7 +204,6 @@ class BookingCreationTests(TestCase):
             is_available=True,
         )
         worker = CustomUser.objects.create_user(
-            username='worker3',
             email='worker3@example.com',
             password='testpass123',
             role='worker',
@@ -234,7 +227,6 @@ class BookingCreationTests(TestCase):
 
     def test_worker_service_request_list_hides_demo_and_test_requests(self):
         worker = CustomUser.objects.create_user(
-            username='workerrequestfilter',
             email='workerrequestfilter@example.com',
             password='testpass123',
             role='worker',
@@ -243,13 +235,11 @@ class BookingCreationTests(TestCase):
         WorkerProfile.objects.create(user=worker, verification_status='Approved')
 
         demo_customer = CustomUser.objects.create_user(
-            username='testcust',
             email='testcust@example.com',
             password='testpass123',
             role='customer',
         )
         real_customer = CustomUser.objects.create_user(
-            username='real_customer',
             email='realcustomer@example.com',
             password='testpass123',
             role='customer',
@@ -301,7 +291,6 @@ class BookingCreationTests(TestCase):
 
     def test_worker_can_see_customer_requests_created_by_default_customer(self):
         worker = CustomUser.objects.create_user(
-            username='visiblecustomerrequestworker',
             email='visiblecustomerrequestworker@example.com',
             password='testpass123',
             role='worker',
@@ -310,8 +299,7 @@ class BookingCreationTests(TestCase):
         WorkerProfile.objects.create(user=worker, verification_status='Approved')
 
         customer = CustomUser.objects.create_user(
-            username='customer',
-            email='customer@example.com',
+            email='visiblecustomerrequest@example.com',
             password='testpass123',
             role='customer',
         )
@@ -368,7 +356,6 @@ class BookingCreationTests(TestCase):
             is_available=True,
         )
         worker = CustomUser.objects.create_user(
-            username='worker4',
             email='worker4@example.com',
             password='testpass123',
             role='worker',

@@ -24,7 +24,7 @@
             <tbody>
                 {% for worker in workers %}
                 <tr>
-                    <td>{{ worker.get_full_name|default:worker.username }}</td>
+                    <td>{{ worker.get_full_name|default:worker.email }}</td>
                     <td>{{ worker.worker_profile.profession|default:'- ' }}</td>
                     <td>{{ worker.completed_jobs|default:0 }}</td>
                     <td>{{ worker.avg_rating|default:0|floatformat:1 }}</td>

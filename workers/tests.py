@@ -18,7 +18,6 @@ class WorkerRegistrationTests(TestCase):
     def test_worker_profile_form_does_not_allow_category_changes(self):
         category = Category.objects.create(name='Electrical', is_active=True)
         user = CustomUser.objects.create_user(
-            username='fixedcategoryworker',
             email='fixedcategory@example.com',
             password='StrongPassword123',
             role='worker',
@@ -35,7 +34,6 @@ class WorkerRegistrationTests(TestCase):
         first = Category.objects.create(name='Electrical', is_active=True)
         second = Category.objects.create(name='Plumbing', is_active=True)
         user = CustomUser.objects.create_user(
-            username='admincategoryworker',
             email='admincategory@example.com',
             password='StrongPassword123',
             role='worker',
@@ -61,7 +59,6 @@ class WorkerRegistrationTests(TestCase):
     def test_public_worker_profile_shows_profession_and_categories(self):
         category = Category.objects.create(name='Electrical', is_active=True)
         user = CustomUser.objects.create_user(
-            username='visibleworker',
             email='visibleworker@example.com',
             password='StrongPassword123',
             role='worker',
@@ -86,7 +83,6 @@ class WorkerRegistrationTests(TestCase):
             {
                 'first_name': 'Test',
                 'last_name': 'Worker',
-                'username': 'newworker',
                 'email': 'worker@example.com',
                 'phone': '01700000000',
                 'address': 'Dhaka',
@@ -98,7 +94,7 @@ class WorkerRegistrationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        user = CustomUser.objects.get(username='newworker')
+        user = CustomUser.objects.get(email='worker@example.com')
         self.assertEqual(user.role, 'worker')
         profile = WorkerProfile.objects.get(user=user)
         self.assertEqual(profile.verification_status, 'Pending')
@@ -107,7 +103,6 @@ class WorkerRegistrationTests(TestCase):
 
     def test_worker_registration_rejects_unknown_category(self):
         form = RegisterForm(data={
-            'username': 'unknowncategoryworker',
             'email': 'unknowncategory@example.com',
             'role': 'worker',
             'worker_categories': 999999,
@@ -135,7 +130,6 @@ class WorkerRegistrationTests(TestCase):
             {
                 'first_name': 'Test',
                 'last_name': 'Worker',
-                'username': 'newworker2',
                 'email': 'worker2@example.com',
                 'phone': '01700000001',
                 'address': 'Dhaka',
@@ -147,20 +141,19 @@ class WorkerRegistrationTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        user = CustomUser.objects.get(username='newworker2')
+        user = CustomUser.objects.get(email='worker2@example.com')
         profile = WorkerProfile.objects.get(user=user)
         self.assertEqual(profile.service, service)
 
     def test_worker_dashboard_creates_missing_profile(self):
         user = CustomUser.objects.create_user(
-            username='profilelessworker',
             email='profilelessworker@example.com',
             password='StrongPassword123',
             role='worker',
             worker_status='APPROVED',
         )
 
-        self.client.login(username='profilelessworker', password='StrongPassword123')
+        self.client.login(email=user.email, password='StrongPassword123')
         response = self.client.get(reverse('worker_dashboard'))
 
         self.assertEqual(response.status_code, 200)
@@ -168,14 +161,13 @@ class WorkerRegistrationTests(TestCase):
 
     def test_pending_worker_can_access_worker_dashboard_before_approval(self):
         user = CustomUser.objects.create_user(
-            username='pendingworker',
             email='pendingworker@example.com',
             password='StrongPassword123',
             role='worker',
             worker_status='PENDING',
         )
 
-        self.client.login(username='pendingworker', password='StrongPassword123')
+        self.client.login(email=user.email, password='StrongPassword123')
         response = self.client.get(reverse('worker_dashboard'))
 
         self.assertEqual(response.status_code, 200)
@@ -194,12 +186,12 @@ class WorkerRegistrationTests(TestCase):
             is_available=True,
         )
         customer = CustomUser.objects.create_user(
-            username='servicecustomer',
+            email='pendingapplicationcustomer@example.com',
             password='StrongPassword123',
             role='customer',
         )
         worker = CustomUser.objects.create_user(
-            username='pendingapplicant',
+            email='pendingapplicationworker@example.com',
             password='StrongPassword123',
             role='worker',
             worker_status='PENDING',
@@ -218,7 +210,7 @@ class WorkerRegistrationTests(TestCase):
             budget_max=Decimal('600.00'),
         )
 
-        self.client.login(username='pendingapplicant', password='StrongPassword123')
+        self.client.login(email=worker.email, password='StrongPassword123')
         response = self.client.get(reverse(
             'job_application_create',
             kwargs={'service_request_id': request_obj.pk},
@@ -250,7 +242,6 @@ class WorkerRegistrationTests(TestCase):
         )
 
         user = CustomUser.objects.create_user(
-            username='specialistworker',
             email='specialistworker@example.com',
             password='StrongPassword123',
             role='worker',
@@ -264,7 +255,7 @@ class WorkerRegistrationTests(TestCase):
             verification_status='Approved',
         )
 
-        self.client.login(username='specialistworker', password='StrongPassword123')
+        self.client.login(email=user.email, password='StrongPassword123')
         response = self.client.get(reverse('worker_dashboard'))
 
         self.assertEqual(response.status_code, 200)
@@ -273,7 +264,6 @@ class WorkerRegistrationTests(TestCase):
 
     def test_worker_dashboard_does_not_repeat_my_jobs_sections(self):
         user = CustomUser.objects.create_user(
-            username='dashboardcleanworker',
             email='dashboardcleanworker@example.com',
             password='StrongPassword123',
             role='worker',
@@ -285,7 +275,7 @@ class WorkerRegistrationTests(TestCase):
             training_status='Approved',
         )
 
-        self.client.login(username='dashboardcleanworker', password='StrongPassword123')
+        self.client.login(email=user.email, password='StrongPassword123')
         response = self.client.get(reverse('worker_dashboard'))
 
         self.assertEqual(response.status_code, 200)
@@ -295,7 +285,6 @@ class WorkerRegistrationTests(TestCase):
 
     def test_worker_dashboard_shows_required_business_flow(self):
         user = CustomUser.objects.create_user(
-            username='workerworkflow',
             email='workerworkflow@example.com',
             password='StrongPassword123',
             role='worker',
@@ -307,7 +296,7 @@ class WorkerRegistrationTests(TestCase):
             training_status='Approved',
         )
 
-        self.client.login(username='workerworkflow', password='StrongPassword123')
+        self.client.login(email=user.email, password='StrongPassword123')
         response = self.client.get(reverse('worker_dashboard'))
 
         self.assertEqual(response.status_code, 200)
@@ -315,14 +304,12 @@ class WorkerRegistrationTests(TestCase):
 
     def test_worker_can_accept_an_assigned_job_from_my_jobs(self):
         customer = CustomUser.objects.create_user(
-            username='assignedcustomer',
             email='assignedcustomer@example.com',
             password='StrongPassword123',
             role='customer',
             customer_status='ACTIVE',
         )
         worker = CustomUser.objects.create_user(
-            username='assignedworker',
             email='assignedworker@example.com',
             password='StrongPassword123',
             role='worker',
@@ -381,7 +368,7 @@ class WorkerRegistrationTests(TestCase):
             status='CONFIRMED',
         )
 
-        self.client.login(username='assignedworker', password='StrongPassword123')
+        self.client.login(email=user.email, password='StrongPassword123')
         response = self.client.post(reverse('job_accept', kwargs={'pk': job.pk}), {})
 
         self.assertEqual(response.status_code, 302)
@@ -391,14 +378,12 @@ class WorkerRegistrationTests(TestCase):
 
     def test_customer_confirms_payment_and_adds_worker_earnings(self):
         customer = CustomUser.objects.create_user(
-            username='payingcustomer',
             email='payingcustomer@example.com',
             password='StrongPassword123',
             role='customer',
             customer_status='ACTIVE',
         )
         worker = CustomUser.objects.create_user(
-            username='earningworker',
             email='earningworker@example.com',
             password='StrongPassword123',
             role='worker',
@@ -462,7 +447,7 @@ class WorkerRegistrationTests(TestCase):
             status='COMPLETED',
         )
 
-        self.client.login(username='payingcustomer', password='StrongPassword123')
+        self.client.login(email=worker.email, password='StrongPassword123')
         response = self.client.post(
             reverse('make_payment', kwargs={'job_id': job.pk}),
             {
@@ -484,14 +469,12 @@ class WorkerRegistrationTests(TestCase):
 
     def test_worker_dashboard_uses_real_payment_values_when_profile_is_stale(self):
         customer = CustomUser.objects.create_user(
-            username='staleearningscustomer',
             email='staleearningscustomer@example.com',
             password='StrongPassword123',
             role='customer',
             customer_status='ACTIVE',
         )
         worker = CustomUser.objects.create_user(
-            username='staleearningsworker',
             email='staleearningsworker@example.com',
             password='StrongPassword123',
             role='worker',
@@ -575,14 +558,12 @@ class WorkerRegistrationTests(TestCase):
 
     def test_worker_dashboard_shows_recent_verified_payment_with_service_name_and_amount(self):
         customer = CustomUser.objects.create_user(
-            username='dashboardpaycustomer',
             email='dashboardpaycustomer@example.com',
             password='StrongPassword123',
             role='customer',
             customer_status='ACTIVE',
         )
         worker = CustomUser.objects.create_user(
-            username='dashboardpayworker',
             email='dashboardpayworker@example.com',
             password='StrongPassword123',
             role='worker',
@@ -645,7 +626,7 @@ class WorkerRegistrationTests(TestCase):
             status='COMPLETED',
         )
 
-        self.client.login(username='dashboardpaycustomer', password='StrongPassword123')
+        self.client.login(email=customer.email, password='StrongPassword123')
         self.client.post(
             reverse('make_payment', kwargs={'job_id': job.pk}),
             {
@@ -655,7 +636,7 @@ class WorkerRegistrationTests(TestCase):
             },
         )
 
-        self.client.login(username='dashboardpayworker', password='StrongPassword123')
+        self.client.login(email=worker.email, password='StrongPassword123')
         response = self.client.get(reverse('worker_dashboard'))
 
         self.assertEqual(response.status_code, 200)
@@ -664,7 +645,6 @@ class WorkerRegistrationTests(TestCase):
 
     def test_worker_earnings_report_can_download_pdf(self):
         worker = CustomUser.objects.create_user(
-            username='reportworker',
             email='reportworker@example.com',
             password='StrongPassword123',
             role='worker',
@@ -676,7 +656,7 @@ class WorkerRegistrationTests(TestCase):
             training_status='Completed',
         )
 
-        self.client.login(username='reportworker', password='StrongPassword123')
+        self.client.login(email=worker.email, password='StrongPassword123')
         response = self.client.get(reverse('worker_earnings_report') + '?period=monthly&download=pdf')
 
         self.assertEqual(response.status_code, 200)
@@ -684,14 +664,12 @@ class WorkerRegistrationTests(TestCase):
 
     def test_customer_cannot_pay_before_worker_marks_job_complete(self):
         customer = CustomUser.objects.create_user(
-            username='pendingpaycustomer',
             email='pendingpaycustomer@example.com',
             password='StrongPassword123',
             role='customer',
             customer_status='ACTIVE',
         )
         worker = CustomUser.objects.create_user(
-            username='pendingpayworker',
             email='pendingpayworker@example.com',
             password='StrongPassword123',
             role='worker',
@@ -754,7 +732,7 @@ class WorkerRegistrationTests(TestCase):
             status='IN_PROGRESS',
         )
 
-        self.client.login(username='pendingpaycustomer', password='StrongPassword123')
+        self.client.login(email=customer.email, password='StrongPassword123')
         response = self.client.post(
             reverse('make_payment', kwargs={'job_id': job.pk}),
             {

@@ -11,7 +11,6 @@ class AuthenticationRoleTests(TestCase):
         response = self.client.post(
             reverse('register'),
             {
-                'username': 'customer1',
                 'email': 'customer1@example.com',
                 'first_name': 'Customer',
                 'last_name': 'One',
@@ -23,7 +22,7 @@ class AuthenticationRoleTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 302)
-        user = CustomUser.objects.get(username='customer1')
+        user = CustomUser.objects.get(email='customer1@example.com')
         self.assertEqual(user.role, 'customer')
         self.assertFalse(user.is_verified_worker)
 
@@ -33,7 +32,6 @@ class AuthenticationRoleTests(TestCase):
         response = self.client.post(
             reverse('register'),
             {
-                'username': 'registeredworker',
                 'email': 'registeredworker@example.com',
                 'first_name': 'Registered',
                 'last_name': 'Worker',
@@ -55,7 +53,6 @@ class AuthenticationRoleTests(TestCase):
         response = self.client.post(
             reverse('register'),
             {
-                'username': 'workerwithoutnid',
                 'email': 'workerwithoutnid@example.com',
                 'first_name': 'Worker',
                 'last_name': 'Without NID',
@@ -68,12 +65,11 @@ class AuthenticationRoleTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'NID Number is required for worker registration.')
-        self.assertFalse(CustomUser.objects.filter(username='workerwithoutnid').exists())
+        self.assertFalse(CustomUser.objects.filter(email='workerwithoutnid@example.com').exists())
 
     def test_worker_self_registration_is_not_allowed(self):
         form = RegisterForm(
             data={
-                'username': 'worker1',
                 'email': 'worker1@example.com',
                 'first_name': 'Worker',
                 'last_name': 'One',
@@ -91,7 +87,7 @@ class AuthenticationRoleTests(TestCase):
 
     def test_authenticated_admin_is_redirected_to_dashboard_from_login_page(self):
         admin_user = CustomUser.objects.create_user(
-            username='adminuser',
+            email='adminredirect@example.com',
             password='StrongPassword123',
             role='admin',
         )
@@ -103,7 +99,7 @@ class AuthenticationRoleTests(TestCase):
 
     def test_admin_role_grants_staff_access(self):
         admin_user = CustomUser.objects.create_user(
-            username='adminstaff',
+            email='adminstaff@example.com',
             password='StrongPassword123',
             role='admin',
         )
@@ -113,7 +109,7 @@ class AuthenticationRoleTests(TestCase):
 
     def test_unverified_worker_cannot_login(self):
         worker_user = CustomUser.objects.create_user(
-            username='workeruser',
+            email='unverifiedworker@example.com',
             password='StrongPassword123',
             role='worker',
             is_verified_worker=False,
@@ -121,7 +117,7 @@ class AuthenticationRoleTests(TestCase):
 
         response = self.client.post(
             reverse('login'),
-            {'username': 'workeruser', 'password': 'StrongPassword123'},
+            {'email': 'unverifiedworker@example.com', 'password': 'StrongPassword123'},
             follow=True,
         )
 
@@ -130,7 +126,7 @@ class AuthenticationRoleTests(TestCase):
 
     def test_verified_worker_is_redirected_to_worker_dashboard(self):
         worker_user = CustomUser.objects.create_user(
-            username='workerverified',
+            email='verifiedworker@example.com',
             password='StrongPassword123',
             role='worker',
             is_verified_worker=True,
@@ -138,7 +134,7 @@ class AuthenticationRoleTests(TestCase):
 
         response = self.client.post(
             reverse('login'),
-            {'username': 'workerverified', 'password': 'StrongPassword123'},
+            {'email': 'verifiedworker@example.com', 'password': 'StrongPassword123'},
             follow=True,
         )
 
@@ -149,13 +145,13 @@ class AuthenticationRoleTests(TestCase):
     def test_customer_and_worker_can_stay_logged_in_on_separate_clients(self):
         """A PC and a phone/browser must keep independent Django sessions."""
         customer = CustomUser.objects.create_user(
-            username="sessioncustomer",
+            email="sessioncustomer@example.com",
             password="StrongPassword123",
             role="customer",
             customer_status="ACTIVE",
         )
         worker = CustomUser.objects.create_user(
-            username="sessionworker",
+            email="sessionworker@example.com",
             password="StrongPassword123",
             role="worker",
             worker_status="APPROVED",
@@ -167,11 +163,11 @@ class AuthenticationRoleTests(TestCase):
         phone = Client()
 
         self.assertTrue(pc.login(
-            username=customer.username,
+            email=customer.email,
             password="StrongPassword123",
         ))
         self.assertTrue(phone.login(
-            username=worker.username,
+            email=worker.email,
             password="StrongPassword123",
         ))
 

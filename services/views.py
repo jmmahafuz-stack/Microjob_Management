@@ -76,7 +76,7 @@ def _get_related_workers(service, limit=None):
     ).distinct().select_related('user').order_by(
         '-average_rating_cached',
         '-completed_jobs',
-        'user__username',
+        'user__email',
     ).annotate(review_count=Count('user__worker_reviews', distinct=True))
 
     return workers[:limit] if limit else workers

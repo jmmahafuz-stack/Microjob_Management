@@ -8,7 +8,6 @@ User = get_user_model()
 class AdminDashboardTests(TestCase):
     def test_admin_is_redirected_from_workflow_management_pages(self):
         admin_user = User.objects.create_user(
-            username='adminworkflow',
             email='adminworkflow@example.com',
             password='Admin12345!',
             role='admin'
@@ -16,7 +15,7 @@ class AdminDashboardTests(TestCase):
         admin_user.is_staff = True
         admin_user.save()
 
-        self.client.login(username='adminworkflow', password='Admin12345!')
+        self.client.login(email=admin_user.email, password='Admin12345!')
 
         response = self.client.get(reverse('booking_list'))
         self.assertEqual(response.status_code, 302)
@@ -28,7 +27,6 @@ class AdminDashboardTests(TestCase):
 
     def test_admin_dashboard_shows_key_management_summary(self):
         admin_user = User.objects.create_user(
-            username='adminuser',
             email='admin@example.com',
             password='Admin12345!',
             role='admin'
@@ -36,7 +34,7 @@ class AdminDashboardTests(TestCase):
         admin_user.is_staff = True
         admin_user.save()
 
-        self.client.login(username='adminuser', password='Admin12345!')
+        self.client.login(email=admin_user.email, password='Admin12345!')
         response = self.client.get(reverse('dashboard_home'))
 
         self.assertEqual(response.status_code, 200)
@@ -46,14 +44,13 @@ class AdminDashboardTests(TestCase):
 
     def test_customer_dashboard_shows_required_business_flow(self):
         customer = User.objects.create_user(
-            username='customerworkflow',
             email='customerworkflow@example.com',
             password='Customer12345!',
             role='customer',
             customer_status='ACTIVE',
         )
 
-        self.client.login(username='customerworkflow', password='Customer12345!')
+        self.client.login(email=customer.email, password='Customer12345!')
         response = self.client.get(reverse('dashboard_home'))
 
         self.assertEqual(response.status_code, 200)
@@ -61,7 +58,6 @@ class AdminDashboardTests(TestCase):
 
     def test_admin_dashboard_shows_required_business_flow(self):
         admin_user = User.objects.create_user(
-            username='adminworkflowsteps',
             email='adminworkflowsteps@example.com',
             password='Admin12345!',
             role='admin'
@@ -69,7 +65,7 @@ class AdminDashboardTests(TestCase):
         admin_user.is_staff = True
         admin_user.save()
 
-        self.client.login(username='adminworkflowsteps', password='Admin12345!')
+        self.client.login(email=admin_user.email, password='Admin12345!')
         response = self.client.get(reverse('dashboard_home'))
 
         self.assertEqual(response.status_code, 200)
@@ -77,7 +73,6 @@ class AdminDashboardTests(TestCase):
 
     def test_admin_can_approve_worker_and_block_customer(self):
         admin_user = User.objects.create_user(
-            username='adminmanager',
             email='adminmanager@example.com',
             password='Admin12345!',
             role='admin'
@@ -86,7 +81,6 @@ class AdminDashboardTests(TestCase):
         admin_user.save()
 
         worker = User.objects.create_user(
-            username='pendingworker',
             email='pendingworker@example.com',
             password='Worker12345!',
             role='worker',
@@ -94,14 +88,13 @@ class AdminDashboardTests(TestCase):
         )
 
         customer = User.objects.create_user(
-            username='customeruser',
             email='customeruser@example.com',
             password='Customer12345!',
             role='customer',
             customer_status='ACTIVE',
         )
 
-        self.client.login(username='adminmanager', password='Admin12345!')
+        self.client.login(email=admin_user.email, password='Admin12345!')
 
         response = self.client.post(reverse('admin_user_action', args=[worker.pk]), {'action': 'approve_worker'})
         self.assertEqual(response.status_code, 302)
@@ -116,7 +109,6 @@ class AdminDashboardTests(TestCase):
 
     def test_admin_dashboard_shows_trade_worker_summary(self):
         admin_user = User.objects.create_user(
-            username='admindashboardtrade',
             email='admindashboardtrade@example.com',
             password='Admin12345!',
             role='admin'
@@ -134,15 +126,14 @@ class AdminDashboardTests(TestCase):
             'Carpentry': Category.objects.create(name='Carpentry', description='Carpentry services', icon='🪚'),
         }
 
-        for idx, (username, category_name) in enumerate([
+        for idx, (email, category_name) in enumerate([
             ('electrician_demo', 'Electrical'),
             ('plumber_demo', 'Plumbing'),
             ('plumber_demo_2', 'Plumbing'),
             ('cleaner_demo', 'Cleaning'),
         ], start=1):
             worker = User.objects.create_user(
-                username=username,
-                email=f'{username}@example.com',
+                email=f'{email}@example.com',
                 password='Worker12345!',
                 role='worker',
                 worker_status='APPROVED',
@@ -158,7 +149,7 @@ class AdminDashboardTests(TestCase):
             )
             profile.categories.add(categories[category_name])
 
-        self.client.login(username='admindashboardtrade', password='Admin12345!')
+        self.client.login(email=admin_user.email, password='Admin12345!')
         response = self.client.get(reverse('dashboard_home'))
 
         self.assertEqual(response.status_code, 200)

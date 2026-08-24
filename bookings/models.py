@@ -108,8 +108,8 @@ class BookingMessage(models.Model):
 
     def __str__(self):
         if self.job:
-            return f"Message from {self.sender.username} on Job #{self.job.id}"
-        return f"Message from {self.sender.username} on {self.booking}"
+            return f"Message from {self.sender.email} on Job #{self.job.id}"
+        return f"Message from {self.sender.email} on {self.booking}"
 
 
 class WorkerResponse(models.Model):
@@ -161,7 +161,7 @@ class WorkerResponse(models.Model):
         ]
 
     def __str__(self):
-        return f"Response from {self.worker.username} on Booking #{self.booking.id} - {self.status}"
+        return f"Response from {self.worker.email} on Booking #{self.booking.id} - {self.status}"
 
     def clean(self):
         if self.worker_id and self.worker.role != 'worker':
@@ -238,7 +238,7 @@ class ServiceRequest(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.title} - {self.customer.username} ({self.status})"
+        return f"{self.title} - {self.customer.email} ({self.status})"
 
     def clean(self):
         if self.customer_id and self.customer.role != 'customer':
@@ -322,7 +322,7 @@ class JobApplication(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.worker.username} - {self.service_request.title} (${self.proposed_price})"
+        return f"{self.worker.email} - {self.service_request.title} (${self.proposed_price})"
 
     def clean(self):
         if self.worker_id and self.worker.role != 'worker':
@@ -436,7 +436,7 @@ class Job(models.Model):
         ]
 
     def __str__(self):
-        return f"Job #{self.pk} - {self.worker.username} for {self.title}"
+        return f"Job #{self.pk} - {self.worker.email} for {self.title}"
 
     def clean(self):
         if self.customer_id and self.customer.role != 'customer':

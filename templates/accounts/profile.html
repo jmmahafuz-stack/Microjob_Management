@@ -10,12 +10,12 @@
         {% if user.profile_picture %}
             <img src="{{ user.profile_picture.url }}" alt="Profile picture" class="profile-avatar">
         {% else %}
-            <div class="profile-avatar placeholder">{{ user.username|slice:':1'|upper }}</div>
+            <div class="profile-avatar placeholder">{{ user.email|slice:':1'|upper }}</div>
         {% endif %}
 
         <div>
             <h3>{{ user.first_name }} {{ user.last_name }}</h3>
-            <p><strong>Username:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
             <p><strong>Role:</strong> {{ user.role|title }}</p>
         </div>
     </div>

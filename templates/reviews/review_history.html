@@ -7,7 +7,7 @@
     <ul>
         {% for review in reviews %}
             <li>
-                {{ review.worker.username }} - {{ review.rating }} stars<br>
+                {{ review.worker.email }} - {{ review.rating }} stars<br>
                 {{ review.comment }}
             </li>
         {% endfor %}
