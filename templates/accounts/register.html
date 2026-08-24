@@ -129,19 +129,11 @@
                     {% if form.worker_categories.errors %}<span class="error-message">{{ form.worker_categories.errors.0 }}</span>{% endif %}
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="{{ form.worker_experience.id_for_label }}" class="form-label">Years Experience</label>
-                        {{ form.worker_experience }}
-                        {% if form.worker_experience.errors %}<span class="error-message">{{ form.worker_experience.errors.0 }}</span>{% endif %}
-                    </div>
-                </div>
-
                 <div class="form-group">
-                    <label for="{{ form.worker_skills.id_for_label }}" class="form-label">Skills</label>
-                    {{ form.worker_skills }}
-                    <span class="form-help">Comma-separated (e.g., Plumbing, Repairs)</span>
-                    {% if form.worker_skills.errors %}<span class="error-message">{{ form.worker_skills.errors.0 }}</span>{% endif %}
+                    <label for="{{ form.worker_nid_number.id_for_label }}" class="form-label">NID Number <span aria-hidden="true">*</span></label>
+                    {{ form.worker_nid_number }}
+                    <span class="form-help">Enter your national ID number for verification</span>
+                    {% if form.worker_nid_number.errors %}<span class="error-message">{{ form.worker_nid_number.errors.0 }}</span>{% endif %}
                 </div>
 
                 <div class="form-group">
@@ -151,14 +143,20 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ form.worker_nid_number.id_for_label }}" class="form-label">NID Number</label>
-                    {{ form.worker_nid_number }}
-                    <span class="form-help">Enter your national ID number for verification</span>
-                    {% if form.worker_nid_number.errors %}<span class="error-message">{{ form.worker_nid_number.errors.0 }}</span>{% endif %}
+                    <label for="{{ form.worker_experience.id_for_label }}" class="form-label">Years Experience</label>
+                    {{ form.worker_experience }}
+                    {% if form.worker_experience.errors %}<span class="error-message">{{ form.worker_experience.errors.0 }}</span>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label for="{{ form.worker_bio.id_for_label }}" class="form-label">About You</label>
+                    <label for="{{ form.worker_skills.id_for_label }}" class="form-label">Skill</label>
+                    {{ form.worker_skills }}
+                    <span class="form-help">Comma-separated (e.g., Plumbing, Repairs)</span>
+                    {% if form.worker_skills.errors %}<span class="error-message">{{ form.worker_skills.errors.0 }}</span>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label for="{{ form.worker_bio.id_for_label }}" class="form-label">About you</label>
                     {{ form.worker_bio }}
                     <span class="form-help">Brief description of your services</span>
                     {% if form.worker_bio.errors %}<span class="error-message">{{ form.worker_bio.errors.0 }}</span>{% endif %}

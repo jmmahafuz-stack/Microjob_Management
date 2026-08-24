@@ -39,6 +39,7 @@ class AuthenticationRoleTests(TestCase):
                 'last_name': 'Worker',
                 'role': 'worker',
                 'worker_categories': category.pk,
+                'worker_nid_number': 'NID-123456',
                 'password1': 'StrongPassword123',
                 'password2': 'StrongPassword123',
             },
@@ -47,6 +48,27 @@ class AuthenticationRoleTests(TestCase):
 
         self.assertRedirects(response, reverse('login'))
         self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_worker_registration_requires_nid_number(self):
+        category = Category.objects.create(name='Cleaning', is_active=True)
+
+        response = self.client.post(
+            reverse('register'),
+            {
+                'username': 'workerwithoutnid',
+                'email': 'workerwithoutnid@example.com',
+                'first_name': 'Worker',
+                'last_name': 'Without NID',
+                'role': 'worker',
+                'worker_categories': category.pk,
+                'password1': 'StrongPassword123',
+                'password2': 'StrongPassword123',
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'NID Number is required for worker registration.')
+        self.assertFalse(CustomUser.objects.filter(username='workerwithoutnid').exists())
 
     def test_worker_self_registration_is_not_allowed(self):
         form = RegisterForm(

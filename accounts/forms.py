@@ -122,6 +122,8 @@ class RegisterForm(UserCreationForm):
         role = cleaned_data.get('role')
         if role == 'worker' and not cleaned_data.get('worker_categories'):
             self.add_error('worker_categories', 'Please select your main work category.')
+        if role == 'worker' and not cleaned_data.get('worker_nid_number'):
+            self.add_error('worker_nid_number', 'NID Number is required for worker registration.')
         return cleaned_data
 
     def save(self, commit=True):

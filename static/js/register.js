@@ -16,12 +16,15 @@ function togglePassword(fieldId, button) {
 function toggleWorkerFields() {
     const selectedRole = document.querySelector('input[name="role"]:checked')?.value || 'customer';
     const workerSection = document.querySelector('.worker-section');
+    const nidField = document.getElementById('id_worker_nid_number');
     if (!workerSection) return;
     
     if (selectedRole === 'worker') {
         workerSection.classList.remove('is-hidden');
+        nidField?.setAttribute('required', 'required');
     } else {
         workerSection.classList.add('is-hidden');
+        nidField?.removeAttribute('required');
     }
 }
 
