@@ -140,7 +140,7 @@ def service_list(request):
         )
 
     # Get all active categories for the filter dropdown
-    categories = list(Category.objects.filter(is_active=True).values_list('name', flat=True))
+    categories = Category.objects.filter(is_active=True).annotate(service_count=Count('services'))
 
     locations = (
         Service.objects
