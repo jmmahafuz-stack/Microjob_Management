@@ -31,5 +31,6 @@ urlpatterns = [
     path('jobs/<int:pk>/messages/', views.job_messages, name='job_messages'),
     path('jobs/<int:pk>/complete/', views.job_complete, name='job_complete'),
     path('jobs/<int:pk>/price/', views.job_update_price, name='job_update_price'),
+    path('jobs/<int:pk>/customer-price/', views.customer_update_price, name='customer_update_price'),
     path('jobs/<int:pk>/cancel/', views.cancel_job, name='cancel_job'),
 ]

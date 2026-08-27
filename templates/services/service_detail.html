@@ -25,6 +25,10 @@
             <div class="service-detail-content">
                 <div class="detail-info-grid">
                     <div class="detail-stat">
+                        <span class="detail-label">Starting price</span>
+                        <strong>৳{{ service.price|floatformat:2 }}</strong>
+                    </div>
+                    <div class="detail-stat">
                         <span class="detail-label">Duration</span>
                         <strong>{{ service.duration }}</strong>
                     </div>
@@ -45,7 +49,10 @@
                 <div class="service-description-box">
                     <h3>Service description</h3>
                     <p>{{ service.description }}</p>
-                    <p class="service-negotiation-note"><i class="fas fa-comments"></i> Price is discussed and agreed between the customer and worker through messages.</p>
+                    <div class="service-negotiation-note">
+                        <p><i class="fas fa-comments"></i> Price negotiation is available after a worker is assigned and before you agree to the price.</p>
+                        <p><i class="fas fa-lock"></i> After you agree, the price is fixed. It cannot be changed after agreement, completion, cancellation, or verified payment.</p>
+                    </div>
                 </div>
 
                 {% if user.is_authenticated and user.role == 'customer' %}

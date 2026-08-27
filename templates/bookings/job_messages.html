@@ -127,6 +127,14 @@
 
                     <div class="composer-actions">
                         {% if request.user == job.customer and job.status not in 'COMPLETED,CANCELLED' and not price_agreed %}
+                            <form method="post" action="{% url 'customer_update_price' job.pk %}" class="d-flex align-items-center gap-2">
+                                {% csrf_token %}
+                                <label for="customer-price" class="visually-hidden">Propose a new price</label>
+                                <input id="customer-price" name="actual_price" type="number" min="0.01" step="0.01" value="{{ job.actual_price|default:'' }}" placeholder="New price" class="form-control" aria-label="Propose a new price">
+                                <button type="submit" class="btn btn-outline-primary">
+                                    <i class="fas fa-tag"></i> Propose Price
+                                </button>
+                            </form>
                             <form method="post">
                                 {% csrf_token %}
                                 <button type="submit" name="agree_price" class="btn btn-success">

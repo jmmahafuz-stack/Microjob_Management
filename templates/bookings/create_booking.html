@@ -26,6 +26,7 @@
                     <span class="service-category-badge">{{ selected_service.category }}</span>
                 </div>
                 <div class="booking-summary-meta">
+                    <div><span>Service price</span><strong class="service-price">৳{{ selected_service.price|floatformat:2 }}</strong></div>
                     <div><span>Category</span><strong>{{ selected_service.category }}</strong></div>
                     <div><span>Duration</span><strong>{{ selected_service.duration }}</strong></div>
                     <div><span>Location</span><strong>{{ selected_service.location|default:'Any location' }}</strong></div>

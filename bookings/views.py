@@ -912,6 +912,44 @@ def job_update_price(request, pk):
 
 @login_required
 @customer_required
+def customer_update_price(request, pk):
+    """Customer proposes a new price before agreeing to it."""
+    job = get_object_or_404(Job, pk=pk)
+
+    if job.customer != request.user:
+        messages.error(request, 'You can only update the price for your own job.')
+        return redirect('job_messages', pk=job.pk)
+    if request.method != 'POST':
+        return redirect('job_messages', pk=job.pk)
+    if job.status not in ['CONFIRMED', 'IN_PROGRESS']:
+        messages.error(request, 'The price can only be changed before the job is completed.')
+        return redirect('job_messages', pk=job.pk)
+    if _job_price_is_agreed(job):
+        messages.error(request, 'The price cannot be changed after you agree to it.')
+        return redirect('job_messages', pk=job.pk)
+    if Payment.objects.filter(job=job, payment_status='Verified').exists():
+        messages.error(request, 'The price cannot be changed after payment is verified.')
+        return redirect('job_messages', pk=job.pk)
+
+    form = JobPriceUpdateForm(request.POST, instance=job)
+    if form.is_valid():
+        form.save()
+        Notification.create_notification(
+            user=job.worker,
+            title=f'New price proposal for Job #{job.pk}',
+            message=f'{request.user.email} proposed a new price of ৳{job.final_price}.',
+            notification_type='JOB_MESSAGE',
+            job=job,
+            related_user=request.user,
+        )
+        messages.success(request, 'New price sent to the worker.')
+    else:
+        messages.error(request, form.errors.get('actual_price', ['Enter a valid price.'])[0])
+    return redirect('job_messages', pk=job.pk)
+
+
+@login_required
+@customer_required
 def cancel_job(request, pk):
     """Customer cancels a job"""
     job = get_object_or_404(Job, pk=pk)

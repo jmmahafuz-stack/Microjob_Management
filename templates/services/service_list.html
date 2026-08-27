@@ -109,6 +109,7 @@
 
                         <h4>{{ service.name }}</h4>
                         <p class="service-category"><i class="fas fa-briefcase"></i> {{ service.category }}</p>
+                        <p class="service-price"><i class="fas fa-tag"></i> ৳{{ service.price|floatformat:2 }}</p>
                         <p class="service-meta"><i class="fas fa-star"></i> {{ service.average_rating|floatformat:1 }} <span>({{ service.bookings.count }} reviews)</span></p>
                         <p class="service-description">{{ service.description|truncatewords:18 }}</p>
                         <p class="service-location"><i class="fas fa-location-dot"></i> {{ service.location|default:'Any location' }}</p>
@@ -157,6 +158,7 @@
 
                         <h4>{{ service.name }}</h4>
                         <p class="service-category"><i class="fas fa-briefcase"></i> {{ service.category }}</p>
+                        <p class="service-price"><i class="fas fa-tag"></i> ৳{{ service.price|floatformat:2 }}</p>
                         <p class="service-meta"><i class="fas fa-star"></i> {{ service.average_rating|floatformat:1 }} <span>{{ service.bookings.count }} bookings</span></p>
                         <p class="service-description">{{ service.description|truncatewords:18 }}</p>
                         <p class="service-location"><i class="fas fa-location-dot"></i> {{ service.location|default:'Any location' }}</p>
@@ -235,6 +237,8 @@
 
 
                     <div class="service-list-item__price">
+
+                        <strong>৳{{ service.price|floatformat:2 }}</strong>
 
                         <a href="{% url 'service_detail' service.id %}" class="btn btn-primary service-action">
                             View Details
