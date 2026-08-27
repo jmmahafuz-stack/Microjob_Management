@@ -60,6 +60,7 @@
                         <a href="{% url 'create_booking' %}?service={{ service.id }}" class="btn btn-primary">
                             <i class="fas fa-calendar-check"></i> Book This Service
                         </a>
+                        <p class="service-direct-selection-note"><i class="fas fa-award"></i> Direct selection gives you a premium booking experience with this service.</p>
                     </div>
                 {% elif not user.is_authenticated %}
                     <p class="detail-login-message">

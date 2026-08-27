@@ -23,7 +23,10 @@
                         <span class="card-eyebrow">Selected service</span>
                         <h2>{{ selected_service.name }}</h2>
                     </div>
-                    <span class="service-category-badge">{{ selected_service.category }}</span>
+                    <div>
+                        <span class="service-category-badge">{{ selected_service.category }}</span>
+                        <span class="service-category-badge">Premium direct selection</span>
+                    </div>
                 </div>
                 <div class="booking-summary-meta">
                     <div><span>Service price</span><strong class="service-price">৳{{ selected_service.price|floatformat:2 }}</strong></div>
@@ -31,6 +34,7 @@
                     <div><span>Duration</span><strong>{{ selected_service.duration }}</strong></div>
                     <div><span>Location</span><strong>{{ selected_service.location|default:'Any location' }}</strong></div>
                 </div>
+                <p class="booking-direct-selection-note"><i class="fas fa-award"></i> You selected this service directly for a premium booking experience. Your request will be shared with matching professionals for a focused response.</p>
             </article>
 
             {% if selected_worker %}
