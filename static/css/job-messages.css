@@ -1,0 +1,74 @@
+/* MJMS job messages / chat page */
+.message-page { max-width: 1180px; margin: 0 auto; padding: 2.5rem 1rem 4rem; color: #243746; }
+.message-page h1 { margin: 0; color: #163a56; font-size: clamp(2rem, 3.4vw, 2.9rem); font-weight: 800; letter-spacing: 0; }
+.message-page h2 { color: #163a56; font-size: 1.65rem; font-weight: 800; letter-spacing: 0; }
+.message-page h5 { color: #163a56; font-size: 1.3rem; font-weight: 750; letter-spacing: 0; }
+.message-page .job-reference { margin: 0 0 .2rem; color: #0f766e; font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.message-page .job-title { margin: 0; color: #163a56; font-size: 1.35rem; font-weight: 800; }
+.message-page .card { overflow: hidden; border: 1px solid #dbe4ea; border-radius: 12px; box-shadow: 0 8px 24px rgba(22, 58, 86, .07); }
+.message-page .card-header { padding: 1rem 1.25rem; background: #f5f9fb !important; border-bottom: 1px solid #dbe4ea; }
+.message-page .card-body { padding: 1.5rem; line-height: 1.7; }
+.message-page strong { color: #385466; font-size: 1rem; letter-spacing: .02em; }
+.message-page .job-overview { display: flex; flex-wrap: wrap; gap: .75rem 2rem; align-items: center; }
+.message-page .job-overview__item { display: flex; flex-direction: column; gap: .15rem; }
+.message-page .job-overview__value { color: #163a56; font-size: 1.12rem; font-weight: 700; }
+.message-page .job-overview__price { color: #0f766e; font-size: 1.5rem; font-weight: 800; }
+.message-page .message-thread { max-height: 360px; min-height: 220px; padding: .2rem; background: #f8fbfc; border: 1px solid #e2ebef; border-radius: 10px; overflow-y: auto; }
+.message-page .message-bubble { max-width: 82%; padding: .55rem .75rem; border: 1px solid #e1e9ed; border-radius: 10px; background: #fff; margin-bottom: .55rem !important; }
+.message-page .message-bubble:last-child { margin-bottom: .15rem !important; }
+.message-page .message-bubble--mine { margin-left: auto; border-color: #b7e3d5; background: #effaf6; }
+.message-page .message-bubble p { color: #334e5f; font-size: 1rem; white-space: pre-wrap; overflow-wrap: anywhere; }
+.message-page .message-bubble .mt-2 { margin-top: .35rem !important; }
+.message-page .message-form textarea { min-height: 70px; resize: vertical; }
+.message-page .message-form input[type="file"], .message-page .message-form textarea { border-color: #cbd9df; border-radius: 8px; }
+.message-page .message-form input:focus, .message-page .message-form textarea:focus { border-color: #0f766e; box-shadow: 0 0 0 3px rgba(15, 118, 110, .12); }
+.message-page .quick-action { display: flex; align-items: center; gap: .55rem; margin-bottom: .65rem; padding: .7rem .8rem; border: 1px solid #dbe4ea; border-radius: 8px; font-weight: 700; }
+.message-page .quick-action:last-child { margin-bottom: 0; }
+.message-page .job-info-row { padding: .7rem 0; border-bottom: 1px solid #edf2f4; }
+.message-page .job-info-row:last-child { border-bottom: 0; padding-bottom: 0; }
+.message-page .job-info-row small { display: block; color: #526b7b; font-size: 1rem; overflow-wrap: anywhere; }
+.message-page .job-info-row .job-info-price { color: #0f766e; font-size: 1.35rem; font-weight: 800; }
+.message-page .form-label { font-size: 1rem; }
+.message-page .btn { font-size: 1rem; }
+.message-page .conversation-actions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+.message-page .conversation-actions form { margin: 0; }
+.message-page .conversation-actions .quick-action { margin-bottom: 0; }
+.message-page .agreement-note { padding: .8rem 1rem; border: 1px solid #b7e3d5; border-radius: 8px; background: #effaf6; color: #166534; font-size: .92rem; }
+.message-page .message-layout { align-items: start; grid-template-columns: minmax(0, 1.25fr) minmax(430px, 1fr); }
+.message-page .message-main, .message-page .message-sidebar { width: 100%; max-width: none; }
+.message-page .job-hero { border: 0; background: #163a56; color: #fff; box-shadow: 0 12px 30px rgba(22, 58, 86, .18); }
+.message-page .job-hero .card-header { padding: 1.4rem 1.5rem; background: transparent !important; border-bottom: 1px solid rgba(255, 255, 255, .16); }
+.message-page .job-hero .job-reference { color: #9ee6cf; }
+.message-page .job-hero .job-title { color: #fff; }
+.message-page .job-hero .card-body { padding: 1.25rem 1.5rem; }
+.message-page .job-hero strong { color: #b8d0dc; }
+.message-page .job-hero .job-overview__value { color: #fff; }
+.message-page .job-hero hr { border-color: rgba(255, 255, 255, .16); }
+.message-page .job-hero .badge { padding: .5rem .75rem; font-size: .9rem; }
+.message-page .message-card .card-header, .message-page .composer-card .card-header, .message-page .action-card .card-header, .message-page .info-card .card-header { display: flex; align-items: center; gap: .55rem; }
+.message-page .empty-messages { padding: 1.25rem 1rem; text-align: center; color: #607887; font-size: .95rem; }
+.message-page .composer-card { margin-top: 1.25rem; }
+.message-page .composer-card .card-body { background: #fff; }
+.message-page .chat-panel { margin-bottom: 0; }
+.message-page .chat-composer { padding: .9rem 1.5rem 1rem; border-top: 1px solid #e2ebef; background: #fff; }
+.message-page .chat-composer__title { margin: 0 0 .55rem; color: #163a56; font-size: 1rem; font-weight: 800; }
+.message-page .chat-composer .mb-3 { margin-bottom: .55rem !important; }
+.message-page .chat-composer__title i { color: #0f766e; margin-right: .35rem; }
+.message-page .composer-actions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+.message-page .composer-actions .btn { margin: 0; white-space: nowrap; }
+.message-page .composer-actions form { margin: 0; }
+.message-page .action-card .conversation-actions { justify-content: flex-start; }
+.message-page .action-card .conversation-actions .btn { flex: 1 1 auto; }
+.message-page .info-card { min-height: 430px; margin-top: 1.25rem; }
+.message-page .info-card .card-header { padding: 1.35rem 1.5rem; }
+.message-page .info-card .card-body { padding: 2rem 1.75rem; }
+.message-page .price-form { padding-top: .9rem; border-top: 1px solid #edf2f4; }
+.message-page .price-form .form-control { max-width: 180px; }
+
+@media (max-width: 900px) {
+    .message-page .message-layout { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
+    .message-page { padding-top: 1.5rem; }
+    .message-page .message-bubble { max-width: 94%; }
+}

@@ -3,6 +3,10 @@
 
 {% block title %}Cancel Job{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/cancel-job.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="container" style="margin-top: 100px; margin-bottom: 50px;">
     <div class="row justify-content-center">
@@ -72,21 +76,4 @@
     </div>
 </div>
 
-<style>
-    .form-control {
-        border-radius: 0.375rem;
-        border: 1px solid #dee2e6;
-        padding: 0.75rem;
-    }
-    
-    .btn-danger {
-        background-color: #dc3545;
-        border-color: #dc3545;
-    }
-    
-    .btn-danger:hover {
-        background-color: #c82333;
-        border-color: #bd2130;
-    }
-</style>
 {% endblock %}

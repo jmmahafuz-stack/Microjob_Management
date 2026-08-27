@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/payout-request-list.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="card">
@@ -115,130 +120,4 @@
     </div>
 </div>
 
-<style>
-.earnings-breakdown {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 14px;
-    margin-bottom: 20px;
-}
-
-.earnings-card {
-    display: flex;
-    gap: 14px;
-    padding: 16px;
-    border-radius: 12px;
-    background: white;
-    border: 2px solid #e2e8f0;
-    align-items: center;
-}
-
-.earnings-card--pending {
-    border-color: #fed7aa;
-    background: #fffbeb;
-}
-
-.earnings-card--available {
-    border-color: #86efac;
-    background: #f0fdf4;
-}
-
-.earnings-card--withdrawn {
-    border-color: #86efac;
-    background: #f0fdf4;
-}
-
-.earnings-card--total {
-    border-color: #93c5fd;
-    background: #eff6ff;
-}
-
-.earnings-card__icon {
-    font-size: 2rem;
-    flex-shrink: 0;
-}
-
-.earnings-label {
-    display: block;
-    color: #64748b;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 4px;
-}
-
-.earnings-amount {
-    margin: 0;
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: #0f172a;
-}
-
-.earnings-card small {
-    display: block;
-    color: #64748b;
-    font-size: 0.85rem;
-    margin-top: 4px;
-}
-
-.payout-requests-table {
-    overflow-x: auto;
-    margin-bottom: 20px;
-}
-
-.payout-requests-table table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.payout-requests-table th,
-.payout-requests-table td {
-    padding: 12px;
-    text-align: left;
-    border-bottom: 1px solid #e2e8f0;
-}
-
-.payout-requests-table th {
-    background: #f8fbff;
-    font-weight: 700;
-    color: #1f4e79;
-}
-
-.payout-status {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 999px;
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.payout-status--requested {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.payout-status--approved {
-    background: #dbeafe;
-    color: #0c63e4;
-}
-
-.payout-status--processed {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.payout-status--rejected {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-.info-box h4 {
-    margin-top: 0;
-    color: #0f172a;
-}
-
-.info-box ul li {
-    margin-bottom: 6px;
-}
-</style>
 {% endblock %}

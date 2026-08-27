@@ -23,8 +23,7 @@
                     {% elif user.role == 'worker' %}
                         <a class="{% if request.resolver_match.url_name == 'worker_dashboard' %}nav-active{% endif %}" href="{% url 'worker_dashboard' %}"><i class="fa-solid fa-gauge"></i> Dashboard</a>
                         <a class="{% if request.resolver_match.url_name == 'worker_my_jobs' or request.resolver_match.url_name == 'job_detail' or request.resolver_match.url_name == 'job_messages' %}nav-active{% endif %}" href="{% url 'worker_my_jobs' %}"><i class="fa-solid fa-briefcase"></i> My Jobs</a>
-                        <a class="{% if request.resolver_match.url_name == 'service_request_list' or request.resolver_match.url_name == 'job_application_create' %}nav-active{% endif %}" href="{% url 'service_request_list' %}"><i class="fa-solid fa-inbox"></i> Open Requests</a>
-                       <!-- <a href="{% url 'payout_request_list' %}"><i class="fa-solid fa-wallet"></i> Earnings</a> -->
+
                     {% else %}
                         <a class="{% if request.resolver_match.url_name == 'my_bookings' or request.resolver_match.url_name == 'job_detail' or request.resolver_match.url_name == 'job_messages' %}nav-active{% endif %}" href="{% url 'my_bookings' %}"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
                         <a class="{% if request.resolver_match.url_name == 'payment_history' or request.resolver_match.url_name == 'make_payment' %}nav-active{% endif %}" href="{% url 'payment_history' %}"><i class="fa-solid fa-credit-card"></i> Payments</a>

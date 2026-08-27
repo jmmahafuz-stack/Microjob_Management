@@ -1,0 +1,16 @@
+/* Extracted from templates/bookings/cancel_job.html */
+    .form-control {
+        border-radius: 0.375rem;
+        border: 1px solid #dee2e6;
+        padding: 0.75rem;
+    }
+    
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+    
+    .btn-danger:hover {
+        background-color: #c82333;
+        border-color: #bd2130;
+    }

@@ -1,0 +1,15 @@
+/* Extracted from templates/bookings/job_completion_form.html */
+    .form-input, .form-textarea, .form-select {
+        border-radius: 0.375rem;
+        border: 1px solid #ddd;
+        padding: 0.75rem;
+        font-size: 1rem;
+        width: 100%;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-input:focus, .form-textarea:focus, .form-select:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }

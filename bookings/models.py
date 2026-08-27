@@ -10,6 +10,8 @@ class Booking(models.Model):
     STATUS_CHOICES = [
         ('Pending', 'Pending'),
         ('Confirmed', 'Confirmed'),
+        ('Accepted', 'Accepted'),
+        ('Open', 'Open'),
         ('Assigned', 'Assigned'),
         ('In Progress', 'In Progress'),
         ('Completed', 'Completed'),
@@ -421,6 +423,11 @@ class Job(models.Model):
         max_digits=10, decimal_places=2, null=True, blank=True,
         help_text="Final price if different from proposed"
     )
+    price_agreed = models.BooleanField(
+        default=False,
+        help_text="Whether the customer has accepted the current price"
+    )
+    price_agreed_at = models.DateTimeField(null=True, blank=True)
     completion_notes = models.TextField(blank=True, help_text="Notes from worker after completion")
     
     # Timestamps
@@ -500,6 +507,10 @@ class Job(models.Model):
 
     def save(self, *args, **kwargs):
         self.full_clean()
+        if self.pk:
+            previous = type(self).objects.only('price_agreed', 'actual_price').get(pk=self.pk)
+            if previous.price_agreed and self.actual_price != previous.actual_price:
+                raise ValidationError('The job price cannot be changed after the customer agrees.')
         return super().save(*args, **kwargs)
 
     def get_absolute_url(self):

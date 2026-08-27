@@ -1,4 +1,9 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/worker-available-jobs.css' %}">
+{% endblock %}
 
 {% block content %}
 <div class="card">
@@ -10,11 +15,40 @@
         </div>
     </div>
 
-    {% if jobs or bookings %}
+
+    {% if open_requests %}
+    <div style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem; color: #0c63e4;">📬 Open Requests</h3>
+        <div class="service-list">
+            {% for booking in open_requests %}
+            <article class="service-list-item" style="border-left: 4px solid #f59e0b;">
+                <div class="service-list-item__body">
+                    <h4>{{ booking.service.name }}</h4>
+                    <p class="service-category">Category: {{ booking.service.category.name }}</p>
+                    <p class="service-category">Customer: {{ booking.customer.get_full_name|default:booking.customer.email }}</p>
+                    <p><strong>Problem:</strong> {{ booking.problem_description|truncatewords:25 }}</p>
+                    <p><strong>Location:</strong> {{ booking.address }}</p>
+                    <p><strong>Requested:</strong> {{ booking.booking_date }} at {{ booking.booking_time }}</p>
+                    <span class="hub-status hub-status--pending">Pending · Open request</span>
+                </div>
+                <div class="service-list-item__price">
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                        <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-outline-secondary">View Details</a>
+                        <form method="post" action="{% url 'respond_to_booking' booking.pk 'accept' %}">{% csrf_token %}<button type="submit" class="btn btn-success" data-booking-action>✓ Accept</button></form>
+                        <form method="post" action="{% url 'respond_to_booking' booking.pk 'decline' %}">{% csrf_token %}<button type="submit" class="btn btn-outline-danger" data-booking-action>✗ Pass</button></form>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if jobs or bookings or open_requests %}
         <!-- BOOKINGS SECTION -->
         {% if bookings %}
         <div style="margin-bottom: 2rem;">
-            <h3 style="margin-bottom: 1rem; color: #0c63e4;">📋 Customer Bookings (Open Requests)</h3>
+            <h3 style="margin-bottom: 1rem; color: #0c63e4;">📋 My Customer Bookings</h3>
             <div class="service-list">
                 {% for booking in bookings %}
                     <article class="service-list-item" style="border-left: 4px solid 
@@ -134,9 +168,6 @@
         </div>
         {% endif %}
 
-    <style>
-        .message-unread-bell { margin-left: 7px; color: #facc15; filter: drop-shadow(0 0 2px rgba(120, 53, 15, .45)); }
-    </style>
     {% else %}
         <div style="text-align: center; padding: 3rem 1rem; background: #f8fbff; border-radius: 8px;">
             <p style="font-size: 1.2rem; color: #64748b; margin-bottom: 1rem;">📭 No jobs or bookings assigned yet</p>
@@ -147,7 +178,7 @@
 </div>
 
 <!-- Job Statistics -->
-{% if jobs or bookings %}
+{% if jobs or bookings or open_requests %}
     <div class="card" style="margin-top: 2rem;">
         <h3>Your Statistics</h3>
         <div class="dashboard-grid">
@@ -164,12 +195,10 @@
             <div class="dashboard-card">
                 <h4>In Progress</h4>
                 <p class="dashboard-number">
-                    {% with pending=bookings|dictsort:"status"|slice:":1" %}
                     {% regroup jobs by status as status_groups %}
                     {% for status, group in status_groups %}
                         {% if status == 'IN_PROGRESS' %}{{ group|length }}{% endif %}
                     {% endfor %}
-                    {% endwith %}
                 </p>
                 <small>Currently working on</small>
             </div>
@@ -186,4 +215,8 @@
         </div>
     </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/worker-available-jobs.js' %}" defer></script>
 {% endblock %}

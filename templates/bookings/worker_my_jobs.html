@@ -11,7 +11,8 @@
 <div class="hub-page" data-hub="worker">
     <section class="hub-hero hub-hero--worker">
         <div><span class="hub-eyebrow"><i class="fa-solid fa-briefcase"></i> Worker workspace</span><h1>My Jobs</h1><p>Manage your applications, assigned work, customer communication and completed services from one dashboard.</p></div>
-        <a href="{% url 'worker_available_jobs' %}" class="hub-btn hub-btn--primary"><i class="fa-solid fa-magnifying-glass"></i> Find new jobs</a>
+        <a href="{% url 'worker_available_jobs' %}" class="hub-btn hub-btn--primary">Find new jobs</a>
+
     </section>
 
     <section class="hub-stats" aria-label="Job summary">
@@ -34,6 +35,20 @@
 
     <div id="workerHubEmpty" class="hub-empty hub-empty--filtered" hidden><i class="fa-solid fa-filter-circle-xmark"></i><h2>No matching jobs</h2><p>Try another search or choose a different status.</p></div>
 
+
+    {% if accepted_bookings %}
+    <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Direct customer bookings</span><h2>Accepted Bookings</h2></div><span class="hub-count">{{ accepted_bookings|length }}</span></div>
+        <div class="hub-list">{% for booking in accepted_bookings %}
+            <article class="hub-card hub-item" data-filter-status="confirmed" data-search="{{ booking.service.name }} {{ booking.customer.get_full_name|default:booking.customer.email }}">
+                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Booking #{{ booking.pk }}</span><h3>{{ booking.service.name }}</h3><p>Customer: {{ booking.customer.get_full_name|default:booking.customer.email }}</p></div></div><span class="hub-status hub-status--accepted">{{ booking.status }}</span></div>
+                <div class="hub-card__grid"><div><small><i class="fa-solid fa-layer-group"></i> Category</small><strong>{{ booking.service.category.name }}</strong></div><div><small><i class="fa-regular fa-calendar"></i> Date</small><strong>{{ booking.booking_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-regular fa-clock"></i> Time</small><strong>{{ booking.booking_time|time:"g:i A" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ booking.address|truncatewords:8 }}</strong></div></div>
+                <p class="hub-description">{{ booking.problem_description|truncatewords:30 }}</p>
+                <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'booking_detail' booking.pk %}"><i class="fa-solid fa-eye"></i> View booking</a></div>
+            </article>
+        {% endfor %}</div>
+    </section>
+    {% endif %}
+
     {% if confirmed_jobs %}
     <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Next to start</span><h2>Confirmed Jobs</h2></div><span class="hub-count">{{ confirmed_jobs|length }}</span></div>
         <div class="hub-list">{% for job in confirmed_jobs %}
@@ -41,7 +56,7 @@
                 <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>Customer: {{ job.customer.get_full_name|default:job.customer.email }}</p></div></div><span class="hub-status hub-status--confirmed">Confirmed</span></div>
                 <div class="hub-card__grid"><div><small><i class="fa-regular fa-calendar"></i> Schedule</small><strong>{{ job.scheduled_date|date:"M d, Y" }}{% if job.scheduled_time_start %} · {{ job.scheduled_time_start|time:"g:i A" }}{% endif %}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location }}</strong></div><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Agreed price</small><strong>৳{{ job.final_price }}</strong></div><div><small><i class="fa-solid fa-clock"></i> Created</small><strong>{{ job.created_at|date:"M d, Y" }}</strong></div></div>
                 <p class="hub-description">{{ job.description|truncatewords:30 }}</p>
-                <div class="hub-card__actions"><form method="post" action="{% url 'job_accept' job.pk %}" class="hub-inline-form">{% csrf_token %}<button class="hub-btn hub-btn--primary" type="submit"><i class="fa-solid fa-play"></i> Accept &amp; start</button></form><a class="hub-btn hub-btn--soft" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a><a class="hub-btn hub-btn--soft" href="{% url 'job_messages' job.pk %}"><i class="fa-regular fa-comments"></i> Message{% if job.has_unread_customer_message %}<b class="hub-notice-dot"></b>{% endif %}</a></div>
+                <div class="hub-card__actions"><form method="post" action="{% url 'job_accept' job.pk %}" class="hub-inline-form">{% csrf_token %}<button class="hub-btn hub-btn--primary" type="submit"><i class="fa-solid fa-play"></i> Accept &amp; start</button></form><a class="hub-btn hub-btn--soft" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a><a class="hub-btn hub-btn--soft" href="{% url 'job_messages' job.pk %}"><i class="fa-regular fa-comments"></i> Message{% if job.has_unread_customer_message %}<b class="hub-notice-dot"></b>{% endif %}</a>{% if not job.price_agreed %}<form method="post" action="{% url 'job_update_price' job.pk %}" class="hub-inline-form hub-price-form"><input name="actual_price" type="number" min="0.01" step="0.01" value="{{ job.actual_price|default:'' }}" placeholder="Price" aria-label="Update price"><button class="hub-btn hub-btn--soft" type="submit"><i class="fa-solid fa-tag"></i> Update Price</button>{% csrf_token %}</form>{% endif %}</div>
             </article>
         {% endfor %}</div>
     </section>
@@ -54,7 +69,7 @@
                 <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--active"><i class="fa-solid fa-person-digging"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>Customer: {{ job.customer.get_full_name|default:job.customer.email }}</p></div></div><span class="hub-status hub-status--inprogress">In progress</span></div>
                 <div class="hub-card__grid"><div><small><i class="fa-solid fa-play"></i> Started</small><strong>{% if job.actual_start_time %}{{ job.actual_start_time|date:"M d, Y · g:i A" }}{% else %}Started{% endif %}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location }}</strong></div><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Price</small><strong>৳{{ job.final_price }}</strong></div><div><small><i class="fa-regular fa-comments"></i> Messages</small><strong>{% if job.has_unread_customer_message %}New message{% else %}Up to date{% endif %}</strong></div></div>
                 <p class="hub-description">{{ job.description|truncatewords:30 }}</p>
-                <div class="hub-card__actions"><a class="hub-btn hub-btn--success" href="{% url 'job_complete' job.pk %}"><i class="fa-solid fa-check"></i> Mark completed</a><a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a><a class="hub-btn hub-btn--soft" href="{% url 'job_messages' job.pk %}"><i class="fa-regular fa-comments"></i> Message{% if job.has_unread_customer_message %}<b class="hub-notice-dot"></b>{% endif %}</a></div>
+                <div class="hub-card__actions"><a class="hub-btn hub-btn--success" href="{% url 'job_complete' job.pk %}"><i class="fa-solid fa-check"></i> Mark completed</a><a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a><a class="hub-btn hub-btn--soft" href="{% url 'job_messages' job.pk %}"><i class="fa-regular fa-comments"></i> Message{% if job.has_unread_customer_message %}<b class="hub-notice-dot"></b>{% endif %}</a>{% if not job.price_agreed %}<form method="post" action="{% url 'job_update_price' job.pk %}" class="hub-inline-form hub-price-form"><input name="actual_price" type="number" min="0.01" step="0.01" value="{{ job.actual_price|default:'' }}" placeholder="Price" aria-label="Update price"><button class="hub-btn hub-btn--soft" type="submit"><i class="fa-solid fa-tag"></i> Update Price</button>{% csrf_token %}</form>{% endif %}</div>
             </article>
         {% endfor %}</div>
     </section>
@@ -99,7 +114,7 @@
     </section>
     {% endif %}
 
-    {% if not confirmed_jobs and not active_jobs and not accepted_applications and not pending_applications and not completed_jobs %}
+    {% if not accepted_bookings and not confirmed_jobs and not active_jobs and not accepted_applications and not pending_applications and not completed_jobs %}
     <section class="hub-empty"><span class="hub-empty__icon"><i class="fa-solid fa-briefcase"></i></span><h2>No jobs yet</h2><p>Browse customer requests that match your profession and send your first application.</p><a href="{% url 'service_request_list' %}" class="hub-btn hub-btn--primary"><i class="fa-solid fa-magnifying-glass"></i> Browse job requests</a></section>
     {% endif %}
 </div>

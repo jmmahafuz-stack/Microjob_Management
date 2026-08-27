@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.db.models import Exists, OuterRef, Q
+from django.db import transaction
 import django.utils.timezone
 
 from accounts.decorators import admin_required, customer_required, worker_required
@@ -29,6 +30,14 @@ from .forms import (
 from .models import Booking, BookingMessage, ServiceRequest, JobApplication, Job, WorkerResponse
 
 
+def _job_price_is_agreed(job):
+    return job.price_agreed or BookingMessage.objects.filter(
+        job=job,
+        sender=job.customer,
+        message__startswith='I agree to the service price of',
+    ).exists()
+
+
 def _get_related_workers(service):
     return WorkerProfile.objects.filter(
         user__role='worker',
@@ -38,10 +47,9 @@ def _get_related_workers(service):
         Q(categories=service.category)
         | Q(service__category=service.category)
         | Q(service_category__iexact=service.category.name)
-    ).distinct().select_related('user')[:4]
+    ).distinct().select_related('user')
 
 
-@login_required
 @login_required
 def booking_list(request):
     """Compatibility entry point for the unified booking area."""
@@ -81,9 +89,9 @@ def my_bookings(request):
         status__in=['OPEN', 'REVIEWING'],
     ).select_related('service').prefetch_related('job_applications').order_by('-created_at')
     total_booked = bookings.count() + all_service_requests.count()
-    accepted_count = accepted_jobs.count()
-    in_progress_count = accepted_jobs.filter(status='IN_PROGRESS').count()
-    completed_count = accepted_jobs.filter(status='COMPLETED').count()
+    accepted_count = accepted_jobs.count() + bookings.filter(status='Accepted').count()
+    in_progress_count = accepted_jobs.filter(status='IN_PROGRESS').count() + bookings.filter(status='In Progress').count()
+    completed_count = accepted_jobs.filter(status='COMPLETED').count() + bookings.filter(status='Completed').count()
     unread_worker_messages = Notification.objects.filter(
         user=request.user,
         notification_type='JOB_MESSAGE',
@@ -243,89 +251,88 @@ def reject_worker_response(request, response_id):
     )
 
 
+@login_required
 @customer_required
 def create_booking(request):
-    selected_service = None
-    selected_worker = None
+    """Create either a category-wide request or a request for one specific worker."""
     service_id = request.GET.get('service') or request.POST.get('service')
+    worker_id = request.GET.get('worker') or request.POST.get('worker')
     if not service_id:
         messages.error(request, 'Please choose a service before creating a booking.')
         return redirect('service_list')
 
-    if service_id:
-        selected_service = get_object_or_404(Service, pk=service_id)
-        selected_service.related_workers = _get_related_workers(selected_service)
-
-        worker_id = request.GET.get('worker') or request.POST.get('worker')
-        if worker_id:
-            selected_worker = next(
-                (
-                    worker for worker in selected_service.related_workers
-                    if str(worker.user_id) == worker_id
-                ),
-                None,
-            )
+    selected_service = get_object_or_404(Service, pk=service_id)
+    related_workers = _get_related_workers(selected_service)
+    selected_worker = None
+    if worker_id:
+        selected_worker = related_workers.filter(user_id=worker_id).first()
+        if selected_worker is None:
+            messages.error(request, 'The selected worker is not available for this service.')
+            return redirect('service_detail', pk=selected_service.pk)
+    selected_service.related_workers = related_workers
 
     if request.method == 'POST':
-        form = BookingCreateForm(
-            request.POST,
-            request.FILES,
-            selected_service=selected_service,
-            selected_worker=selected_worker,
-        )
+        form = BookingCreateForm(request.POST, request.FILES, selected_service=selected_service, selected_worker=selected_worker)
         if form.is_valid():
-            booking = form.save(commit=False)
-            booking.customer = request.user
-            booking.service = selected_service
-            booking.worker = selected_worker.user if selected_worker else None
-            booking.status = 'Pending'
+            booking_date = form.cleaned_data['booking_date']
+            booking_time = form.cleaned_data['booking_time']
+            address = form.cleaned_data['address']
+            problem_description = form.cleaned_data['problem_description']
 
-            if booking.worker_id and Booking.objects.filter(
-                worker=booking.worker,
-                booking_date=booking.booking_date,
-                booking_time=booking.booking_time,
-            ).exclude(status='Cancelled').exists():
-                form.add_error(
-                    'booking_time',
-                    'This worker is not available at this date and time. Please choose another time.',
-                )
-                return render(
-                    request,
-                    'bookings/create_booking.html',
-                    {
-                        'form': form,
-                        'selected_service': selected_service,
-                        'selected_worker': selected_worker,
-                    },
-                )
-            
-            booking.save()
-            if booking.worker:
-                booking.status = 'Assigned'
-                booking.save(update_fields=['worker', 'status'])
-                messages.success(request, 'Booking created. You can now message your selected worker.')
-            else:
-                messages.success(request, 'Booking request created. An available worker will be assigned soon.')
-            return redirect('booking_detail', pk=booking.pk)
+            with transaction.atomic():
+                duplicate = Booking.objects.select_for_update().filter(
+                    customer=request.user, service=selected_service,
+                    booking_date=booking_date, booking_time=booking_time,
+                    address=address, problem_description=problem_description,
+                ).exclude(status='Cancelled').first()
+                if duplicate:
+                    messages.info(request, 'This booking request already exists. It is shown in My Bookings.')
+                    return redirect('my_bookings')
+
+                booking = form.save(commit=False)
+                booking.customer = request.user
+                booking.service = selected_service
+                booking.worker = selected_worker.user if selected_worker else None
+                booking.status = 'Pending'
+
+                if booking.worker_id and Booking.objects.filter(
+                    worker=booking.worker, booking_date=booking_date, booking_time=booking_time
+                ).exclude(status='Cancelled').exists():
+                    form.add_error('booking_time', 'This worker is not available at this date and time. Please choose another time.')
+                else:
+                    booking.save()
+                    # Notify every matching worker for a category request. Specific-worker requests are private.
+                    if not booking.worker_id:
+                        for profile in related_workers:
+                            Notification.create_notification(
+                                user=profile.user,
+                                title=f'New {selected_service.category.name} service request',
+                                message=f'{request.user.get_full_name() or request.user.email} requested {selected_service.name}. Open Requests has a new job.',
+                                notification_type='GENERAL',
+                                related_user=request.user,
+                            )
+                    else:
+                        Notification.create_notification(
+                            user=booking.worker,
+                            title=f'New booking request: {selected_service.name}',
+                            message=f'{request.user.get_full_name() or request.user.email} specifically selected you for this service.',
+                            notification_type='GENERAL',
+                            related_user=request.user,
+                        )
+
+                    messages.success(request, 'Booking request created successfully. It is now Pending in My Bookings.')
+                    return redirect('my_bookings')
     else:
         form = BookingCreateForm(
             initial={'service': selected_service, 'worker': selected_worker.user if selected_worker else None},
-            selected_service=selected_service,
-            selected_worker=selected_worker,
+            selected_service=selected_service, selected_worker=selected_worker,
         )
 
-    return render(
-        request,
-        'bookings/create_booking.html',
-        {
-            'form': form,
-            'selected_service': selected_service,
-            'selected_worker': selected_worker,
-        }
-    )
+    return render(request, 'bookings/create_booking.html', {
+        'form': form, 'selected_service': selected_service, 'selected_worker': selected_worker,
+    })
 
 
-@login_required
 @login_required
 def booking_history(request):
     """Compatibility entry point for the unified booking area."""
@@ -366,30 +373,66 @@ def edit_booking(request, pk):
     )
 
 
+@login_required
 @worker_required
 def respond_to_booking(request, pk, action):
-    booking = get_object_or_404(Booking, pk=pk)
+    """Accept/decline a booking safely. General requests can be claimed by any matching worker."""
+    if request.method != 'POST':
+        messages.error(request, 'Booking actions must be submitted with POST.')
+        return redirect('worker_available_jobs')
 
-    if booking.worker != request.user:
-        messages.error(request, 'You can only respond to your own assigned bookings.')
-        return redirect('booking_list')
+    with transaction.atomic():
+        booking = Booking.objects.select_for_update().select_related('service', 'customer').filter(pk=pk).first()
+        if not booking:
+            messages.error(request, 'Booking not found.')
+            return redirect('worker_available_jobs')
 
-    if booking.status != 'Pending':
-        messages.error(request, 'Only pending bookings can be accepted or declined.')
-        return redirect('booking_detail', pk=booking.pk)
+        profile = getattr(request.user, 'worker_profile', None)
+        category_match = bool(profile and (
+            profile.categories.filter(pk=booking.service.category_id).exists()
+            or (profile.service_id and profile.service.category_id == booking.service.category_id)
+            or (profile.service_category and profile.service_category.strip().lower() == booking.service.category.name.strip().lower())
+        ))
 
-    if action == 'accept':
-        booking.status = 'Confirmed'
-        messages.success(request, 'Booking accepted successfully.')
-    elif action == 'decline':
-        booking.status = 'Cancelled'
-        messages.success(request, 'Booking declined successfully.')
-    else:
-        messages.error(request, 'Invalid action.')
-        return redirect('booking_detail', pk=booking.pk)
+        if booking.status != 'Pending':
+            messages.info(request, 'This request has already been accepted or is no longer available.')
+            return redirect('worker_available_jobs')
 
-    booking.save(update_fields=['status'])
-    return redirect('booking_detail', pk=booking.pk)
+        if booking.worker_id and booking.worker_id != request.user.id:
+            messages.error(request, 'This request was sent to another specific worker.')
+            return redirect('worker_available_jobs')
+        if not booking.worker_id and not category_match:
+            messages.error(request, 'You are not eligible for this service category.')
+            return redirect('worker_available_jobs')
+
+        if action == 'accept':
+            if Booking.objects.filter(worker=request.user, booking_date=booking.booking_date, booking_time=booking.booking_time).exclude(status__in=['Cancelled', 'Completed']).exclude(pk=booking.pk).exists():
+                messages.error(request, 'You already have a booking at this date and time.')
+                return redirect('worker_available_jobs')
+            booking.worker = request.user
+            booking.status = 'Accepted'
+            booking.save(update_fields=['worker', 'status', 'updated_at'])
+            Notification.create_notification(
+                user=booking.customer,
+                title=f'Booking accepted: {booking.service.name}',
+                message=f'{request.user.get_full_name() or request.user.email} accepted your service request.',
+                notification_type='GENERAL',
+                related_user=request.user,
+            )
+            messages.success(request, 'Booking accepted. It is now in My Jobs.')
+        elif action == 'decline':
+            if booking.worker_id:
+                booking.status = 'Cancelled'
+                booking.save(update_fields=['status', 'updated_at'])
+            else:
+                WorkerResponse.objects.update_or_create(
+                    booking=booking, worker=request.user,
+                    defaults={'status': 'REJECTED', 'message': 'Worker declined this open request.'}
+                )
+            messages.info(request, 'The request was declined for you and remains available to other matching workers.')
+        else:
+            messages.error(request, 'Invalid action.')
+    return redirect('worker_available_jobs')
 
 
 @customer_required
@@ -776,11 +819,7 @@ def job_detail(request, pk):
         is_read=False,
     ).count()
     payment = Payment.objects.filter(job=job).first()
-    price_agreed = BookingMessage.objects.filter(
-        job=job,
-        sender=request.user,
-        message__startswith='I agree to the service price of',
-    ).exists()
+    price_agreed = _job_price_is_agreed(job)
     context = {
         'job': job,
         'payment_completed': payment_completed,
@@ -849,6 +888,10 @@ def job_update_price(request, pk):
 
     if job.status not in ['CONFIRMED', 'IN_PROGRESS']:
         messages.error(request, 'The price can only be changed before the job is completed.')
+        return redirect('job_detail', pk=job.pk)
+
+    if _job_price_is_agreed(job):
+        messages.error(request, 'The price cannot be changed after the customer agrees.')
         return redirect('job_detail', pk=job.pk)
 
     if Payment.objects.filter(job=job, payment_status='Verified').exists():
@@ -941,12 +984,17 @@ def worker_my_jobs(request):
         status='COMPLETED'
     ).select_related('customer', 'service_request').order_by('-created_at')
 
+    accepted_bookings = Booking.objects.filter(
+        worker=request.user, status__in=['Accepted', 'In Progress', 'Completed']
+    ).select_related('customer', 'service', 'service__category').order_by('-created_at')
+
     context = {
         'pending_applications': pending_applications,
         'accepted_applications': accepted_applications,
         'confirmed_jobs': confirmed_jobs,
         'active_jobs': active_jobs,
         'completed_jobs': completed_jobs,
+        'accepted_bookings': accepted_bookings,
         'total_jobs': len(confirmed_jobs) + len(active_jobs),
         'total_completed': len(completed_jobs),
     }
@@ -1022,19 +1070,28 @@ def worker_available_jobs(request):
         'customer', 'service_request'
     ).annotate(has_unread_customer_message=Exists(unread_customer_message)).order_by('-created_at')
     
-    # Get all bookings assigned to this worker (Pending/Assigned status)
-    assigned_bookings = Booking.objects.filter(
-        worker=request.user
-    ).exclude(
-        status='Cancelled'
-    ).select_related(
-        'customer', 'service'
-    ).order_by('-created_at')
-    
-    context = {
-        'jobs': available_jobs,
-        'bookings': assigned_bookings,
-    }
+    # Category-wide open requests plus private requests for this worker.
+    profile = getattr(request.user, 'worker_profile', None)
+    category_ids = profile.categories.values_list('id', flat=True) if profile else []
+    category_name = profile.service_category.strip() if profile and profile.service_category else ''
+    rejected = WorkerResponse.objects.filter(booking=OuterRef('pk'), worker=request.user, status='REJECTED')
+    open_requests = Booking.objects.filter(status='Pending').filter(
+        Q(worker=request.user) | (
+            Q(worker__isnull=True) & (
+                Q(service__category_id__in=category_ids) |
+                Q(service__category__name__iexact=category_name) |
+                Q(service__workers__user=request.user)
+            )
+        )
+    ).annotate(worker_declined=Exists(rejected)).filter(worker_declined=False).select_related('customer', 'service', 'service__category').distinct().order_by('-created_at')
+
+    # Exclude 'Pending' bookings here since those are already shown above in the
+    # Open Requests section — avoids showing the same booking twice on the page.
+    assigned_bookings = Booking.objects.filter(worker=request.user).exclude(
+        status__in=['Cancelled', 'Pending']
+    ).select_related('customer', 'service', 'service__category').order_by('-created_at')
+
+    context = {'jobs': available_jobs, 'bookings': assigned_bookings, 'open_requests': open_requests}
     return render(request, 'bookings/worker_available_jobs.html', context)
 
 
@@ -1078,6 +1135,9 @@ def job_messages(request, pk):
         if job.status not in ['CONFIRMED', 'IN_PROGRESS']:
             messages.error(request, 'The price can only be changed before the job is completed.')
             return redirect('job_messages', pk=job.pk)
+        if _job_price_is_agreed(job):
+            messages.error(request, 'The price cannot be changed after you agree to it.')
+            return redirect('job_messages', pk=job.pk)
 
         price_form = JobPriceUpdateForm(request.POST, instance=job)
         if price_form.is_valid():
@@ -1093,6 +1153,11 @@ def job_messages(request, pk):
             messages.error(request, 'The price cannot be agreed after this job is closed.')
             return redirect('job_messages', pk=job.pk)
 
+        from django.utils import timezone
+
+        job.price_agreed = True
+        job.price_agreed_at = timezone.now()
+        job.save(update_fields=['price_agreed', 'price_agreed_at', 'updated_at'])
         BookingMessage.objects.create(
             job=job,
             sender=request.user,
@@ -1111,10 +1176,7 @@ def job_messages(request, pk):
     
     # Get all messages for this job
     job_messages = BookingMessage.objects.filter(job=job).order_by('created_at')
-    price_agreed = job_messages.filter(
-        sender=request.user,
-        message__startswith='I agree to the service price of',
-    ).exists()
+    price_agreed = _job_price_is_agreed(job)
     
     if request.method == 'POST':
         message_text = request.POST.get('message', '').strip()
@@ -1149,7 +1211,7 @@ def job_messages(request, pk):
     
     context = {
         'job': job,
-        'messages': job_messages,
+        'job_messages': job_messages,
         'payment_completed': payment_completed,
         'price_agreed': price_agreed,
         'price_form': price_form,
