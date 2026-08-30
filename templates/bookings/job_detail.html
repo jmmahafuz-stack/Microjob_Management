@@ -5,6 +5,14 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/job-detail.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIINfQ3N7w3bY6ZxCq1Q3n6x8g4Y4m5R4=" crossorigin="">
+<style>
+    .job-location-map {
+        height: 320px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -46,6 +54,12 @@
                             <div class="col-md-6">
                                 <strong>Estimated duration</strong>
                                 <p class="mb-0">{{ job.estimated_duration }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 pt-3 border-top">
+                            <strong><i class="fas fa-map-marker-alt"></i> Map</strong>
+                            <div id="job-location-map" class="job-location-map mt-2" data-query="{{ job.location }}, {{ job.address }}">
+                                <p class="p-3 mb-0 text-muted">Loading map...</p>
                             </div>
                         </div>
                         {% if job.completion_notes %}
@@ -132,4 +146,41 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const mapElement = document.getElementById('job-location-map');
+        if (!mapElement || typeof L === 'undefined') return;
+
+        const query = mapElement.dataset.query.trim();
+        if (!query) {
+            mapElement.innerHTML = '<p class="p-3 mb-0 text-muted">No location provided.</p>';
+            return;
+        }
+
+        fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=' + encodeURIComponent(query))
+            .then(function (response) {
+                if (!response.ok) throw new Error('Geocoding request failed');
+                return response.json();
+            })
+            .then(function (results) {
+                if (!results.length) throw new Error('Location not found');
+
+                const result = results[0];
+                const map = L.map(mapElement).setView([result.lat, result.lon], 15);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+                L.marker([result.lat, result.lon]).addTo(map)
+                    .bindPopup(result.display_name)
+                    .openPopup();
+            })
+            .catch(function () {
+                mapElement.innerHTML = '<p class="p-3 mb-0 text-muted">Map location could not be found for this address.</p>';
+            });
+    });
+</script>
 {% endblock %}

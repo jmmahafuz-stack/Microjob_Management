@@ -31,10 +31,6 @@ nav.top-nav a {
     font-weight: 600;
 }
 
-nav.top-nav a:hover {
-    text-decoration: underline;
-}
-
 .site-footer {
     background: #163a56;
     color: #f5f7fb;
@@ -285,7 +281,7 @@ button:hover, input[type="submit"]:hover {
 .worker-card__detail {
     margin: 0 0 2px;
     font-size: 0.8rem;
-    color: #475569;
+    color: #285492;
 }
 
 .auth-form button {

@@ -90,9 +90,11 @@
 }
 
 .nav-links > a.nav-active {
-    background: rgba(255,255,255,.2);
+    background: transparent !important;
     color: #fff !important;
-    box-shadow: inset 0 -2px 0 #f4b860;
+    box-shadow: none !important;
+    transform: none !important;
+    text-decoration: none !important;
 }
 
 .nav-cta {
@@ -581,9 +583,12 @@ body {
 }
 .nav-links > a {
     color: #dbeafe !important;
-    transition: transform .2s ease, background .2s ease, color .2s ease;
+    transition: background .2s ease, color .2s ease;
+    box-shadow: none !important;
 }
-.nav-links > a:hover { transform: translateY(-1px); }
+.nav-links > a:hover {
+    transform: none;
+}
 
 /* Keep every navbar action in the same visual family. */
 .nav-links > a,
@@ -592,6 +597,7 @@ body {
     background: rgba(255, 255, 255, .1) !important;
     color: #e7f7f7 !important;
     border: 1px solid rgba(255, 255, 255, .12) !important;
+    box-shadow: none !important;
 }
 
 .nav-links > a:hover,
@@ -601,17 +607,12 @@ body {
     background: rgba(255, 255, 255, .2) !important;
     color: #ffffff !important;
     border-color: rgba(255, 255, 255, .22) !important;
+    box-shadow: none !important;
 }
 
 .nav-links > a.nav-active {
-    box-shadow: inset 0 -2px 0 #f4b860;
-}
-
-/* Use the My Bookings accent consistently on every navigation action. */
-.nav-links > a,
-.nav-links > a.nav-cta,
-.nav-links > a.nav-danger {
-    box-shadow: inset 0 -2px 0 #f4b860;
+    box-shadow: none !important;
+    transform: none !important;
 }
 .nav-cta {
     background: linear-gradient(135deg,#2563eb,#1d4ed8) !important;
@@ -943,7 +944,7 @@ input[type="button"]:active {
     background: transparent !important;
     border-color: transparent !important;
     box-shadow: none !important;
-    color: #f4b860 !important;
+    color: #ffffff !important;
 }
 
 .btn,
@@ -3432,8 +3433,6 @@ input.form-control, select.form-control, textarea.form-control, input.form-selec
 .services-page .service-footer .btn { width:100%; }
 .services-page .services-content { padding-bottom:2rem; }
 .services-page .services-hero { background:linear-gradient(135deg,#eff6ff,#dbeafe 58%,#f8fafc); color:var(--ui-text); text-align:center; }
-.services-page .services-hero h2 { color:#0f172a; font-size:clamp(1.8rem,3vw,2.55rem); }
-.services-page .services-hero p { color:#475569; }
 .services-page .services-filter-section { border-radius:16px; }
 .services-page .filter-submit { background:#2563eb; border-color:#2563eb; }
 .services-page .filter-submit:hover { background:#1d4ed8; border-color:#1d4ed8; }
@@ -3499,13 +3498,6 @@ input.form-control, select.form-control, textarea.form-control, input.form-selec
 .services-page .featured-services-section .service-footer, .services-page .popular-services-section .service-footer { margin-top:.7rem; }
 .services-page .featured-services-section .service-footer .btn, .services-page .popular-services-section .service-footer .btn { width:auto; padding:.45rem .7rem; font-size:.7rem; }
 .services-page .services-categories-section { margin-top:0; padding:1rem; border:1px solid #e2e8f0; border-radius:12px; background:#fff; box-shadow:0 7px 18px rgba(15,23,42,.05); }
-body:has(.services-page) .top-nav { background:#fff; border-bottom:1px solid #e2e8f0; box-shadow:0 2px 12px rgba(15,23,42,.05); }
-body:has(.services-page) .top-nav .nav-inner { min-height:58px; }
-body:has(.services-page) .top-nav .brand { color:#0f172a; }
-body:has(.services-page) .top-nav .brand-mark { color:#2563eb; background:#dbeafe; }
-body:has(.services-page) .top-nav .nav-links > a { color:#475569; font-size:.75rem; }
-body:has(.services-page) .top-nav .nav-links > a[href*="service"] { color:#2563eb; position:relative; }
-body:has(.services-page) .top-nav .nav-links > a[href*="service"]:after { content:""; position:absolute; left:0; right:0; bottom:-18px; height:3px; border-radius:3px; background:#2563eb; }
 .services-page .services-hero:before, .services-page .services-hero:after { content:""; position:absolute; bottom:0; background:rgba(147,197,253,.18); clip-path:polygon(0 100%,0 42%,20% 42%,20% 64%,38% 64%,38% 18%,58% 18%,58% 53%,78% 53%,78% 0,100% 0,100% 100%); }
 .services-page .services-hero:before { left:4%; width:145px; height:88px; }
 .services-page .services-hero:after { right:4%; width:180px; height:112px; transform:scaleX(-1); }
@@ -3528,8 +3520,8 @@ body:has(.services-page) .top-nav .nav-links > a[href*="service"]:after { conten
     }
 }
 .services-page .services-hero { width:100%; max-width:none; min-height:170px; margin:0; border-radius:0; padding:1.25rem 1rem 4.8rem; }
-.services-page .services-hero h2 { margin-top:.15rem; font-size:clamp(1.8rem,3.1vw,2.45rem); font-weight:800; }
-.services-page .services-hero p { margin:.4rem auto 0; font-size:.78rem; }
+.services-page .services-hero h2 { margin-top:.15rem; font-size:clamp(1.8rem,3.1vw,2.45rem); font-weight:800; color:#0f172a; }
+.services-page .services-hero p { margin:.4rem auto 0; font-size:.78rem; color:#475569; }
 .services-page .services-search-container { width:min(780px,calc(100% - 2rem)); margin-top:-43px; margin-bottom:1.65rem; padding:0; }
 .services-page .services-filter-section { background:#fff; border:1px solid #e2e8f0; border-radius:11px; box-shadow:0 8px 23px rgba(37,99,235,.14); }
 .services-page .services-filter-section .filter-container { padding:.65rem .75rem; }
