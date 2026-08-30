@@ -201,11 +201,65 @@ class BookingCreationTests(TestCase):
         customer_response = self.client.get(reverse('my_bookings'))
         self.assertEqual(customer_response.status_code, 200)
         self.assertIn(booking, customer_response.context['bookings'])
-        self.assertContains(customer_response, 'Price can be negotiated')
+        self.assertContains(customer_response, 'Price status:')
+        self.assertContains(customer_response, 'Hire Me')
 
         self.client.force_login(worker)
         worker_response = self.client.get(reverse('worker_my_jobs'))
-        self.assertContains(worker_response, 'Price can be negotiated')
+        self.assertContains(worker_response, 'Price status:')
+        self.assertContains(worker_response, 'Hire Me')
+
+    def test_booking_price_status_matches_booking_method(self):
+        category = Category.objects.create(name='Booking Method Pricing')
+        service = Service.objects.create(
+            name='Booking Method Service',
+            category=category,
+            description='Service for booking-method price tests.',
+            price='300.00',
+            image='service_images/test.png',
+            duration='4 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            email='methodworker@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+
+        direct_booking = Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            booking_type='BOOK_THIS_SERVICE',
+            booking_date='2026-08-20',
+            booking_time='09:00:00',
+            address='Direct booking address',
+            problem_description='Customer used Book This Service.',
+            status='Pending',
+        )
+        hired_booking = Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            worker=worker,
+            booking_type='HIRE_ME',
+            booking_date='2026-08-21',
+            booking_time='10:00:00',
+            address='Hire Me booking address',
+            problem_description='Customer selected a worker via Hire Me.',
+            status='Assigned',
+        )
+
+        self.client.force_login(self.customer)
+        customer_response = self.client.get(reverse('my_bookings'))
+        self.assertContains(customer_response, 'Price status:')
+        self.assertContains(customer_response, 'Book This Service')
+        self.assertContains(customer_response, 'Hire Me')
+
+        self.client.force_login(worker)
+        worker_response = self.client.get(reverse('worker_my_jobs'))
+        self.assertContains(worker_response, 'Price status:')
+        self.assertContains(worker_response, 'Hire Me')
 
     def test_worker_my_jobs_shows_next_process_buttons_for_direct_booking(self):
         category = Category.objects.create(name='Worker Booking Actions')

@@ -43,10 +43,14 @@
                 <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Booking #{{ booking.pk }}</span><h3>{{ booking.service.name }}</h3><p>Customer: {{ booking.customer.get_full_name|default:booking.customer.email }}</p></div></div><span class="hub-status hub-status--accepted">{{ booking.status }}</span></div>
                 <div class="hub-card__grid"><div><small><i class="fa-solid fa-layer-group"></i> Category</small><strong>{{ booking.service.category.name }}</strong></div><div><small><i class="fa-regular fa-calendar"></i> Date</small><strong>{{ booking.booking_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-regular fa-clock"></i> Time</small><strong>{{ booking.booking_time|time:"g:i A" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ booking.address|truncatewords:8 }}</strong></div></div>
                 <p class="hub-description">{{ booking.problem_description|truncatewords:30 }}</p>
-                {% if booking.price_agreed %}
-                    <p class="hub-description"><strong>Price agreed</strong> · ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
+                {% if booking.booking_type == 'HIRE_ME' %}
+                    <p class="hub-description"><strong>Price status:</strong> Fixed price (Hire Me)</p>
                 {% else %}
-                    <p class="hub-description"><strong>Price can be negotiated</strong> · Current offer: ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
+                    {% if booking.price_agreed %}
+                        <p class="hub-description"><strong>Price status:</strong> Negotiable price (Book This Service), then agreed · ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
+                    {% else %}
+                        <p class="hub-description"><strong>Price status:</strong> Negotiable price (Book This Service) · Current offer: ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
+                    {% endif %}
                 {% endif %}
                 <div class="hub-card__actions">
                     {% if booking.status == 'Pending' %}

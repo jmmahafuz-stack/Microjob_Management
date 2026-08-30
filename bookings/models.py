@@ -17,6 +17,10 @@ class Booking(models.Model):
         ('Completed', 'Completed'),
         ('Cancelled', 'Cancelled'),
     ]
+    BOOKING_TYPE_CHOICES = [
+        ('BOOK_THIS_SERVICE', 'Book This Service'),
+        ('HIRE_ME', 'Hire Me'),
+    ]
 
     customer = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -48,6 +52,12 @@ class Booking(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
         default='Pending'
+    )
+    booking_type = models.CharField(
+        max_length=30,
+        choices=BOOKING_TYPE_CHOICES,
+        default='BOOK_THIS_SERVICE',
+        help_text='How the customer created this booking: Book This Service or Hire Me.'
     )
     proposed_price = models.DecimalField(
         max_digits=10,
@@ -85,6 +95,11 @@ class Booking(models.Model):
                 raise ValidationError('Blocked workers cannot be assigned to bookings.')
 
     def save(self, *args, **kwargs):
+        if self.worker_id:
+            self.booking_type = 'HIRE_ME'
+        elif self.booking_type not in ['BOOK_THIS_SERVICE', 'HIRE_ME']:
+            self.booking_type = 'BOOK_THIS_SERVICE'
+
         if self.service_id:
             if self.proposed_price is None:
                 self.proposed_price = self.service.price

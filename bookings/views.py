@@ -348,6 +348,7 @@ def create_booking(request):
                 booking.customer = request.user
                 booking.service = selected_service
                 booking.worker = selected_worker.user if selected_worker else None
+                booking.booking_type = 'HIRE_ME' if selected_worker else 'BOOK_THIS_SERVICE'
                 booking.status = 'Pending'
 
                 if booking.worker_id and Booking.objects.filter(
