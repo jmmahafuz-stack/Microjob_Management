@@ -113,6 +113,7 @@
                         <p class="service-meta"><i class="fas fa-star"></i> {{ service.average_rating|floatformat:1 }} <span>({{ service.bookings.count }} reviews)</span></p>
                         <p class="service-description">{{ service.description|truncatewords:18 }}</p>
                         <p class="service-location"><i class="fas fa-location-dot"></i> {{ service.location|default:'Any location' }}</p>
+                        <p class="service-booking-note"><i class="fas fa-comments"></i> Book This Service = negotiable · Hire Me = fixed price</p>
                         <div class="service-worker-summary">
                             <div class="worker-avatars">{% for worker_profile in service.related_workers|slice:':3' %}<a href="{% url 'worker_profile_detail' worker_profile.pk %}" title="View worker profile">{% if worker_profile.user.profile_picture %}<img src="{{ worker_profile.user.profile_picture.url }}" alt="Worker">{% else %}<span><i class="fas fa-user"></i></span>{% endif %}</a>{% endfor %}</div>
                             <span><i class="fas fa-users"></i> {{ service.related_workers|length }} Available Worker{{ service.related_workers|length|pluralize }}</span>
@@ -162,6 +163,7 @@
                         <p class="service-meta"><i class="fas fa-star"></i> {{ service.average_rating|floatformat:1 }} <span>{{ service.bookings.count }} bookings</span></p>
                         <p class="service-description">{{ service.description|truncatewords:18 }}</p>
                         <p class="service-location"><i class="fas fa-location-dot"></i> {{ service.location|default:'Any location' }}</p>
+                        <p class="service-booking-note"><i class="fas fa-comments"></i> Book This Service = negotiable · Hire Me = fixed price</p>
                         <div class="service-worker-summary"><div class="worker-avatars">{% for worker_profile in service.related_workers|slice:':3' %}<a href="{% url 'worker_profile_detail' worker_profile.pk %}" title="View worker profile">{% if worker_profile.user.profile_picture %}<img src="{{ worker_profile.user.profile_picture.url }}" alt="Worker">{% else %}<span><i class="fas fa-user"></i></span>{% endif %}</a>{% endfor %}</div><span><i class="fas fa-users"></i> {{ service.related_workers|length }} Available Worker{{ service.related_workers|length|pluralize }}</span></div>
 
 
@@ -215,6 +217,8 @@
                         <p>
                             {{ service.description|truncatewords:20 }}
                         </p>
+
+                        <p class="service-booking-note"><i class="fas fa-comments"></i> Book This Service = negotiable · Hire Me = fixed price</p>
 
                         <div class="service-meta-row">
 

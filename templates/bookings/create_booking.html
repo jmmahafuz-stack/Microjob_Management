@@ -34,8 +34,11 @@
                     <div><span>Duration</span><strong>{{ selected_service.duration }}</strong></div>
                     <div><span>Location</span><strong>{{ selected_service.location|default:'Any location' }}</strong></div>
                 </div>
-                <p class="booking-direct-selection-note"><i class="fas fa-award"></i> You selected this service directly for a premium booking experience. Your request will be shared with matching professionals for a focused response.</p>
-                <p class="booking-direct-selection-note"><i class="fas fa-comments"></i> If you used <strong>Book This Service</strong>, the price is negotiable. If you used <strong>Hire Me</strong>, the price is fixed.</p>
+                {% if selected_worker %}
+                    <p class="booking-direct-selection-note"><i class="fas fa-lock"></i> <strong>Hire Me</strong> is fixed price. Negotiation is not available for this direct worker booking.</p>
+                {% else %}
+                    <p class="booking-direct-selection-note"><i class="fas fa-comments"></i> <strong>Book This Service</strong> allows price negotiation before work starts.</p>
+                {% endif %}
             </article>
 
             {% if selected_worker %}

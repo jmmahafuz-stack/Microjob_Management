@@ -667,6 +667,40 @@ class BookingCreationTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, worker.email)
 
+    def test_hire_me_booking_form_hides_price_proposal_field(self):
+        category = Category.objects.create(name='Electrical')
+        service = Service.objects.create(
+            name='Electrical Wiring',
+            category=category,
+            description='Electrical wiring service.',
+            price='500.00',
+            image='service_images/test.png',
+            duration='3 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            email='electricalhireworker@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        WorkerProfile.objects.create(
+            user=worker,
+            profession='Electrician',
+            experience_years=5,
+            service_category='Electrical',
+        )
+
+        self.client.force_login(self.customer)
+
+        response = self.client.get(reverse('create_booking'), {'service': service.pk, 'worker': worker.pk})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Hire Me')
+        self.assertNotContains(response, 'Proposed price (optional)')
+        self.assertNotContains(response, 'Optional price proposal')
+
     def test_booking_page_uses_compact_worker_card_markup(self):
         service = Service.objects.create(
             name='Cleaning Service',

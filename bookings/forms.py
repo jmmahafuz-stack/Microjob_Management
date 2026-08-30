@@ -38,11 +38,17 @@ class BookingCreateForm(forms.ModelForm):
     )
 
     def __init__(self, *args, **kwargs):
-        kwargs.pop('selected_service', None)
-        kwargs.pop('selected_worker', None)
+        selected_service = kwargs.pop('selected_service', None)
+        selected_worker = kwargs.pop('selected_worker', None)
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.service_id and self.instance.proposed_price is not None:
+
+        if selected_worker is not None and 'proposed_price' in self.fields:
+            self.fields.pop('proposed_price')
+        elif self.instance and self.instance.service_id and self.instance.proposed_price is not None:
             self.fields['proposed_price'].initial = self.instance.proposed_price
+
+        if selected_service is not None and self.instance and self.instance.service_id is None:
+            self.instance.service = selected_service
 
 
 class BookingUpdateForm(forms.ModelForm):

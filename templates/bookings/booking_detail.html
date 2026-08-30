@@ -58,10 +58,12 @@
                     <div class="info-row full-width">
                         <label>Price status</label>
                         <p class="info-value">
-                            {% if booking.price_agreed %}
-                                Price agreed and fixed: ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}
+                            {% if booking.booking_type == 'HIRE_ME' %}
+                                Fixed price (Hire Me). No negotiation. Final price is ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}.
+                            {% elif booking.price_agreed %}
+                                Negotiable price (Book This Service), then agreed and fixed: ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}
                             {% else %}
-                                Price can be negotiated before the customer agrees.
+                                Negotiable price (Book This Service). Customer can propose, worker can change, and customer must agree before work starts.
                             {% endif %}
                         </p>
                     </div>
