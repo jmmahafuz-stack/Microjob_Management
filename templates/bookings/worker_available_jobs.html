@@ -152,9 +152,15 @@
                                 <a href="{% url 'job_detail' job.pk %}" class="btn btn-primary">View Details</a>
                                 
                                 {% if job.status == 'CONFIRMED' %}
-                                    <a href="{% url 'job_detail' job.pk %}" class="btn btn-outline-secondary">Start Work</a>
+                                    <form method="post" action="{% url 'job_accept' job.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" name="accept_job" class="btn btn-outline-secondary">Start Work</button>
+                                    </form>
                                 {% elif job.status == 'IN_PROGRESS' %}
-                                    <a href="{% url 'job_complete' job.pk %}" class="btn btn-success">Mark Complete</a>
+                                    <form method="post" action="{% url 'job_complete' job.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" name="complete_job" class="btn btn-success">Mark Complete</button>
+                                    </form>
                                 {% elif job.status != 'COMPLETED' %}
                                     <a href="{% url 'cancel_job' job.pk %}" class="btn btn-outline-danger">Cancel</a>
                                 {% endif %}

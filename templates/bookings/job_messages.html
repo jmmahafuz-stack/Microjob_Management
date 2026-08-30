@@ -143,17 +143,23 @@
                             </form>
                         {% endif %}
                         {% if request.user == job.customer and job.status not in 'COMPLETED,CANCELLED' %}
-                            <a href="{% url 'cancel_job' job.pk %}" class="btn btn-outline-danger">
-                                <i class="fas fa-times"></i> Cancel Service
-                            </a>
+                            <form method="post" action="{% url 'cancel_job' job.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="cancel_job" class="btn btn-outline-danger">
+                                    <i class="fas fa-times"></i> Cancel Service
+                                </button>
+                            </form>
                         {% endif %}
                         {% if price_agreed %}
                             <span class="agreement-note"><i class="fas fa-check-circle"></i> Price agreed</span>
                         {% endif %}
                         {% if job.status == 'IN_PROGRESS' and request.user == job.worker %}
-                            <a href="{% url 'job_complete' job.pk %}" class="btn btn-warning">
-                                <i class="fas fa-check"></i> Mark Complete
-                            </a>
+                            <form method="post" action="{% url 'job_complete' job.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" name="complete_job" class="btn btn-warning">
+                                    <i class="fas fa-check"></i> Mark Complete
+                                </button>
+                            </form>
                         {% endif %}
                         <a href="{% url 'my_bookings' %}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Back to My Bookings

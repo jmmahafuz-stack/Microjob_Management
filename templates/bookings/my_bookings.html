@@ -29,10 +29,10 @@
         <div class="hub-search"><i class="fa-solid fa-magnifying-glass"></i><input id="customerHubSearch" type="search" placeholder="Search service, worker, location or request..."></div>
         <div class="hub-tabs" role="tablist" aria-label="Booking status">
             <button class="hub-tab is-active" type="button" data-filter="all">All</button>
-            <button class="hub-tab" type="button" data-filter="pending">Pending</button>
-            <button class="hub-tab" type="button" data-filter="active">Active</button>
-            <button class="hub-tab" type="button" data-filter="completed">Completed</button>
-            <button class="hub-tab" type="button" data-filter="cancelled">Cancelled</button>
+            <button class="hub-tab" type="button" data-filter="pending"><span>Pending</span><span class="hub-tab__count">{{ pending_count }}</span></button>
+            <button class="hub-tab" type="button" data-filter="active"><span>Active</span><span class="hub-tab__count">{{ active_count }}</span></button>
+            <button class="hub-tab" type="button" data-filter="completed"><span>Completed</span><span class="hub-tab__count">{{ completed_count }}</span></button>
+            <button class="hub-tab" type="button" data-filter="cancelled"><span>Cancelled</span><span class="hub-tab__count">{{ cancelled_count }}</span></button>
         </div>
     </section>
 
@@ -64,13 +64,22 @@
             <article class="hub-card hub-item" data-filter-status="{% if job.status == 'COMPLETED' %}completed{% elif job.status == 'CANCELLED' %}cancelled{% else %}active{% endif %}" data-search="{{ job.title }} {% if job.worker %}{{ job.worker.get_full_name|default:job.worker.email }}{% else %}Unassigned{% endif %} {{ job.location }}">
                 <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>with {% if job.worker %}{{ job.worker.get_full_name|default:job.worker.email }}{% else %}Unassigned{% endif %}</p></div></div><span class="hub-status hub-status--{{ job.status|lower|cut:'_' }}">{{ job.get_status_display }}</span></div>
                 <div class="hub-card__grid"><div><small><i class="fa-regular fa-calendar"></i> Schedule</small><strong>{{ job.scheduled_date|date:"M d, Y" }}{% if job.scheduled_time_start %} · {{ job.scheduled_time_start|time:"g:i A" }}{% endif %}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location|default:"Not specified" }}</strong></div><div><small><i class="fa-solid fa-user-tie"></i> Worker</small><strong>{% if job.worker %}{{ job.worker.get_full_name|default:job.worker.email }}{% else %}Not assigned{% endif %}</strong></div><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Price</small><strong>৳{{ job.final_price }}</strong></div></div>
-                <p class="hub-description">{{ job.description|truncatewords:28 }}</p>
+                {% if job.price_agreed %}
+                    <p class="hub-description"><strong>Price agreed</strong></p>
+                {% else %}
+                    <p class="hub-description"><strong>Price can be negotiated</strong></p>
+                {% endif %}
                 <div class="hub-card__actions">
                     <a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a>
                     {% if job.status != 'COMPLETED' and job.status != 'CANCELLED' %}<a class="hub-btn hub-btn--soft" href="{% url 'job_messages' job.pk %}"><i class="fa-regular fa-comments"></i> Message</a>{% endif %}
                     {% if job.status == 'COMPLETED' and not job.payment_completed %}<a class="hub-btn hub-btn--success" href="{% url 'make_payment' job.pk %}"><i class="fa-solid fa-credit-card"></i> Pay now</a>{% endif %}
                     {% if job.status == 'COMPLETED' %}<a class="hub-btn hub-btn--soft" href="{% url 'create_job_review' job.pk %}"><i class="fa-regular fa-star"></i> Review</a>{% endif %}
-                    {% if job.status != 'COMPLETED' and job.status != 'CANCELLED' %}<a class="hub-btn hub-btn--danger" href="{% url 'cancel_job' job.pk %}"><i class="fa-solid fa-ban"></i> Cancel</a>{% endif %}
+                    {% if job.status != 'COMPLETED' and job.status != 'CANCELLED' %}
+                        <form method="post" action="{% url 'cancel_job' job.pk %}" class="hub-inline-form">
+                            {% csrf_token %}
+                            <button class="hub-btn hub-btn--danger" type="submit"><i class="fa-solid fa-ban"></i> Cancel</button>
+                        </form>
+                    {% endif %}
                 </div>
             </article>
             {% endfor %}
@@ -87,6 +96,11 @@
                 <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon"><i class="fa-solid fa-calendar-check"></i></span><div><span class="hub-card__label">Booking #{{ booking.pk }}</span><h3>{{ booking.service.name }}</h3><p>{% if booking.worker %}Worker: {{ booking.worker.get_full_name|default:booking.worker.email }}{% else %}Worker not assigned yet{% endif %}</p></div></div><span class="hub-status hub-status--{{ booking.status|lower|cut:' ' }}">{{ booking.get_status_display }}</span></div>
                 <div class="hub-card__grid"><div><small><i class="fa-solid fa-layer-group"></i> Category</small><strong>{{ booking.service.category.name }}</strong></div><div><small><i class="fa-regular fa-calendar"></i> Date</small><strong>{{ booking.booking_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-regular fa-clock"></i> Time</small><strong>{{ booking.booking_time|time:"g:i A" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Address</small><strong>{{ booking.address|truncatewords:8 }}</strong></div><div><small><i class="fa-regular fa-clock"></i> Created</small><strong>{{ booking.created_at|date:"M d, Y" }}</strong></div></div>
                 <p class="hub-description">{{ booking.problem_description|truncatewords:28 }}</p>
+                {% if booking.price_agreed %}
+                    <p class="hub-description"><strong>Price agreed</strong> · ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
+                {% else %}
+                    <p class="hub-description"><strong>Price can be negotiated</strong> · Current offer: ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
+                {% endif %}
                 <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'booking_detail' booking.pk %}"><i class="fa-solid fa-eye"></i> View booking</a>{% if booking.status != 'Completed' and booking.status != 'Cancelled' %}<a class="hub-btn hub-btn--danger" href="{% url 'cancel_booking' booking.pk %}"><i class="fa-solid fa-ban"></i> Cancel</a>{% endif %}</div>
             </article>
             {% endfor %}

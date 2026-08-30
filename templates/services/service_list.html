@@ -18,20 +18,20 @@
             </div>
 
             <div class="filter-container">
-                <div class="filter-row filter-row--single" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) max-content !important;">
+                <div class="filter-row filter-row--single">
                     <div class="filter-group search-group">
-                    <label for="search">Search services</label>
+                        <label for="search">Search services</label>
 
-                    <div class="search-input-wrapper">
-                        <i class="fas fa-search"></i>
-                        <input
-                            type="text"
-                            id="search"
-                            name="q"
-                            placeholder="Search services, skills, or professionals..."
-                            value="{{ search_query }}"
-                        >
-                    </div>
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input
+                                type="text"
+                                id="search"
+                                name="q"
+                                placeholder="Search services, skills, or professionals..."
+                                value="{{ search_query }}"
+                            >
+                        </div>
                     </div>
 
                     <div class="filter-group">
@@ -66,7 +66,7 @@
                         </select>
                     </div>
 
-                    <div class="filter-actions" aria-label="Filter actions" style="grid-column:auto !important; width:auto !important;">
+                    <div class="filter-actions" aria-label="Filter actions">
                         <button type="submit" class="btn btn-primary filter-submit">
                             <i class="fas fa-search" aria-hidden="true"></i>
                             <span>Apply filters</span>
@@ -258,15 +258,6 @@
 
             </div>
 
-        </section>
-
-        <section class="services-section services-categories-section">
-            <div class="section-heading"><h3><i class="fas fa-shapes"></i> Categories</h3></div>
-            <div class="service-category-grid">
-                {% for category in categories %}
-                    <a class="service-category-card" href="?category={{ category.name|urlencode }}"><span class="service-category-card__icon"><i class="fas fa-sparkles"></i></span><strong>{{ category.name }}</strong><small>{{ category.service_count }} Service{{ category.service_count|pluralize }}</small></a>
-                {% empty %}<p class="category-empty">No categories available.</p>{% endfor %}
-            </div>
         </section>
 
         <section class="services-trust-section" aria-label="Why choose MJMS">

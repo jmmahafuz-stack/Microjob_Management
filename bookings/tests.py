@@ -1,8 +1,10 @@
+from datetime import timedelta
+
 from django.test import TestCase
 from django.urls import reverse
 
 from accounts.models import CustomUser
-from bookings.models import Booking, ServiceRequest
+from bookings.models import Booking, Job, JobApplication, ServiceRequest
 from services.models import Category, Service
 from workers.models import WorkerProfile
 
@@ -14,6 +16,425 @@ class BookingCreationTests(TestCase):
             password='testpass123',
             role='customer',
         )
+
+    def test_my_bookings_exposes_status_counts(self):
+        category = Category.objects.create(name='Electrical')
+        service = Service.objects.create(
+            name='Booking Count Service',
+            category=category,
+            description='Service for booking count tests.',
+            price='120.00',
+            image='service_images/test.png',
+            duration='2 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            email='countworker@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+
+        Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            worker=worker,
+            booking_date='2026-08-11',
+            booking_time='11:00:00',
+            address='Pending count address',
+            problem_description='Pending job',
+            status='Pending',
+        )
+        Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            worker=worker,
+            booking_date='2026-08-12',
+            booking_time='10:00:00',
+            address='Active count address',
+            problem_description='Active job',
+            status='In Progress',
+        )
+        Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            worker=worker,
+            booking_date='2026-08-13',
+            booking_time='13:00:00',
+            address='Completed count address',
+            problem_description='Completed job',
+            status='Completed',
+        )
+        Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            worker=worker,
+            booking_date='2026-08-14',
+            booking_time='15:00:00',
+            address='Cancelled count address',
+            problem_description='Cancelled job',
+            status='Cancelled',
+        )
+        ServiceRequest.objects.create(
+            customer=self.customer,
+            service=service,
+            title='Open request',
+            description='Need help',
+            location='Dhaka',
+            address='Open address',
+            preferred_date='2026-08-15',
+            status='OPEN',
+        )
+
+        self.client.force_login(self.customer)
+        response = self.client.get(reverse('my_bookings'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context['pending_count'], 2)
+        self.assertEqual(response.context['active_count'], 1)
+        self.assertEqual(response.context['completed_count'], 1)
+        self.assertEqual(response.context['cancelled_count'], 1)
+
+    def test_worker_accept_button_uses_post_form_on_job_detail(self):
+        category = Category.objects.create(name='Job Flow Electrical')
+        service = Service.objects.create(
+            name='Job Flow Service',
+            category=category,
+            description='Service for job status flow tests.',
+            price='250.00',
+            image='service_images/test.png',
+            duration='3 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            email='flowworker@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        profile = WorkerProfile.objects.create(
+            user=worker,
+            profession='Electrician',
+            experience_years=3,
+        )
+        profile.categories.add(category)
+        service_request = ServiceRequest.objects.create(
+            customer=self.customer,
+            service=service,
+            title='Fix the wiring',
+            description='Need a worker for wiring work.',
+            location='Dhaka',
+            address='Repair lane 2',
+            preferred_date='2026-08-15',
+            status='ASSIGNED',
+        )
+        application = JobApplication.objects.create(
+            service_request=service_request,
+            worker=worker,
+            proposed_price='250.00',
+            estimated_duration=timedelta(hours=3),
+            proposal_message='I can do this job.',
+            can_start_date='2026-08-15',
+            agreed_to_schedule=True,
+            status='ACCEPTED',
+        )
+        job = Job.objects.create(
+            service_request=service_request,
+            job_application=application,
+            customer=self.customer,
+            worker=worker,
+            title=service_request.title,
+            description=service_request.description,
+            proposed_price='250.00',
+            estimated_duration=timedelta(hours=3),
+            scheduled_date=service_request.preferred_date,
+            location=service_request.location,
+            address=service_request.address,
+            status='CONFIRMED',
+        )
+
+        self.client.force_login(worker)
+        response = self.client.get(reverse('job_detail', args=[job.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="accept_job"')
+        self.assertContains(response, 'method="post"')
+
+    def test_existing_accepted_booking_status_is_visible_in_hubs(self):
+        category = Category.objects.create(name='Existing Booking Flow')
+        service = Service.objects.create(
+            name='Existing Booking Service',
+            category=category,
+            description='Service for existing booking visibility tests.',
+            price='420.00',
+            image='service_images/test.png',
+            duration='5 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            email='legacyworker@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+
+        booking = Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            worker=worker,
+            booking_date='2026-08-18',
+            booking_time='09:00:00',
+            address='Legacy assigned address',
+            problem_description='Existing booking should stay visible.',
+            status='Assigned',
+        )
+
+        self.client.force_login(worker)
+        worker_response = self.client.get(reverse('worker_my_jobs'))
+        self.assertEqual(worker_response.status_code, 200)
+        self.assertIn(booking, worker_response.context['accepted_bookings'])
+
+        self.client.force_login(self.customer)
+        customer_response = self.client.get(reverse('my_bookings'))
+        self.assertEqual(customer_response.status_code, 200)
+        self.assertIn(booking, customer_response.context['bookings'])
+        self.assertContains(customer_response, 'Price can be negotiated')
+
+        self.client.force_login(worker)
+        worker_response = self.client.get(reverse('worker_my_jobs'))
+        self.assertContains(worker_response, 'Price can be negotiated')
+
+    def test_worker_my_jobs_shows_next_process_buttons_for_direct_booking(self):
+        category = Category.objects.create(name='Worker Booking Actions')
+        service = Service.objects.create(
+            name='Booking Action Service',
+            category=category,
+            description='Service for direct booking action tests.',
+            price='500.00',
+            image='service_images/test.png',
+            duration='6 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            email='actionworker@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+
+        Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            worker=worker,
+            booking_date='2026-08-19',
+            booking_time='10:00:00',
+            address='Action booking address',
+            problem_description='Direct booking should show next-step actions.',
+            status='In Progress',
+        )
+
+        self.client.force_login(worker)
+        response = self.client.get(reverse('worker_my_jobs'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Mark completed')
+        self.assertContains(response, 'Message')
+
+    def test_my_jobs_and_bookings_show_price_negotiation_status(self):
+        category = Category.objects.create(name='Negotiation Flow')
+        service = Service.objects.create(
+            name='Negotiation Service',
+            category=category,
+            description='Service for price negotiation tests.',
+            price='700.00',
+            image='service_images/test.png',
+            duration='8 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            email='negotiationworker@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        profile = WorkerProfile.objects.create(
+            user=worker,
+            profession='Electrician',
+            experience_years=4,
+        )
+        profile.categories.add(category)
+        service_request = ServiceRequest.objects.create(
+            customer=self.customer,
+            service=service,
+            title='Install a panel',
+            description='Need a worker for electrical panel install.',
+            location='Dhaka',
+            address='Negotiation lane',
+            preferred_date='2026-08-20',
+            status='ASSIGNED',
+        )
+        application = JobApplication.objects.create(
+            service_request=service_request,
+            worker=worker,
+            proposed_price='700.00',
+            estimated_duration=timedelta(hours=8),
+            proposal_message='Available for this work.',
+            can_start_date='2026-08-20',
+            agreed_to_schedule=True,
+            status='ACCEPTED',
+        )
+        job = Job.objects.create(
+            service_request=service_request,
+            job_application=application,
+            customer=self.customer,
+            worker=worker,
+            title=service_request.title,
+            description=service_request.description,
+            proposed_price='700.00',
+            estimated_duration=timedelta(hours=8),
+            scheduled_date=service_request.preferred_date,
+            location=service_request.location,
+            address=service_request.address,
+            status='CONFIRMED',
+            price_agreed=False,
+        )
+
+        self.client.force_login(self.customer)
+        customer_response = self.client.get(reverse('my_bookings'))
+        self.assertContains(customer_response, 'Price can be negotiated')
+
+        self.client.force_login(worker)
+        worker_response = self.client.get(reverse('worker_my_jobs'))
+        self.assertContains(worker_response, 'Price can be negotiated')
+
+    def test_direct_booking_price_negotiation_cycle(self):
+        category = Category.objects.create(name='Direct Negotiation Flow')
+        service = Service.objects.create(
+            name='Direct Booking Negotiation Service',
+            category=category,
+            description='Service for direct booking negotiation tests.',
+            price='600.00',
+            image='service_images/test.png',
+            duration='6 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            email='directnegotiationworker@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+
+        booking = Booking.objects.create(
+            customer=self.customer,
+            service=service,
+            worker=worker,
+            booking_date='2026-08-21',
+            booking_time='12:00:00',
+            address='Direct negotiation address',
+            problem_description='Need direct negotiation workflow.',
+            status='Accepted',
+            proposed_price='600.00',
+            actual_price='600.00',
+            price_agreed=False,
+        )
+
+        self.client.force_login(worker)
+        worker_response = self.client.post(
+            reverse('booking_detail', args=[booking.pk]),
+            {'worker_update_price': '1', 'actual_price': '680.00'},
+        )
+        booking.refresh_from_db()
+        self.assertEqual(worker_response.status_code, 302)
+        self.assertEqual(str(booking.actual_price), '680.00')
+
+        self.client.force_login(self.customer)
+        customer_response = self.client.post(
+            reverse('booking_detail', args=[booking.pk]),
+            {'customer_agree_price': '1'},
+        )
+        booking.refresh_from_db()
+        self.assertEqual(customer_response.status_code, 302)
+        self.assertTrue(booking.price_agreed)
+        self.assertEqual(str(booking.actual_price), '680.00')
+
+    def test_cancel_job_closes_service_request_status(self):
+        category = Category.objects.create(name='Cancellation Flow')
+        service = Service.objects.create(
+            name='Cancellation Service',
+            category=category,
+            description='Service for cancellation status tests.',
+            price='300.00',
+            image='service_images/test.png',
+            duration='4 hours',
+            location='Dhaka',
+            is_available=True,
+        )
+        worker = CustomUser.objects.create_user(
+            email='cancelworker@example.com',
+            password='testpass123',
+            role='worker',
+            worker_status='APPROVED',
+        )
+        profile = WorkerProfile.objects.create(
+            user=worker,
+            profession='Electrician',
+            experience_years=5,
+        )
+        profile.categories.add(category)
+        service_request = ServiceRequest.objects.create(
+            customer=self.customer,
+            service=service,
+            title='Install lights',
+            description='Need electrician work.',
+            location='Dhaka',
+            address='Sample street',
+            preferred_date='2026-08-20',
+            status='ASSIGNED',
+        )
+        application = JobApplication.objects.create(
+            service_request=service_request,
+            worker=worker,
+            proposed_price='300.00',
+            estimated_duration=timedelta(hours=4),
+            proposal_message='I can do this job.',
+            can_start_date='2026-08-20',
+            agreed_to_schedule=True,
+            status='ACCEPTED',
+        )
+        job = Job.objects.create(
+            service_request=service_request,
+            job_application=application,
+            customer=self.customer,
+            worker=worker,
+            title=service_request.title,
+            description=service_request.description,
+            proposed_price='300.00',
+            estimated_duration=timedelta(hours=4),
+            scheduled_date=service_request.preferred_date,
+            location=service_request.location,
+            address=service_request.address,
+            status='CONFIRMED',
+        )
+
+        self.client.force_login(self.customer)
+        response = self.client.post(
+            reverse('cancel_job', args=[job.pk]),
+            {'cancel_reason': 'Customer changed plans.'},
+        )
+
+        job.refresh_from_db()
+        service_request.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(job.status, 'CANCELLED')
+        self.assertEqual(service_request.status, 'CANCELLED')
 
     def test_admin_cannot_access_customer_invoice(self):
         service = Service.objects.create(

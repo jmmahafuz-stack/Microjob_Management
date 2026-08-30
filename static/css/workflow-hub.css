@@ -7,4 +7,4 @@
 
 .hub-inline-form{display:inline-flex;margin:0}.hub-inline-form .hub-btn{font:inherit}
 
-.hub-hero h1{color:#fff}
+.hub-hero h1{color:#fff}.hub-tab{display:inline-flex;align-items:center;gap:8px}.hub-tab__count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:#dfeeff;color:#1d4e70;font-size:.7rem;font-weight:800}.hub-tab.is-active .hub-tab__count{background:#fff;color:#123d57}.hub-tab[data-filter="pending"] .hub-tab__count{background:#fff7d6;color:#a16207}.hub-tab[data-filter="active"] .hub-tab__count{background:#dfeeff;color:#1d4e70}.hub-tab[data-filter="completed"] .hub-tab__count{background:#e7f8f0;color:#0f9f6e}.hub-tab[data-filter="cancelled"] .hub-tab__count{background:#fff0f0;color:#b42318}.hub-tab[data-filter="application"] .hub-tab__count{background:#f3e8ff;color:#6d28d9}.hub-tab[data-filter="confirmed"] .hub-tab__count{background:#e0f2fe;color:#075985}

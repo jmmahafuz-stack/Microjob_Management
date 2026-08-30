@@ -50,9 +50,22 @@
                         </div>
                         <div class="info-col">
                             <label>Price</label>
-                            <p class="info-value price">৳{{ booking.service.price }}</p>
+                            <p class="info-value price">৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
                         </div>
                     </div>
+
+                    {% if booking.proposed_price or booking.actual_price %}
+                    <div class="info-row full-width">
+                        <label>Price status</label>
+                        <p class="info-value">
+                            {% if booking.price_agreed %}
+                                Price agreed and fixed: ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}
+                            {% else %}
+                                Price can be negotiated before the customer agrees.
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
 
                     <!-- Date & Time -->
                     <div class="info-row">
@@ -183,6 +196,35 @@
                             </form>
                         </div>
                         {% endif %}
+
+                        {% if booking.status not in 'Completed|Cancelled' and not booking.price_agreed %}
+                        <div class="worker-response-section">
+                            <h4>Set price</h4>
+                            <form method="post" class="response-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="worker_update_price" value="1">
+                                <label for="actual_price">New price</label>
+                                <input id="actual_price" name="actual_price" type="number" min="0.01" step="0.01" value="{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-tag"></i> Update price
+                                </button>
+                            </form>
+                        </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if user.role == 'customer' and booking.customer == user and not booking.price_agreed and booking.actual_price %}
+                    <div class="worker-response-section">
+                        <h4>Agree to price</h4>
+                        <form method="post" class="response-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="customer_agree_price" value="1">
+                            <p>Current price: <strong>৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</strong></p>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Agree to price
+                            </button>
+                        </form>
+                    </div>
                     {% endif %}
 
                     {% if user.role == 'admin' %}

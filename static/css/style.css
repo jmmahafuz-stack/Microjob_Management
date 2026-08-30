@@ -388,7 +388,7 @@ button:hover, input[type="submit"]:hover {
 }
 
 .services-hero {
-    background: linear-gradient(135deg, #1f4e79 0%, #2d6ea8 50%, #3a7bc8 100%);
+    background: linear-gradient(135deg, #245b8e 0%, #72a9d9 100%);
     color: white;
     border-radius: 0;
     padding: 50px 20px;
@@ -653,7 +653,7 @@ button:hover, input[type="submit"]:hover {
 .section-heading h3 {
     margin: 0;
     font-size: 1.5rem;
-    color: #0f172a;
+    color: #f9f9f9;
     font-weight: 700;
 }
 

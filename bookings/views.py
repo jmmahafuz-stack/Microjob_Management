@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from django.shortcuts import render
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -36,6 +38,10 @@ def _job_price_is_agreed(job):
         sender=job.customer,
         message__startswith='I agree to the service price of',
     ).exists()
+
+
+def _booking_price_is_agreed(booking):
+    return booking.price_agreed
 
 
 def _get_related_workers(service):
@@ -89,9 +95,12 @@ def my_bookings(request):
         status__in=['OPEN', 'REVIEWING'],
     ).select_related('service').prefetch_related('job_applications').order_by('-created_at')
     total_booked = bookings.count() + all_service_requests.count()
-    accepted_count = accepted_jobs.count() + bookings.filter(status='Accepted').count()
-    in_progress_count = accepted_jobs.filter(status='IN_PROGRESS').count() + bookings.filter(status='In Progress').count()
+    accepted_count = accepted_jobs.count() + bookings.filter(status__in=['Accepted', 'Assigned', 'Confirmed']).count()
+    in_progress_count = accepted_jobs.filter(status='IN_PROGRESS').count() + bookings.filter(status__in=['In Progress', 'Accepted', 'Assigned']).count()
+    pending_count = service_requests.count() + bookings.filter(status='Pending').count()
+    active_count = accepted_jobs.filter(status__in=['CONFIRMED', 'IN_PROGRESS']).count() + bookings.filter(status__in=['Confirmed', 'Accepted', 'Assigned', 'In Progress']).count()
     completed_count = accepted_jobs.filter(status='COMPLETED').count() + bookings.filter(status='Completed').count()
+    cancelled_count = all_service_requests.filter(status='CANCELLED').count() + accepted_jobs.filter(status='CANCELLED').count() + bookings.filter(status='Cancelled').count()
     unread_worker_messages = Notification.objects.filter(
         user=request.user,
         notification_type='JOB_MESSAGE',
@@ -109,7 +118,10 @@ def my_bookings(request):
             'total_booked': total_booked,
             'accepted_count': accepted_count,
             'in_progress_count': in_progress_count,
+            'pending_count': pending_count,
+            'active_count': active_count,
             'completed_count': completed_count,
+            'cancelled_count': cancelled_count,
             'unread_worker_messages': unread_worker_messages,
         }
     )
@@ -160,6 +172,49 @@ def booking_detail(request, pk):
             worker_response.save()
             messages.success(request, 'Your response has been sent to the customer.')
             return redirect('booking_detail', pk=booking.pk)
+
+    if request.method == 'POST' and 'worker_update_price' in request.POST:
+        if request.user.role != 'worker' or booking.worker != request.user:
+            messages.error(request, 'Only the assigned worker can update this booking price.')
+            return redirect('booking_detail', pk=booking.pk)
+        if booking.status in ['Completed', 'Cancelled']:
+            messages.error(request, 'The price cannot be changed after this booking is closed.')
+            return redirect('booking_detail', pk=booking.pk)
+        if _booking_price_is_agreed(booking):
+            messages.error(request, 'The price cannot be changed after the customer agrees to it.')
+            return redirect('booking_detail', pk=booking.pk)
+
+        raw_price = request.POST.get('actual_price', '').strip()
+        try:
+            new_price = Decimal(raw_price)
+        except (InvalidOperation, ValueError):
+            messages.error(request, 'Enter a valid price for this booking.')
+            return redirect('booking_detail', pk=booking.pk)
+        if new_price <= 0:
+            messages.error(request, 'The booking price must be greater than zero.')
+            return redirect('booking_detail', pk=booking.pk)
+
+        booking.actual_price = new_price
+        booking.proposed_price = new_price
+        booking.save(update_fields=['actual_price', 'proposed_price', 'updated_at'])
+        messages.success(request, 'Booking price updated successfully. Please wait for the customer to agree.')
+        return redirect('booking_detail', pk=booking.pk)
+
+    if request.method == 'POST' and 'customer_agree_price' in request.POST:
+        if request.user.role != 'customer' or booking.customer != request.user:
+            messages.error(request, 'Only the customer can agree to the booking price.')
+            return redirect('booking_detail', pk=booking.pk)
+        if booking.status in ['Completed', 'Cancelled']:
+            messages.error(request, 'The price cannot be agreed after this booking is closed.')
+            return redirect('booking_detail', pk=booking.pk)
+
+        if booking.actual_price is None:
+            booking.actual_price = booking.proposed_price or booking.service.price
+        booking.price_agreed = True
+        booking.price_agreed_at = django.utils.timezone.now()
+        booking.save(update_fields=['actual_price', 'proposed_price', 'price_agreed', 'price_agreed_at', 'updated_at'])
+        messages.success(request, 'You agreed to the current service price. The booking is now fixed.')
+        return redirect('booking_detail', pk=booking.pk)
 
     # Handle message posting
     if request.method == 'POST' and 'send_message' in request.POST:
@@ -968,8 +1023,10 @@ def cancel_job(request, pk):
         cancel_reason = request.POST.get('cancel_reason', 'No reason provided')
         job.status = 'CANCELLED'
         job.save(update_fields=['status', 'updated_at'])
-        
-        # Send notification to worker
+        if job.service_request_id:
+            job.service_request.status = 'CANCELLED'
+            job.service_request.save(update_fields=['status', 'updated_at'])
+
         Notification.create_notification(
             user=job.worker,
             title=f"Job Cancelled - {job.title}",
@@ -978,7 +1035,7 @@ def cancel_job(request, pk):
             job=job,
             related_user=job.customer,
         )
-        
+
         messages.success(request, 'Job cancelled successfully.')
         return redirect('job_detail', pk=job.pk)
     
@@ -1023,7 +1080,8 @@ def worker_my_jobs(request):
     ).select_related('customer', 'service_request').order_by('-created_at')
 
     accepted_bookings = Booking.objects.filter(
-        worker=request.user, status__in=['Accepted', 'In Progress', 'Completed']
+        worker=request.user,
+        status__in=['Pending', 'Accepted', 'Assigned', 'Confirmed', 'In Progress', 'Completed']
     ).select_related('customer', 'service', 'service__category').order_by('-created_at')
 
     context = {

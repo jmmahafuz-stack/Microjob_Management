@@ -49,6 +49,22 @@ class Booking(models.Model):
         choices=STATUS_CHOICES,
         default='Pending'
     )
+    proposed_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='Customer proposal before the price is agreed.'
+    )
+    actual_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        help_text='Current negotiated price for the service.'
+    )
+    price_agreed = models.BooleanField(default=False)
+    price_agreed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -69,6 +85,13 @@ class Booking(models.Model):
                 raise ValidationError('Blocked workers cannot be assigned to bookings.')
 
     def save(self, *args, **kwargs):
+        if self.service_id:
+            if self.proposed_price is None:
+                self.proposed_price = self.service.price
+            if self.actual_price is None:
+                self.actual_price = self.proposed_price
+        if self.price_agreed and self.actual_price is not None and self.proposed_price is None:
+            self.proposed_price = self.actual_price
         self.full_clean()
         return super().save(*args, **kwargs)
 

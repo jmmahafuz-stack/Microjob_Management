@@ -17,6 +17,7 @@ class BookingCreateForm(forms.ModelForm):
             'address',
             'problem_description',
             'problem_photo',
+            'proposed_price',
         ]
 
     booking_date = forms.DateField(
@@ -27,11 +28,21 @@ class BookingCreateForm(forms.ModelForm):
         widget=forms.TimeInput(attrs={'type': 'time'}),
         label='Booking Time'
     )
+    proposed_price = forms.DecimalField(
+        required=False,
+        min_value=0.01,
+        max_digits=10,
+        decimal_places=2,
+        widget=forms.NumberInput(attrs={'placeholder': 'Optional price proposal'}),
+        label='Proposed price (optional)'
+    )
 
     def __init__(self, *args, **kwargs):
         kwargs.pop('selected_service', None)
         kwargs.pop('selected_worker', None)
         super().__init__(*args, **kwargs)
+        if self.instance and self.instance.service_id and self.instance.proposed_price is not None:
+            self.fields['proposed_price'].initial = self.instance.proposed_price
 
 
 class BookingUpdateForm(forms.ModelForm):

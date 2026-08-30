@@ -36,7 +36,17 @@
                         <td>{{ job.get_status_display }}</td>
                         <td>{% if job.payment and job.payment.payment_status == 'Verified' %}<span class="status-chip">Paid</span>{% else %}Awaiting payment{% endif %}</td>
                         <td><div class="job-actions">
-                            {% if job.status == 'CONFIRMED' %}<a href="{% url 'job_accept' job.pk %}" class="btn btn-sm btn-success">Start Work</a>{% elif job.status == 'IN_PROGRESS' %}<a href="{% url 'job_complete' job.pk %}" class="btn btn-sm btn-success">Mark Complete</a>{% elif job.status == 'COMPLETED' %}<span class="text-muted">Waiting for payment</span>{% endif %}
+                            {% if job.status == 'CONFIRMED' %}
+                                <form method="post" action="{% url 'job_accept' job.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="accept_job" class="btn btn-sm btn-success">Start Work</button>
+                                </form>
+                            {% elif job.status == 'IN_PROGRESS' %}
+                                <form method="post" action="{% url 'job_complete' job.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="complete_job" class="btn btn-sm btn-success">Mark Complete</button>
+                                </form>
+                            {% elif job.status == 'COMPLETED' %}<span class="text-muted">Waiting for payment</span>{% endif %}
                             <a href="{% url 'job_messages' job.pk %}" class="btn btn-sm btn-outline-primary">Message{% if job.has_unread_customer_message %}<i class="fas fa-bell message-unread-bell" title="New message"></i>{% endif %}</a>
                             <a href="{% url 'job_detail' job.pk %}" class="btn btn-sm btn-outline-secondary">Details</a>
                         </div></td>
