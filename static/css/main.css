@@ -2631,3 +2631,15 @@ nav.top-nav,
 .auth-page--register .facebook-login-left {
 	background: var(--mjms-gradient) !important;
 }
+
+.site-footer {
+	background: linear-gradient(to left, #0f172a 0%, #1e3a5f 35%, #2563eb 100%) !important;
+}
+
+.account-profile-hero .account-profile-role {
+	color: #fff !important;
+}
+
+.account-profile-actions .hub-btn--primary {
+	color: #fff !important;
+}
