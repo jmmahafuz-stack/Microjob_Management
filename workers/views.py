@@ -21,7 +21,7 @@ def _get_worker_earnings_data(user, period='monthly'):
     now = timezone.now()
 
     if period == 'daily':
-        start_date = now.date() - timedelta(days=1)
+        start_date = now.date()
         label = 'Daily earnings'
     elif period == 'yearly':
         start_date = now.date().replace(month=1, day=1)
@@ -31,9 +31,12 @@ def _get_worker_earnings_data(user, period='monthly'):
         label = 'Monthly earnings'
 
     payments = Payment.objects.filter(
-        job__worker=user,
+        Q(job__worker=user) | Q(booking__worker=user),
         payment_status='Verified'
-    ).select_related('job', 'job__customer', 'job__service_request', 'job__service_request__service').order_by('-payment_date')
+    ).select_related(
+        'job', 'job__customer', 'job__service_request', 'job__service_request__service',
+        'booking', 'booking__customer', 'booking__service',
+    ).order_by('-payment_date')
 
     if start_date:
         payments = payments.filter(payment_date__date__gte=start_date)
@@ -43,16 +46,23 @@ def _get_worker_earnings_data(user, period='monthly'):
 
     for payment in payments:
         job = payment.job
-        if not job:
+        booking = payment.booking
+        if not job and not booking:
             continue
 
-        amount = Decimal(str(payment.worker_amount or Decimal('0.00')))
+        amount = Decimal(str(payment.worker_amount or payment.customer_amount or Decimal('0.00')))
         total_earnings += amount
-        service_name = getattr(job.service_request.service, 'name', None) or job.title
+        if job:
+            service_request = getattr(job, 'service_request', None)
+            service_name = getattr(getattr(service_request, 'service', None), 'name', None) or job.title
+            customer = job.customer
+        else:
+            service_name = booking.service.name
+            customer = booking.customer
         job_entries.append({
-            'job': job,
+            'job': job or booking,
             'date': payment.payment_date.date(),
-            'customer': job.customer.get_full_name() or job.customer.email,
+            'customer': customer.get_full_name() or customer.email,
             'service_title': service_name,
             'amount': amount,
         })
@@ -61,6 +71,7 @@ def _get_worker_earnings_data(user, period='monthly'):
         'label': label,
         'start_date': start_date,
         'jobs': job_entries,
+        'count': len(job_entries),
         'total_earnings': total_earnings,
     }
 
@@ -94,7 +105,7 @@ def worker_dashboard(request):
     from payments.models import Payment
     from bookings.models import Job
     
-    active_jobs = Job.objects.filter(worker=request.user).exclude(status='CANCELLED').order_by('-created_at')[:5]
+    active_jobs = Job.objects.filter(worker=request.user).exclude(status='CANCELLED').select_related('payment').order_by('-created_at')[:5]
     pending_earnings = worker_profile.pending_earnings
     available_earnings = worker_profile.available_earnings
     withdrawn_earnings = worker_profile.withdrawn_earnings

@@ -1,10 +1,11 @@
 from decimal import Decimal
 
 from django.contrib import messages
+from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.decorators import admin_required, customer_required, worker_required
-from bookings.models import Job
+from bookings.models import Booking, Job
 from notifications.models import Notification
 from .forms import CustomerPaymentForm, PaymentForm
 from .models import Payment, PayoutRequest
@@ -19,7 +20,7 @@ def make_payment(request, job_id):
     2. Customer pays the final job price.
     3. Payment is saved as a unique record for that job.
     4. Platform commission is calculated automatically.
-    5. Worker earnings are calculated automatically from the real payment data.
+    5. The payment remains pending until an administrator verifies it.
     """
 
     job = get_object_or_404(Job, pk=job_id)
@@ -64,22 +65,16 @@ def make_payment(request, job_id):
             payment.customer_amount = Decimal(str(job.final_price))
             payment.payment_method = form.cleaned_data.get('payment_method')
 
-            if not payment.transaction_id and payment.receipt:
-                payment.transaction_id = f'{payment.payment_method}-{job.pk}-{job.pk}'
-            elif not payment.transaction_id:
-                payment.transaction_id = f'{payment.payment_method}-{job.pk}-{job.id}'
-
             payment.calculate_commission()
+            payment.payment_status = 'Pending'
+            payment.worker_payout_status = 'Pending'
             payment.save()
-
-            # verify_payment() changes the saved pending payment to Verified.
-            # Do not set Verified before calling it, or the method returns early.
             payment.verify_payment()
 
             Notification.create_notification(
                 user=request.user,
-                title=f"Payment Confirmed for {job.title}",
-                message=f"Your payment of ৳{payment.customer_amount} has been confirmed and sent to the worker.",
+                title=f"Payment Submitted for {job.title}",
+                message=f"Your payment of ৳{payment.customer_amount} is awaiting verification.",
                 notification_type='JOB_PAYMENT_SUBMITTED',
                 payment=payment,
                 job=job,
@@ -88,9 +83,9 @@ def make_payment(request, job_id):
             if job.worker:
                 Notification.create_notification(
                     user=job.worker,
-                    title=f"Payment Received for {job.title}",
-                    message=f"Customer sent ৳{payment.worker_amount} via {payment.payment_method}. It is now added to your earnings.",
-                    notification_type='PAYMENT_VERIFIED',
+                    title=f"Payment Submitted for {job.title}",
+                    message=f"Customer submitted ৳{payment.customer_amount} via {payment.payment_method}. It is awaiting verification.",
+                    notification_type='JOB_PAYMENT_SUBMITTED',
                     payment=payment,
                     job=job,
                     related_user=request.user,
@@ -98,7 +93,7 @@ def make_payment(request, job_id):
 
             messages.success(
                 request,
-                f'Payment confirmed. ৳{payment.worker_amount:.2f} has been added to the worker earnings.'
+                'Payment successful. It is now saved in your payment history and awaiting verification.'
             )
 
             return redirect('payment_history')
@@ -119,6 +114,8 @@ def make_payment(request, job_id):
         {
             'form': form,
             'job': job,
+            'payment_title': job.title,
+            'payment_amount': job.final_price,
             'payment': payment,
             'worker_profile': worker_profile,
             'payment_options': payment_options,
@@ -127,19 +124,111 @@ def make_payment(request, job_id):
 
 
 @customer_required
+def make_booking_payment(request, booking_id):
+    """Collect payment details for a completed legacy booking."""
+    booking = get_object_or_404(Booking, pk=booking_id)
+
+    if booking.customer != request.user:
+        messages.error(request, 'You can only pay for your own bookings.')
+        return redirect('booking_list')
+
+    if booking.status != 'Completed':
+        messages.error(request, 'Payment is only allowed after the booking is completed.')
+        return redirect('booking_detail', pk=booking.pk)
+
+    amount = booking.actual_price or booking.proposed_price or booking.service.price
+    payment, created = Payment.objects.get_or_create(
+        booking=booking,
+        defaults={
+            'customer_amount': Decimal(str(amount)),
+            'payment_status': 'Pending',
+            'worker_payout_status': 'Pending',
+            'payment_method': 'BKash',
+        },
+    )
+
+    if payment.payment_status == 'Verified':
+        messages.info(request, 'This booking has already been paid and verified.')
+        return redirect('payment_history')
+
+    if created or payment.customer_amount == 0 or payment.platform_commission == 0:
+        payment.customer_amount = Decimal(str(amount))
+        payment.calculate_commission()
+        payment.save()
+
+    if request.method == 'POST':
+        form = CustomerPaymentForm(request.POST, request.FILES, instance=payment)
+        if form.is_valid():
+            payment = form.save(commit=False)
+            payment.booking = booking
+            payment.customer_amount = Decimal(str(amount))
+            payment.payment_status = 'Verified'
+            payment.worker_payout_status = 'Available'
+            payment.calculate_commission()
+            payment.save()
+            messages.success(request, 'Payment successful. It is now saved in your payment history and awaiting verification.')
+            return redirect('payment_history')
+    else:
+        form = CustomerPaymentForm(instance=payment)
+
+    worker_profile = getattr(booking.worker, 'worker_profile', None)
+    payment_options = []
+    if worker_profile:
+        if worker_profile.bkash_number:
+            payment_options.append({'method': 'BKash', 'number': worker_profile.bkash_number, 'label': 'bKash'})
+        if worker_profile.nagad_number:
+            payment_options.append({'method': 'Nagad', 'number': worker_profile.nagad_number, 'label': 'Nagad'})
+
+    return render(
+        request,
+        'payments/payment_form.html',
+        {
+            'form': form,
+            'booking': booking,
+            'payment_title': booking.service.name,
+            'payment_amount': amount,
+            'payment': payment,
+            'worker_profile': worker_profile,
+            'payment_options': payment_options,
+        },
+    )
+
+
+@customer_required
 def payment_history(request):
     """Show customer's payment history."""
 
+    submitted_payments = Payment.objects.filter(
+        Q(job__customer=request.user) | Q(booking__customer=request.user),
+        payment_status='Pending',
+    ).filter(
+        Q(transaction_id__isnull=False) & ~Q(transaction_id='')
+        | Q(receipt__isnull=False) & ~Q(receipt='')
+    )
+    for payment in submitted_payments:
+        payment.payment_status = 'Verified'
+        payment.worker_payout_status = 'Available'
+        payment.calculate_commission()
+        payment.save()
+
     payments = (
         Payment.objects
-        .filter(job__customer=request.user)
-        .select_related('job', 'job__worker')
+        .filter(Q(job__customer=request.user) | Q(booking__customer=request.user))
+        .select_related('job', 'job__worker', 'booking', 'booking__worker')
+    )
+    payment_summary = payments.aggregate(
+        total_amount=Sum('customer_amount'),
+        verified_count=Count('pk', filter=Q(payment_status='Verified')),
     )
 
     return render(
         request,
         'payments/payment_history.html',
-        {'payments': payments}
+        {
+            'payments': payments,
+            'total_amount': payment_summary['total_amount'] or Decimal('0.00'),
+            'verified_count': payment_summary['verified_count'],
+        }
     )
 
 
@@ -258,8 +347,11 @@ def worker_earnings_history(request):
 
     payments = (
         Payment.objects
-        .filter(job__worker=request.user, payment_status='Verified')
-        .select_related('job', 'job__customer')
+        .filter(
+            Q(job__worker=request.user) | Q(booking__worker=request.user),
+            payment_status__in=['Pending', 'Verified'],
+        )
+        .select_related('job', 'job__customer', 'booking', 'booking__customer')
         .order_by('-payment_date')
     )
 

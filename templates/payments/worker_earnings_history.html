@@ -67,10 +67,10 @@
                         <div class="earnings-card__title-section">
                             <div>
                                 <p class="earnings-card__label">Completed Job</p>
-                                <h3 class="earnings-card__title">{{ payment.job.title|default:"Service" }}</h3>
-                                {% if payment.job.customer %}
+                                <h3 class="earnings-card__title">{% if payment.job %}{{ payment.job.title }}{% elif payment.booking %}{{ payment.booking.service.name }}{% else %}Service{% endif %}</h3>
+                                {% if payment.job.customer or payment.booking.customer %}
                                 <p class="earnings-card__customer">
-                                    <i class="fas fa-user"></i> {{ payment.job.customer.get_full_name|default:payment.job.customer.email }}
+                                    <i class="fas fa-user"></i> {% if payment.job %}{{ payment.job.customer.get_full_name|default:payment.job.customer.email }}{% else %}{{ payment.booking.customer.get_full_name|default:payment.booking.customer.email }}{% endif %}
                                 </p>
                                 {% endif %}
                             </div>
@@ -101,10 +101,10 @@
                                         <i class="fas fa-info-circle"></i> Job Status
                                     </label>
                                     <p class="info-value">
-                                        {% if payment.job.status == 'COMPLETED' %}
+                                        {% if payment.job and payment.job.status == 'COMPLETED' or payment.booking and payment.booking.status == 'Completed' %}
                                             <span class="status-pill status-pill--completed">Completed</span>
                                         {% else %}
-                                            {{ payment.job.get_status_display }}
+                                            {% if payment.job %}{{ payment.job.get_status_display }}{% else %}{{ payment.booking.get_status_display }}{% endif %}
                                         {% endif %}
                                     </p>
                                 </div>
@@ -128,7 +128,7 @@
                                     <label class="info-label">
                                         <i class="fas fa-calendar"></i> Completed
                                     </label>
-                                    <p class="info-value">{{ payment.verified_date|date:"M d, Y"|default:"Pending" }}</p>
+                                        <p class="info-value">{{ payment.verified_date|date:"M d, Y"|default:"Pending for payment" }}</p>
                                 </div>
                             </div>
                         </div>

@@ -9,10 +9,21 @@ document.addEventListener('DOMContentLoaded', function () {
     function applyFilters() {
       const term = (search ? search.value : '').trim().toLowerCase();
       let visible = 0;
+      if (activeFilter === 'all' && !term) {
+        const lists = new Set(items.map(function (item) { return item.parentElement; }));
+        lists.forEach(function (list) {
+          Array.from(list.querySelectorAll('.hub-item'))
+            .sort(function (first, second) {
+              return Number(first.dataset.paymentStatus === 'paid') - Number(second.dataset.paymentStatus === 'paid');
+            })
+            .forEach(function (item) { list.appendChild(item); });
+        });
+      }
       items.forEach(function (item) {
         const status = item.dataset.filterStatus || '';
+        const paymentStatus = item.dataset.paymentStatus || '';
         const text = (item.dataset.search || item.textContent || '').toLowerCase();
-        const statusMatch = activeFilter === 'all' || status === activeFilter;
+        const statusMatch = activeFilter === 'all' || status === activeFilter || paymentStatus === activeFilter;
         const textMatch = !term || text.includes(term);
         const show = statusMatch && textMatch;
         item.hidden = !show;

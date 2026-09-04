@@ -4,7 +4,7 @@
 {% block title %}My Jobs | MJMS{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/workflow-hub.css' %}">
+<link rel="stylesheet" href="{% static 'css/workflow-hub.css' %}?v=20260910">
 {% endblock %}
 
 {% block content %}
@@ -16,20 +16,21 @@
     </section>
 
     <section class="hub-stats" aria-label="Job summary">
-        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--amber"><i class="fa-solid fa-paper-plane"></i></span><div><small>Pending applications</small><strong>{{ pending_applications|length }}</strong><span>waiting for customer</span></div></div>
-        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--violet"><i class="fa-solid fa-calendar-check"></i></span><div><small>Confirmed</small><strong>{{ confirmed_jobs|length }}</strong><span>ready to start</span></div></div>
-        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--blue"><i class="fa-solid fa-person-digging"></i></span><div><small>In progress</small><strong>{{ active_jobs|length }}</strong><span>currently working</span></div></div>
-        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--green"><i class="fa-solid fa-circle-check"></i></span><div><small>Completed</small><strong>{{ completed_jobs|length }}</strong><span>finished jobs</span></div></div>
+        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--amber"><i class="fa-solid fa-paper-plane"></i></span><div><small>Applications</small><strong>{{ applications_count }}</strong><span>waiting for customer</span></div></div>
+        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--violet"><i class="fa-solid fa-calendar-check"></i></span><div><small>Assigned</small><strong>{{ confirmed_count }}</strong><span>ready to start</span></div></div>
+        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--blue"><i class="fa-solid fa-person-digging"></i></span><div><small>In progress</small><strong>{{ active_count }}</strong><span>currently working</span></div></div>
+        <div class="hub-stat"><span class="hub-stat__icon hub-stat__icon--green"><i class="fa-solid fa-circle-check"></i></span><div><small>Completed</small><strong>{{ completed_count }}</strong><span>finished jobs</span></div></div>
     </section>
 
     <section class="hub-toolbar">
         <div class="hub-search"><i class="fa-solid fa-magnifying-glass"></i><input id="workerHubSearch" type="search" placeholder="Search job, customer, location or application..."></div>
         <div class="hub-tabs" role="tablist" aria-label="Job status">
             <button class="hub-tab is-active" type="button" data-filter="all">All</button>
-            <button class="hub-tab" type="button" data-filter="application"><span>Applications</span><span class="hub-tab__count">{{ pending_applications|length }}</span></button>
-            <button class="hub-tab" type="button" data-filter="confirmed"><span>Confirmed</span><span class="hub-tab__count">{{ confirmed_jobs|length }}</span></button>
-            <button class="hub-tab" type="button" data-filter="active"><span>In progress</span><span class="hub-tab__count">{{ active_jobs|length }}</span></button>
-            <button class="hub-tab" type="button" data-filter="completed"><span>Completed</span><span class="hub-tab__count">{{ completed_jobs|length }}</span></button>
+            <button class="hub-tab" type="button" data-filter="application"><span>Applications</span><span class="hub-tab__count">{{ applications_count }}</span></button>
+            <button class="hub-tab" type="button" data-filter="confirmed"><span>Assigned</span><span class="hub-tab__count">{{ confirmed_count }}</span></button>
+            <button class="hub-tab" type="button" data-filter="active"><span>In progress</span><span class="hub-tab__count">{{ active_count }}</span></button>
+            <button class="hub-tab" type="button" data-filter="payment-pending"><span>Payment pending</span><span class="hub-tab__count">{{ payment_pending_count }}</span></button>
+            <button class="hub-tab" type="button" data-filter="completed"><span>Completed</span><span class="hub-tab__count">{{ completed_count }}</span></button>
         </div>
     </section>
 
@@ -39,9 +40,9 @@
     {% if accepted_bookings %}
     <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Direct customer bookings</span><h2>Accepted Bookings</h2></div><span class="hub-count">{{ accepted_bookings|length }}</span></div>
         <div class="hub-list">{% for booking in accepted_bookings %}
-            <article class="hub-card hub-item" data-filter-status="{% if booking.status == 'Completed' %}completed{% elif booking.status == 'Pending' %}confirmed{% elif booking.status == 'In Progress' %}active{% else %}confirmed{% endif %}" data-search="{{ booking.service.name }} {{ booking.customer.get_full_name|default:booking.customer.email }}">
-                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Booking #{{ booking.pk }}</span><h3>{{ booking.service.name }}</h3><p>Customer: {{ booking.customer.get_full_name|default:booking.customer.email }}</p></div></div><span class="hub-status hub-status--accepted">{{ booking.status }}</span></div>
-                <div class="hub-card__grid"><div><small><i class="fa-solid fa-layer-group"></i> Category</small><strong>{{ booking.service.category.name }}</strong></div><div><small><i class="fa-regular fa-calendar"></i> Date</small><strong>{{ booking.booking_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-regular fa-clock"></i> Time</small><strong>{{ booking.booking_time|time:"g:i A" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ booking.address|truncatewords:8 }}</strong></div></div>
+            <article class="hub-card hub-item" data-filter-status="{% if booking.status == 'Completed' and booking.payment_legacy and booking.payment_legacy.payment_status == 'Verified' %}completed{% elif booking.status == 'Completed' %}payment-pending{% elif booking.status == 'In Progress' %}active{% else %}confirmed{% endif %}" data-payment-status="{% if booking.status == 'Completed' %}{% if booking.payment_legacy and booking.payment_legacy.payment_status == 'Verified' %}paid{% else %}payment-pending{% endif %}{% endif %}" data-search="{{ booking.service.name }} {{ booking.customer.get_full_name|default:booking.customer.email }}">
+                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Booking #{{ booking.pk }}</span><h3>{{ booking.service.name }}</h3><p>Customer: {{ booking.customer.get_full_name|default:booking.customer.email }}</p></div></div><div class="hub-card__statuses"><span class="hub-status hub-status--accepted">{% if booking.payment_legacy and booking.payment_legacy.payment_status == 'Verified' %}Completed{% elif booking.status == 'Completed' %}Done work{% elif booking.status == 'Confirmed' %}Assigned{% else %}{{ booking.status }}{% endif %}</span>{% if booking.status == 'Completed' %}<span class="hub-payment-status {% if booking.payment_legacy and booking.payment_legacy.payment_status == 'Verified' %}hub-payment-status--paid{% else %}hub-payment-status--waiting{% endif %}">{% if booking.payment_legacy and booking.payment_legacy.payment_status == 'Verified' %}Paid{% else %}Waiting for payment{% endif %}</span>{% endif %}</div></div>
+                <div class="hub-card__grid"><div><small><i class="fa-solid fa-layer-group"></i> Category</small><strong>{{ booking.service.category.name }}</strong></div><div><small><i class="fa-regular fa-calendar"></i> Date</small><strong>{{ booking.booking_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-regular fa-clock"></i> Time</small><strong>{{ booking.booking_time|time:"g:i A" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ booking.address|truncatewords:8 }}</strong></div><div><small><i class="fa-solid fa-credit-card"></i> Payment</small><strong class="hub-payment-status {% if booking.status == 'Completed' and booking.payment_legacy and booking.payment_legacy.payment_status == 'Verified' %}hub-payment-status--paid{% elif booking.status == 'Completed' %}hub-payment-status--waiting{% endif %}">{% if booking.status == 'Completed' %}{% if booking.payment_legacy and booking.payment_legacy.payment_status == 'Verified' %}Paid{% else %}Waiting for customer payment{% endif %}{% else %}Not due{% endif %}</strong></div></div>
                 <p class="hub-description">{{ booking.problem_description|truncatewords:30 }}</p>
                 {% if booking.booking_type == 'HIRE_ME' %}
                     <p class="hub-description"><strong>Price status:</strong> Fixed price (Hire Me)</p>
@@ -65,8 +66,10 @@
                         <form method="post" action="{% url 'update_status' booking.pk %}" class="hub-inline-form">
                             {% csrf_token %}
                             <input type="hidden" name="status" value="Completed">
-                            <button class="hub-btn hub-btn--success" type="submit"><i class="fa-solid fa-check"></i> Mark completed</button>
+                            <button class="hub-btn hub-btn--success" type="submit"><i class="fa-solid fa-check"></i> Done Work</button>
                         </form>
+                    {% elif booking.status == 'Completed' %}
+                        <span class="hub-btn hub-btn--soft">{% if booking.payment_legacy and booking.payment_legacy.payment_status == 'Verified' %}Paid{% else %}Payment pending{% endif %}</span>
                     {% endif %}
                     <a class="hub-btn hub-btn--soft" href="{% url 'booking_detail' booking.pk %}"><i class="fa-solid fa-eye"></i> Details</a>
                     <a class="hub-btn hub-btn--soft" href="{% url 'booking_detail' booking.pk %}"><i class="fa-regular fa-comments"></i> Message</a>
@@ -77,10 +80,10 @@
     {% endif %}
 
     {% if confirmed_jobs %}
-    <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Next to start</span><h2>Confirmed Jobs</h2></div><span class="hub-count">{{ confirmed_jobs|length }}</span></div>
+    <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Next to start</span><h2>Assigned Jobs</h2></div><span class="hub-count">{{ confirmed_jobs|length }}</span></div>
         <div class="hub-list">{% for job in confirmed_jobs %}
             <article class="hub-card hub-item" data-filter-status="confirmed" data-search="{{ job.title }} {{ job.customer.get_full_name|default:job.customer.email }} {{ job.location }}">
-                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>Customer: {{ job.customer.get_full_name|default:job.customer.email }}</p></div></div><span class="hub-status hub-status--confirmed">Confirmed</span></div>
+                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>Customer: {{ job.customer.get_full_name|default:job.customer.email }}</p></div></div><span class="hub-status hub-status--confirmed">Assigned</span></div>
                 <div class="hub-card__grid"><div><small><i class="fa-regular fa-calendar"></i> Schedule</small><strong>{{ job.scheduled_date|date:"M d, Y" }}{% if job.scheduled_time_start %} · {{ job.scheduled_time_start|time:"g:i A" }}{% endif %}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location }}</strong></div><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Agreed price</small><strong>৳{{ job.final_price }}</strong></div><div><small><i class="fa-solid fa-clock"></i> Created</small><strong>{{ job.created_at|date:"M d, Y" }}</strong></div></div>
                 {% if job.price_agreed %}
                     <p class="hub-description"><strong>Price agreed</strong></p>
@@ -104,7 +107,7 @@
                 {% else %}
                     <p class="hub-description"><strong>Price can be negotiated</strong></p>
                 {% endif %}
-                <div class="hub-card__actions"><form method="post" action="{% url 'job_complete' job.pk %}" class="hub-inline-form">{% csrf_token %}<button class="hub-btn hub-btn--success" type="submit"><i class="fa-solid fa-check"></i> Mark completed</button></form><a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a><a class="hub-btn hub-btn--soft" href="{% url 'job_messages' job.pk %}"><i class="fa-regular fa-comments"></i> Message{% if job.has_unread_customer_message %}<b class="hub-notice-dot"></b>{% endif %}</a>{% if not job.price_agreed %}<form method="post" action="{% url 'job_update_price' job.pk %}" class="hub-inline-form hub-price-form"><input name="actual_price" type="number" min="0.01" step="0.01" value="{{ job.actual_price|default:'' }}" placeholder="Price" aria-label="Update price"><button class="hub-btn hub-btn--soft" type="submit"><i class="fa-solid fa-tag"></i> Update Price</button>{% csrf_token %}</form>{% endif %}</div>
+                <div class="hub-card__actions"><form method="post" action="{% url 'job_complete' job.pk %}" class="hub-inline-form">{% csrf_token %}<button class="hub-btn hub-btn--success" type="submit"><i class="fa-solid fa-check"></i> Done Work</button></form><a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a><a class="hub-btn hub-btn--soft" href="{% url 'job_messages' job.pk %}"><i class="fa-regular fa-comments"></i> Message{% if job.has_unread_customer_message %}<b class="hub-notice-dot"></b>{% endif %}</a>{% if not job.price_agreed %}<form method="post" action="{% url 'job_update_price' job.pk %}" class="hub-inline-form hub-price-form"><input name="actual_price" type="number" min="0.01" step="0.01" value="{{ job.actual_price|default:'' }}" placeholder="Price" aria-label="Update price"><button class="hub-btn hub-btn--soft" type="submit"><i class="fa-solid fa-tag"></i> Update Price</button>{% csrf_token %}</form>{% endif %}</div>
             </article>
         {% endfor %}</div>
     </section>
@@ -139,11 +142,11 @@
     {% if completed_jobs %}
     <section class="hub-section"><div class="hub-section__head"><div><span class="hub-eyebrow">Finished work</span><h2>Completed Jobs</h2></div><span class="hub-count">{{ completed_jobs|length }}</span></div>
         <div class="hub-list">{% for job in completed_jobs %}
-            <article class="hub-card hub-item" data-filter-status="completed" data-search="{{ job.title }} {{ job.customer.get_full_name|default:job.customer.email }} {{ job.location }}">
-                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--done"><i class="fa-solid fa-circle-check"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>Customer: {{ job.customer.get_full_name|default:job.customer.email }}</p></div></div><span class="hub-status hub-status--completed">Completed</span></div>
-                <div class="hub-card__grid"><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Earned</small><strong>৳{{ job.final_price }}</strong></div><div><small><i class="fa-regular fa-calendar-check"></i> Completed</small><strong>{{ job.updated_at|date:"M d, Y" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location }}</strong></div><div><small><i class="fa-solid fa-credit-card"></i> Payment</small><strong>Managed in Payments</strong></div></div>
+            <article class="hub-card hub-item" data-filter-status="{% if job.payment and job.payment.payment_status == 'Verified' %}completed{% else %}payment-pending{% endif %}" data-payment-status="{% if job.payment and job.payment.payment_status == 'Verified' %}paid{% else %}payment-pending{% endif %}" data-search="{{ job.title }} {{ job.customer.get_full_name|default:job.customer.email }} {{ job.location }}">
+                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--done"><i class="fa-solid fa-circle-check"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>Customer: {{ job.customer.get_full_name|default:job.customer.email }}</p></div></div><div class="hub-card__statuses"><span class="hub-status hub-status--completed">{% if job.payment and job.payment.payment_status == 'Verified' %}Completed{% else %}Done work{% endif %}</span><span class="hub-payment-status {% if job.payment and job.payment.payment_status == 'Verified' %}hub-payment-status--paid{% else %}hub-payment-status--waiting{% endif %}">{% if job.payment and job.payment.payment_status == 'Verified' %}Paid{% else %}Waiting for payment{% endif %}</span></div></div>
+                <div class="hub-card__grid"><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Earned</small><strong>৳{{ job.final_price }}</strong></div><div><small><i class="fa-regular fa-calendar-check"></i> Completed</small><strong>{{ job.updated_at|date:"M d, Y" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location }}</strong></div><div><small><i class="fa-solid fa-credit-card"></i> Payment</small><strong class="hub-payment-status {% if job.payment and job.payment.payment_status == 'Verified' %}hub-payment-status--paid{% else %}hub-payment-status--waiting{% endif %}">{% if job.payment and job.payment.payment_status == 'Verified' %}Paid{% else %}Waiting for customer payment{% endif %}</strong></div></div>
                 {% if job.completion_notes %}<p class="hub-description">{{ job.completion_notes|truncatewords:28 }}</p>{% endif %}
-                <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> View details</a></div>
+                <div class="hub-card__actions"><span class="hub-btn hub-btn--soft">{% if job.payment and job.payment.payment_status == 'Verified' %}Paid{% else %}Payment pending{% endif %}</span><a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> View details</a></div>
             </article>
         {% endfor %}</div>
     </section>
@@ -156,5 +159,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/workflow-hub.js' %}" defer></script>
+<script src="{% static 'js/workflow-hub.js' %}?v=20260909" defer></script>
 {% endblock %}

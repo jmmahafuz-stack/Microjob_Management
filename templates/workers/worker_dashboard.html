@@ -3,26 +3,32 @@
 {% block title %}Worker Dashboard — MJMS{% endblock %}
 
 {% block content %}
-<section class="worker-dashboard-page">
-    <div class="page-heading">
+<div class="dashboard-shell worker-dashboard-page">
+    <header class="admin-header">
         <div>
-            <span class="page-eyebrow">WORKER DASHBOARD</span>
-            <h1>My Profile &amp; Performance</h1>
+            <p class="eyebrow">Worker Operations Overview</p>
+            <h1>Worker Dashboard</h1>
             <p>Manage your jobs, earnings and professional activity from one place.</p>
         </div>
-        <a href="{% url 'worker_my_jobs' %}" class="btn btn-outline-primary"><i class="fas fa-briefcase"></i> View All Jobs</a>
-    </div>
+        <div class="admin-header-actions">
+            <a href="{% url 'worker_my_jobs' %}" class="btn btn-primary"><i class="fas fa-briefcase"></i> View All Jobs</a>
+            <a href="{% url 'payout_request_list' %}" class="btn btn-secondary"><i class="fas fa-wallet"></i> Manage Earnings</a>
+        </div>
+    </header>
 
-    <div class="dashboard-grid">
-        <div class="dashboard-card"><span class="card-eyebrow">Verification</span><span class="status-chip">{{ worker_profile.verification_status }}</span><p>{{ worker_profile.badge_label }}</p></div>
-        <div class="dashboard-card"><span class="card-eyebrow">Completion Rate</span><p class="dashboard-number">{{ worker_profile.completion_rate }}%</p><p>{{ worker_profile.completed_jobs }} jobs completed</p></div>
-        <div class="dashboard-card"><span class="card-eyebrow">Average Rating</span><p class="dashboard-number">{{ worker_profile.average_rating|floatformat:1 }} / 5</p><p>⭐ Based on customer reviews</p></div>
-    </div>
+    <section class="stats-grid">
+        <article class="stat-card accent-blue"><div class="stat-icon"><i class="fas fa-shield-alt"></i></div><div><span>Verification</span><strong>{{ worker_profile.verification_status }}</strong></div></article>
+        <article class="stat-card accent-green"><div class="stat-icon"><i class="fas fa-check-circle"></i></div><div><span>Completed Jobs</span><strong>{{ worker_profile.completed_jobs }}</strong></div></article>
+        <article class="stat-card accent-orange"><div class="stat-icon"><i class="fas fa-chart-line"></i></div><div><span>Completion Rate</span><strong>{{ worker_profile.completion_rate }}%</strong></div></article>
+        <article class="stat-card accent-purple"><div class="stat-icon"><i class="fas fa-star"></i></div><div><span>Average Rating</span><strong>{{ worker_profile.average_rating|floatformat:1 }} / 5</strong></div></article>
+        <article class="stat-card accent-cyan"><div class="stat-icon"><i class="fas fa-coins"></i></div><div><span>Total Earnings</span><strong>৳{{ total_earnings|default:'0.00'|floatformat:2 }}</strong></div></article>
+        <article class="stat-card accent-indigo"><div class="stat-icon"><i class="fas fa-wallet"></i></div><div><span>Available Earnings</span><strong>৳{{ available_earnings|default:'0.00'|floatformat:2 }}</strong></div></article>
+    </section>
 
-    <section class="dashboard-section dashboard-card">
-        <div class="booking-page__header">
-            <div><span class="card-eyebrow">Job Workflow</span><h2>Assigned Services</h2></div>
-            <a href="{% url 'worker_my_jobs' %}" class="btn btn-outline-secondary btn-sm">View All Jobs</a>
+    <section class="panel-card dashboard-section">
+        <div class="panel-header">
+            <div><p class="eyebrow">Job Workflow</p><h3>Assigned Services</h3></div>
+            <a href="{% url 'worker_my_jobs' %}" class="btn btn-secondary">View All Jobs</a>
         </div>
         {% if active_jobs %}
         <div class="table-responsive">
@@ -34,7 +40,7 @@
                         <td><strong>{{ job.title }}</strong></td>
                         <td>{{ job.customer.get_full_name|default:job.customer.email }}</td>
                         <td>{{ job.get_status_display }}</td>
-                        <td>{% if job.payment and job.payment.payment_status == 'Verified' %}<span class="status-chip">Paid</span>{% else %}Awaiting payment{% endif %}</td>
+                        <td><span class="status-chip {% if job.payment and job.payment.payment_status == 'Verified' %}payment-paid{% else %}payment-waiting{% endif %}">{% if job.payment and job.payment.payment_status == 'Verified' %}Paid{% else %}Waiting for customer payment{% endif %}</span></td>
                         <td><div class="job-actions">
                             {% if job.status == 'CONFIRMED' %}
                                 <form method="post" action="{% url 'job_accept' job.pk %}" class="d-inline">
@@ -58,8 +64,9 @@
         {% else %}<div class="empty-state-card"><i class="fas fa-briefcase"></i><h2>No assigned services</h2><p>Your active jobs will appear here.</p></div>{% endif %}
     </section>
 
-    <section class="dashboard-section dashboard-card">
-        <div class="booking-page__header"><div><span class="card-eyebrow">Earnings</span><h2>My Income &amp; Payouts</h2></div><a href="{% url 'payout_request_list' %}" class="btn btn-primary btn-sm">Manage Earnings</a></div>
+    <div class="dashboard-summary-grid">
+    <section class="panel-card dashboard-section dashboard-summary-panel">
+        <div class="panel-header"><div><p class="eyebrow">Earnings</p><h3>My Income &amp; Payouts</h3></div><a href="{% url 'payout_request_list' %}" class="btn btn-primary">Manage Earnings</a></div>
         <div class="earnings-grid">
             <div class="earnings-card"><p class="earnings-label">Pending</p><p class="earnings-value">৳{{ pending_earnings|default:'0.00'|floatformat:2 }}</p><small>Awaiting verification</small></div>
             <div class="earnings-card"><p class="earnings-label">Available</p><p class="earnings-value">৳{{ available_earnings|default:'0.00'|floatformat:2 }}</p><small>Ready to withdraw</small></div>
@@ -69,15 +76,16 @@
         {% if available_earnings > 0 %}<div class="form-actions"><a href="{% url 'create_payout_request' %}" class="btn btn-success">Request Payout · ৳{{ available_earnings|floatformat:2 }}</a></div>{% endif %}
     </section>
 
-    <section class="dashboard-section dashboard-card">
-        <div class="booking-page__header"><div><span class="card-eyebrow">Payment Summary</span><h2>Recent Customer Payments</h2></div></div>
+    <section class="panel-card dashboard-section dashboard-summary-panel">
+        <div class="panel-header"><div><p class="eyebrow">Payment Summary</p><h3>Recent Customer Payments</h3></div></div>
         {% if recent_payments %}
-        <div class="table-responsive"><table><thead><tr><th>Service</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead><tbody>{% for payment in recent_payments %}<tr><td>{{ payment.service_name|default:payment.job.title }}</td><td>{{ payment.customer_name|default:payment.job.customer.email }}</td><td>৳{{ payment.paid_amount|floatformat:2 }}</td><td><span class="status-chip">{{ payment.payment_status }}</span></td></tr>{% endfor %}</tbody></table></div>
+            <div class="table-responsive"><table><thead><tr><th>Service</th><th>Customer</th><th>Amount</th><th>Status</th></tr></thead><tbody>{% for payment in recent_payments %}<tr><td>{% if payment.job %}{{ payment.job.title }}{% else %}{{ payment.booking.service.name }}{% endif %}</td><td>{% if payment.job %}{{ payment.job.customer.get_full_name|default:payment.job.customer.email }}{% else %}{{ payment.booking.customer.get_full_name|default:payment.booking.customer.email }}{% endif %}</td><td>৳{{ payment.worker_amount|floatformat:2 }}</td><td><span class="status-chip">{% if payment.payment_status == 'Verified' %}Paid{% else %}{{ payment.payment_status }}{% endif %}</span></td></tr>{% endfor %}</tbody></table></div>
         {% else %}<p class="empty-state">No customer payments confirmed yet. Once a completed job is paid, it will appear here.</p>{% endif %}
     </section>
+    </div>
 
-    <section class="dashboard-section dashboard-card">
-        <div class="booking-page__header"><div><span class="card-eyebrow">Reports</span><h2>Earnings by Period</h2></div></div>
+    <section class="panel-card dashboard-section">
+        <div class="panel-header"><div><p class="eyebrow">Reports</p><h3>Earnings by Period</h3></div></div>
         <div class="period-grid">
             <div class="dashboard-card"><h4>Today</h4><p class="dashboard-number">৳{{ report_daily.total_earnings|default:'0.00'|floatformat:2 }}</p><small>{{ report_daily.count|default:'0' }} jobs</small></div>
             <div class="dashboard-card"><h4>This Month</h4><p class="dashboard-number">৳{{ report_monthly.total_earnings|default:'0.00'|floatformat:2 }}</p><small>{{ report_monthly.count|default:'0' }} jobs</small></div>
@@ -85,5 +93,5 @@
         </div>
         <div class="form-actions"><a href="{% url 'worker_earnings_report' %}?period=daily" class="btn btn-outline-secondary">Daily Report</a><a href="{% url 'worker_earnings_report' %}?period=monthly" class="btn btn-outline-secondary">Monthly Report</a><a href="{% url 'worker_earnings_report' %}?period=yearly" class="btn btn-outline-secondary">Yearly Report</a></div>
     </section>
-</section>
+</div>
 {% endblock %}

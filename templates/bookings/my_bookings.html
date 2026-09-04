@@ -105,7 +105,7 @@
                         <p class="hub-description"><strong>Price status:</strong> Negotiable price (Book This Service) · Current offer: ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
                     {% endif %}
                 {% endif %}
-                <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'booking_detail' booking.pk %}"><i class="fa-solid fa-eye"></i> View booking</a>{% if booking.status != 'Completed' and booking.status != 'Cancelled' %}<a class="hub-btn hub-btn--danger" href="{% url 'cancel_booking' booking.pk %}"><i class="fa-solid fa-ban"></i> Cancel</a>{% endif %}</div>
+                <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'booking_detail' booking.pk %}"><i class="fa-solid fa-eye"></i> View booking</a>{% if booking.status == 'Completed' and not booking.payment_completed %}<a class="hub-btn hub-btn--success" href="{% url 'make_booking_payment' booking.pk %}"><i class="fa-solid fa-credit-card"></i> Pay now</a>{% endif %}{% if booking.status != 'Completed' and booking.status != 'Cancelled' %}<a class="hub-btn hub-btn--danger" href="{% url 'cancel_booking' booking.pk %}"><i class="fa-solid fa-ban"></i> Cancel</a>{% endif %}</div>
             </article>
             {% endfor %}
         </div>

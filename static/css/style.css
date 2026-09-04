@@ -379,33 +379,35 @@ button:hover, input[type="submit"]:hover {
 
 .services-page {
     padding: 0;
-    background: #f7f9fc;
+    background: transparent;
 }
 
 .services-page .container {
-    padding-top: 32px;
-    padding-bottom: 48px;
+    padding-top: 24px;
+    padding-bottom: 40px;
 }
 
 .services-hero {
-    background: linear-gradient(135deg, #245b8e 0%, #72a9d9 100%);
-    color: white;
-    border-radius: 0;
-    padding: 50px 20px;
-    margin-bottom: 32px;
-    text-align: center;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--mjms-ink);
+    border-radius: 22px;
+    border: 1px solid var(--mjms-line);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+    padding: 40px 24px;
+    margin-bottom: 24px;
+    text-align: left;
 }
 
 .services-hero h2 {
     margin: 0 0 12px;
-    color: white;
-    font-size: 2rem;
+    color: var(--mjms-ink);
+    font-size: clamp(1.8rem, 4vw, 2.5rem);
 }
 
 .services-hero p {
     margin: 0;
-    color: #e8f2fb;
-    font-size: 1.1rem;
+    color: var(--mjms-muted);
+    font-size: 1.05rem;
 }
 
 .services-filter {
@@ -434,18 +436,19 @@ button:hover, input[type="submit"]:hover {
 
 /* Enhanced Filter Section */
 .services-filter-section {
-    background: white;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(22, 58, 86, 0.1);
+    background: rgba(255, 255, 255, 0.94);
+    border: 1px solid var(--mjms-line);
+    border-radius: 20px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
     overflow: hidden;
-    margin-bottom: 32px;
+    margin-bottom: 30px;
 }
 
 .filter-header {
-    background: linear-gradient(135deg, #1f4e79 0%, #2d6ea8 100%);
-    color: white;
-    padding: 20px 24px;
-    border-bottom: 1px solid #e2e8f0;
+    background: transparent;
+    color: var(--mjms-ink);
+    padding: 18px 20px 12px;
+    border-bottom: 1px solid var(--mjms-line);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -453,8 +456,8 @@ button:hover, input[type="submit"]:hover {
 
 .filter-header h3 {
     margin: 0;
-    font-size: 1.2rem;
-    color: white;
+    font-size: 1.1rem;
+    color: var(--mjms-ink);
     display: flex;
     align-items: center;
     gap: 10px;
@@ -653,7 +656,7 @@ button:hover, input[type="submit"]:hover {
 .section-heading h3 {
     margin: 0;
     font-size: 1.5rem;
-    color: #f9f9f9;
+    color: var(--mjms-ink);
     font-weight: 700;
 }
 
@@ -665,22 +668,26 @@ button:hover, input[type="submit"]:hover {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 16px;
+    align-items: stretch;
 }
 
 .service-card,
 .service-list-item {
-    background: white;
-    border: 1px solid #dbeafe;
-    border-radius: 14px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid var(--mjms-line);
+    border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06);
-    transition: all 0.3s ease;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+    transition: all 0.2s ease;
 }
 
 .service-card:hover,
 .service-list-item:hover {
-    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
-    border-color: #93c5fd;
+    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.09);
+    border-color: rgba(37, 99, 235, 0.18);
 }
 
 .service-card img,
@@ -692,9 +699,55 @@ button:hover, input[type="submit"]:hover {
     background: #e2e8f0;
 }
 
+.service-card__image-wrap {
+    position: relative;
+    height: 170px;
+    width: 100%;
+    overflow: hidden;
+    background: #edf3f8;
+}
+
+.service-card__image-wrap img,
+.service-image-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.service-image-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #eaf2ff, #edf7f7);
+    color: #47607a;
+    font-size: 2rem;
+}
+
 .service-card__body,
 .service-list-item__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
     padding: 16px;
+}
+
+.service-card__body > *,
+.service-list-item__body > * {
+    margin-top: 0;
+}
+
+.service-card__body .service-description,
+.service-list-item__body p:nth-of-type(2),
+.service-card__body .service-booking-note,
+.service-card__body .service-worker-summary {
+    flex: 1;
+}
+
+.service-card__body .service-description,
+.service-card__body .service-booking-note,
+.service-list-item__body p {
+    margin-bottom: 10px;
 }
 
 .service-badge {

@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     # Customer payment flow
     path('checkout/job/<int:job_id>/', views.make_payment, name='make_payment'),
+    path('checkout/booking/<int:booking_id>/', views.make_booking_payment, name='make_booking_payment'),
     path('history/', views.payment_history, name='payment_history'),
     
     # Worker payout/earnings flow

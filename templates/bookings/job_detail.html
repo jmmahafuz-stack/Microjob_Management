@@ -21,55 +21,6 @@
         <div class="col-12">
             <div class="job-header">
                 <div>
-
-                <div class="card shadow-sm mb-4">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Service Details</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-4">
-                            <strong>Description</strong>
-                            <p class="mb-0">{{ job.description }}</p>
-                        </div>
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <strong>Location</strong>
-                                <p class="mb-0">{{ job.location }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Address</strong>
-                                <p class="mb-0">{{ job.address }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Scheduled date</strong>
-                                <p class="mb-0">{{ job.scheduled_date|date:"M d, Y" }}</p>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Scheduled time</strong>
-                                <p class="mb-0">
-                                    {% if job.scheduled_time_start %}{{ job.scheduled_time_start|time:"g:i A" }}{% else %}Not specified{% endif %}
-                                    {% if job.scheduled_time_end %} - {{ job.scheduled_time_end|time:"g:i A" }}{% endif %}
-                                </p>
-                            </div>
-                            <div class="col-md-6">
-                                <strong>Estimated duration</strong>
-                                <p class="mb-0">{{ job.estimated_duration }}</p>
-                            </div>
-                        </div>
-                        <div class="mt-4 pt-3 border-top">
-                            <strong><i class="fas fa-map-marker-alt"></i> Map</strong>
-                            <div id="job-location-map" class="job-location-map mt-2" data-query="{{ job.location }}, {{ job.address }}">
-                                <p class="p-3 mb-0 text-muted">Loading map...</p>
-                            </div>
-                        </div>
-                        {% if job.completion_notes %}
-                            <div class="mt-4 pt-3 border-top">
-                                <strong>Completion notes</strong>
-                                <p class="mb-0">{{ job.completion_notes }}</p>
-                            </div>
-                        {% endif %}
-                    </div>
-                </div>
                     <p class="job-reference">Job #{{ job.id }}</p>
                     <h1 class="job-title">{{ job.title }}</h1>
                     <div class="job-participants">
@@ -135,9 +86,40 @@
                             </form>
                         {% endif %}
                     {% endif %}
-                    <span class="badge bg-{% if job.status == 'CONFIRMED' %}info{% elif job.status == 'IN_PROGRESS' %}warning{% elif job.status == 'COMPLETED' %}success{% else %}secondary{% endif %} fs-5">
-                        {{ job.get_status_display }}
+                    <span class="badge {% if request.user == job.worker and job.status == 'COMPLETED' %}worker-payment-status {% if payment_completed %}worker-payment-status--paid{% else %}worker-payment-status--waiting{% endif %}{% else %}bg-{% if job.status == 'CONFIRMED' %}info{% elif job.status == 'IN_PROGRESS' %}warning{% elif job.status == 'COMPLETED' %}success{% else %}secondary{% endif %}{% endif %} fs-5">
+                        {% if request.user == job.worker and job.status == 'COMPLETED' %}{% if payment_completed %}Paid{% else %}Done work{% endif %}{% else %}{{ job.get_status_display }}{% endif %}
                     </span>
+                </div>
+            </div>
+
+            <div class="card service-details-card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Service Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="service-description">
+                        <strong>Description</strong>
+                        <p class="mb-0">{{ job.description }}</p>
+                    </div>
+                    <div class="row g-4 service-facts">
+                        <div class="col-md-6"><strong>Location</strong><p class="mb-0">{{ job.location }}</p></div>
+                        <div class="col-md-6"><strong>Address</strong><p class="mb-0">{{ job.address }}</p></div>
+                        <div class="col-md-6"><strong>Scheduled date</strong><p class="mb-0">{{ job.scheduled_date|date:"M d, Y" }}</p></div>
+                        <div class="col-md-6"><strong>Scheduled time</strong><p class="mb-0">{% if job.scheduled_time_start %}{{ job.scheduled_time_start|time:"g:i A" }}{% else %}Not specified{% endif %}{% if job.scheduled_time_end %} - {{ job.scheduled_time_end|time:"g:i A" }}{% endif %}</p></div>
+                        <div class="col-md-6"><strong>Estimated duration</strong><p class="mb-0">{{ job.estimated_duration }}</p></div>
+                    </div>
+                    <div class="map-section">
+                        <strong><i class="fas fa-map-marker-alt"></i> Map</strong>
+                        <div id="job-location-map" class="job-location-map mt-2" data-query="{{ job.location }}, {{ job.address }}">
+                            <p class="p-3 mb-0 text-muted">Loading map...</p>
+                        </div>
+                    </div>
+                    {% if job.completion_notes %}
+                        <div class="completion-section">
+                            <strong>Completion notes</strong>
+                            <p class="mb-0">{{ job.completion_notes }}</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
             

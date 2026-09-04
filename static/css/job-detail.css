@@ -11,12 +11,16 @@
     .job-detail-page .job-actions .btn { margin: 0 !important; white-space: nowrap; }
     .job-detail-page .message-alert { display: inline-flex; align-items: center; gap: .4rem; color: #facc15; filter: drop-shadow(0 0 2px rgba(120, 53, 15, .45)); font-size: .9rem; font-weight: 700; }
     .job-detail-page .job-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+    .job-detail-page .job-header-info { min-width: 0; }
     .job-detail-page .job-header h1 { margin: 0; }
     .job-detail-page .job-reference { margin: 0 0 .2rem; color: #0f766e; font-size: .72rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
     .job-detail-page .job-title { margin: 0; }
     .job-detail-page .job-header-actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: .5rem; }
     .job-detail-page .job-header-actions .btn { margin: 0; white-space: nowrap; }
     .job-detail-page .job-header-actions .badge { font-size: .9rem; }
+    .job-detail-page .job-header-actions .worker-payment-status { color: #fff !important; }
+    .job-detail-page .job-header-actions .worker-payment-status--waiting { background: #64748b; }
+    .job-detail-page .job-header-actions .worker-payment-status--paid { background: #15803d; }
     .job-detail-page .job-summary { display: flex; flex-wrap: wrap; gap: 1rem 3rem; align-items: center; padding: 1rem 1.25rem; background: #f5f9fb; }
     .job-detail-page .job-summary__item { display: flex; align-items: baseline; gap: .65rem; }
     .job-detail-page .job-summary__item strong { text-transform: uppercase; }
@@ -26,6 +30,14 @@
     .job-detail-page .job-participants strong { color: #385466; font-size: .84rem; }
     .job-detail-page .job-price { margin: .7rem 0 0; color: #0f766e; font-size: 1.35rem; font-weight: 800; }
     .job-detail-page .job-price-label { margin-right: .35rem; color: #385466; font-size: .78rem; font-weight: 700; text-transform: uppercase; }
+    .job-detail-page .service-details-card { margin-top: 0; overflow: hidden; }
+    .job-detail-page .service-details-card .card-header { display: flex; align-items: center; min-height: 58px; }
+    .job-detail-page .service-details-card .card-body { padding: 1.5rem; }
+    .job-detail-page .service-description { padding-bottom: 1.25rem; border-bottom: 1px solid #e8eef1; }
+    .job-detail-page .service-description p { margin-top: .45rem; color: #526b7b; }
+    .job-detail-page .service-facts { padding-top: 1.25rem; }
+    .job-detail-page .service-facts p { margin-top: .35rem; color: #243746; font-weight: 650; }
+    .job-detail-page .map-section, .job-detail-page .completion-section { margin-top: 1.4rem; padding-top: 1.25rem; border-top: 1px solid #e8eef1; }
     .job-detail-page .agreement-note { display: inline-flex; align-items: center; gap: .35rem; padding: .45rem .7rem; border: 1px solid #b7e3d5; border-radius: 8px; background: #effaf6; color: #166534; font-size: .86rem; font-weight: 700; }
     @media (max-width: 700px) {
         .job-detail-page .job-header { flex-direction: column; }

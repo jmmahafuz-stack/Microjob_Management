@@ -188,7 +188,9 @@ class WorkerProfile(models.Model):
         """Reconcile worker earnings with actual payment records."""
         from payments.models import Payment
 
-        payments = Payment.objects.filter(job__worker=self.user)
+        payments = Payment.objects.filter(
+            models.Q(job__worker=self.user) | models.Q(booking__worker=self.user)
+        )
 
         pending_total = payments.filter(payment_status='Pending').aggregate(
             total=models.Sum('worker_amount')

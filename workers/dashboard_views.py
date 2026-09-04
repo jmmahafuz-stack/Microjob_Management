@@ -119,6 +119,28 @@ def worker_dashboard(request):
     available_earnings = earnings['available']
     withdrawn_earnings = earnings['withdrawn']
     total_earnings = earnings['total_earned']
+
+    paid_jobs = Payment.objects.filter(
+        Q(job__worker=worker) | Q(booking__worker=worker),
+        payment_status='Verified',
+    )
+    today = timezone.localdate()
+    period_starts = {
+        'daily': today,
+        'monthly': today.replace(day=1),
+        'yearly': today.replace(month=1, day=1),
+    }
+    reports = {}
+    for period, start_date in period_starts.items():
+        period_payments = paid_jobs.filter(payment_date__date__gte=start_date)
+        period_amount = sum(
+            (payment.worker_amount or payment.customer_amount or Decimal('0.00'))
+            for payment in period_payments
+        )
+        reports[period] = {
+            'total_earnings': period_amount,
+            'count': period_payments.count(),
+        }
     
     context = {
         'profile': profile,
@@ -135,6 +157,9 @@ def worker_dashboard(request):
         'available_earnings': available_earnings,
         'withdrawn_earnings': withdrawn_earnings,
         'total_earnings': total_earnings,
+        'report_daily': reports['daily'],
+        'report_monthly': reports['monthly'],
+        'report_yearly': reports['yearly'],
     }
     
     return render(request, 'workers/worker_dashboard.html', context)

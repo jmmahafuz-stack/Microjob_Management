@@ -7,4 +7,11 @@
 
 .hub-inline-form{display:inline-flex;margin:0}.hub-inline-form .hub-btn{font:inherit}
 
-.hub-hero h1{color:#fff}.hub-tab{display:inline-flex;align-items:center;gap:8px}.hub-tab__count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:#dfeeff;color:#1d4e70;font-size:.7rem;font-weight:800}.hub-tab.is-active .hub-tab__count{background:#fff;color:#123d57}.hub-tab[data-filter="pending"] .hub-tab__count{background:#fff7d6;color:#a16207}.hub-tab[data-filter="active"] .hub-tab__count{background:#dfeeff;color:#1d4e70}.hub-tab[data-filter="completed"] .hub-tab__count{background:#e7f8f0;color:#0f9f6e}.hub-tab[data-filter="cancelled"] .hub-tab__count{background:#fff0f0;color:#b42318}.hub-tab[data-filter="application"] .hub-tab__count{background:#f3e8ff;color:#6d28d9}.hub-tab[data-filter="confirmed"] .hub-tab__count{background:#e0f2fe;color:#075985}
+.hub-hero--worker .hub-eyebrow,
+.hub-hero--worker h1,
+.hub-hero--worker p{color:#fff !important}
+.hub-tab[data-filter="all"].is-active{background:#000;color:#000 !important}
+.hub-card__statuses{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:7px}.hub-payment-status{display:inline-flex;align-items:center;line-height:1.2;padding:6px 9px;border-radius:999px;font-size:.72rem;font-weight:800}.hub-payment-status--waiting{background:#fff4dc;color:#a16207}.hub-payment-status--paid{background:#dcfce7;color:#15803d}
+
+.hub-hero h1{color:#fff}.hub-tab{display:inline-flex;align-items:center;gap:8px}.hub-tab__count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;padding:0 7px;border-radius:999px;background:#dfeeff;color:#1d4e70;font-size:.7rem;font-weight:800}.hub-tab.is-active .hub-tab__count{background:#fff;color:#123d57}.hub-tab[data-filter="pending"] .hub-tab__count{background:#fef08a;color:#d97706}.hub-tab[data-filter="active"] .hub-tab__count{background:#bfdbfe;color:#1e40af}.hub-tab[data-filter="completed"] .hub-tab__count{background:#bbf7d0;color:#059669}.hub-tab[data-filter="cancelled"] .hub-tab__count{background:#fecaca;color:#991b1b}.hub-tab[data-filter="application"] .hub-tab__count{background:#e9d5ff;color:#7c3aed}.hub-tab[data-filter="confirmed"] .hub-tab__count{background:#a5f3fc;color:#0e7490}
+.hub-tab,.hub-tab:hover{color:#fff !important}

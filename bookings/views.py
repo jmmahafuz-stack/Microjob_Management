@@ -72,6 +72,11 @@ def booking_list(request):
 def my_bookings(request):
     """Show customer's all bookings"""
     bookings = Booking.objects.filter(customer=request.user).select_related('worker', 'service').order_by('-created_at')
+    verified_booking_payment = Payment.objects.filter(
+        booking=OuterRef('pk'),
+        payment_status='Verified',
+    )
+    bookings = bookings.annotate(payment_completed=Exists(verified_booking_payment))
     verified_payment = Payment.objects.filter(
         job=OuterRef('pk'),
         payment_status='Verified',
@@ -1078,12 +1083,14 @@ def worker_my_jobs(request):
     completed_jobs = Job.objects.filter(
         worker=request.user,
         status='COMPLETED'
-    ).select_related('customer', 'service_request').order_by('-created_at')
+    ).select_related('customer', 'service_request', 'payment').order_by('-created_at')
 
     accepted_bookings = Booking.objects.filter(
         worker=request.user,
         status__in=['Pending', 'Accepted', 'Assigned', 'Confirmed', 'In Progress', 'Completed']
-    ).select_related('customer', 'service', 'service__category').order_by('-created_at')
+    ).select_related('customer', 'service', 'service__category', 'payment_legacy').order_by('-created_at')
+
+    booking_confirmed_statuses = ['Pending', 'Accepted', 'Assigned', 'Confirmed']
 
     context = {
         'pending_applications': pending_applications,
@@ -1092,6 +1099,12 @@ def worker_my_jobs(request):
         'active_jobs': active_jobs,
         'completed_jobs': completed_jobs,
         'accepted_bookings': accepted_bookings,
+        'applications_count': len(pending_applications),
+        'confirmed_count': len(confirmed_jobs) + accepted_bookings.filter(status__in=booking_confirmed_statuses).count(),
+        'active_count': len(active_jobs) + accepted_bookings.filter(status='In Progress').count(),
+        'payment_pending_count': completed_jobs.filter(Q(payment__isnull=True) | Q(payment__payment_status='Pending')).count() + accepted_bookings.filter(status='Completed').exclude(payment_legacy__payment_status='Verified').count(),
+        'paid_count': completed_jobs.filter(payment__payment_status='Verified').count() + accepted_bookings.filter(status='Completed', payment_legacy__payment_status='Verified').count(),
+        'completed_count': completed_jobs.filter(payment__payment_status='Verified').count() + accepted_bookings.filter(status='Completed', payment_legacy__payment_status='Verified').count(),
         'total_jobs': len(confirmed_jobs) + len(active_jobs),
         'total_completed': len(completed_jobs),
     }

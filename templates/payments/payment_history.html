@@ -36,8 +36,8 @@
                     <i class="fas fa-check-circle"></i>
                 </div>
                 <div>
-                    <p class="stat-box__label">Verified</p>
-                    <p class="stat-box__value">{{ payments|length }}</p>
+                    <p class="stat-box__label">Paid</p>
+                    <p class="stat-box__value">{{ verified_count }}</p>
                 </div>
             </div>
             <div class="stat-box">
@@ -46,7 +46,7 @@
                 </div>
                 <div>
                     <p class="stat-box__label">Total Amount</p>
-                    <p class="stat-box__value">৳0</p>
+                    <p class="stat-box__value">৳{{ total_amount|floatformat:2 }}</p>
                 </div>
             </div>
         </div>
@@ -62,7 +62,7 @@
                         <div class="payment-card__title-section">
                             <div>
                                 <p class="payment-card__label">Job</p>
-                                <h3 class="payment-card__title">{{ payment.job.title|default:"Service" }}</h3>
+                                <h3 class="payment-card__title">{% if payment.job %}{{ payment.job.title }}{% elif payment.booking %}{{ payment.booking.service.name }}{% else %}Service{% endif %}</h3>
                                 {% if payment.job.service_request %}
                                 <p class="payment-card__service">
                                     <i class="fas fa-tag"></i> {{ payment.job.service_request.title }}
@@ -71,7 +71,7 @@
                             </div>
                             <span class="payment-status-badge payment-status-badge--{{ payment.payment_status|slugify }}">
                                 <i class="fas fa-{% if payment.payment_status == 'Pending' %}clock{% elif payment.payment_status == 'Verified' %}check-circle{% elif payment.payment_status == 'Failed' %}times-circle{% else %}undo{% endif %}"></i>
-                                {{ payment.payment_status }}
+                                {% if payment.payment_status == 'Verified' %}Paid{% else %}{{ payment.payment_status }}{% endif %}
                             </span>
                         </div>
                     </div>
@@ -151,6 +151,15 @@
 
                     <!-- Card Footer with Link -->
                     <div class="payment-card__footer">
+                        {% if payment.payment_status == 'Pending' and payment.job %}
+                        <a href="{% url 'make_payment' payment.job.pk %}" class="btn btn-success">
+                            <i class="fas fa-credit-card"></i> Pay now
+                        </a>
+                        {% elif payment.payment_status == 'Pending' and payment.booking %}
+                        <a href="{% url 'make_booking_payment' payment.booking.pk %}" class="btn btn-success">
+                            <i class="fas fa-credit-card"></i> Pay now
+                        </a>
+                        {% endif %}
                         {% if payment.job %}
                         <a href="{% url 'my_jobs' %}" class="btn btn-secondary">
                             <i class="fas fa-arrow-right"></i> View Job Details
