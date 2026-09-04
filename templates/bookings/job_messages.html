@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% load static %}
+<link rel="stylesheet" href="{% static 'css/job-messages.css' %}">
 
 {% block title %}Messages - Job #{{ job.id }}{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/job-messages.css' %}">
 {% endblock %}
 
 {% block content %}
