@@ -1,95 +1,77 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-<div class="container">
-    <!-- Page Header -->
-    <section class="hero about-hero">
-        <h1>About MJMS</h1>
-        <p>Building trust between customers and professionals</p>
-    </section>
-
-    <!-- Main Content -->
-    <section class="section">
-        <h2>About Our Platform</h2>
-        <p>
-            MJMS (Micro Job Management System) is a home maintenance service management platform that connects 
-            customers with verified, company-trained professionals for a wide range of services including:
-        </p>
-        
-        <ul style="list-style: none; padding: 0;">
-            <li style="padding: 0.75rem 0; padding-left: 2rem; position: relative;">
-                <span style="position: absolute; left: 0;">✓</span>
-                <strong>Electrical Services</strong> - Professional electrical repairs and installations
-            </li>
-            <li style="padding: 0.75rem 0; padding-left: 2rem; position: relative;">
-                <span style="position: absolute; left: 0;">✓</span>
-                <strong>Plumbing Services</strong> - Expert plumbing solutions for all your needs
-            </li>
-            <li style="padding: 0.75rem 0; padding-left: 2rem; position: relative;">
-                <span style="position: absolute; left: 0;">✓</span>
-                <strong>Carpentry Services</strong> - Quality woodwork and furniture repair
-            </li>
-            <li style="padding: 0.75rem 0; padding-left: 2rem; position: relative;">
-                <span style="position: absolute; left: 0;">✓</span>
-                <strong>AC Repair Services</strong> - Professional air conditioning maintenance and repair
-            </li>
-        </ul>
-    </section>
-
-    <!-- Mission Section -->
-    <section class="section">
-        <div class="features-grid">
-            <div class="feature-card">
-                <h3>Our Mission</h3>
-                <p>
-                    To provide a seamless, transparent platform that connects homeowners with 
-                    skilled, verified professionals, making home maintenance simple, affordable, and reliable.
-                </p>
-            </div>
-            <div class="feature-card">
-                <h3>Our Vision</h3>
-                <p>
-                    To become the most trusted home services marketplace, where quality work is 
-                    guaranteed, customers are protected, and professionals are empowered.
-                </p>
-            </div>
-            <div class="feature-card">
-                <h3>Our Values</h3>
-                <p>
-                    Trust, transparency, quality, and customer satisfaction drive everything we do. 
-                    We believe in fair pricing and honest service.
-                </p>
-            </div>
+<div class="about-page">
+    <section class="about-hero">
+        <div>
+            <span class="hub-eyebrow"><i class="fas fa-handshake"></i> About MJMS</span>
+            <h1>About Us </h1>
+            <p>MJMS connects customers with verified professionals.</p>
         </div>
     </section>
 
-    <!-- Why Choose Us -->
-    <section class="section">
-        <h2 style="text-align: center; margin-bottom: 2rem;">Why Choose MJMS?</h2>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem;">
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎓</div>
-                <h3>Company-Trained Professionals</h3>
-                <p>All workers are verified and trained to deliver high-quality services</p>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 1rem;">🛡️</div>
-                <h3>Customer Protection</h3>
-                <p>Secure payment processing and protection against fraudulent services</p>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 1rem;">⭐</div>
-                <h3>Rating System</h3>
-                <p>Transparent feedback helps maintain service quality standards</p>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 1rem;">💰</div>
-                <h3>Fair Pricing</h3>
-                <p>Transparent pricing with no hidden charges</p>
-            </div>
+    <section class="about-section">
+        <div class="about-section__head">
+            <span class="hub-eyebrow hub-eyebrow--dark">Why choose us</span>
+            <h2>Built around trust, quality, and convenience</h2>
+        </div>
+        <div class="about-benefits">
+            <article>
+                <i class="fas fa-user-check"></i>
+                <h3>Verified professionals</h3>
+                <p>Every worker is vetted and trained to deliver dependable service and professional communication.</p>
+            </article>
+            <article>
+                <i class="fas fa-shield-halved"></i>
+                <h3>Customer protection</h3>
+                <p>Secure booking steps and transparent workflows help protect customers and providers.</p>
+            </article>
+            <article>
+                <i class="fas fa-star"></i>
+                <h3>Quality reviews</h3>
+                <p>Ratings and feedback make it easier to choose the right professional and maintain standards.</p>
+            </article>
+            <article>
+                <i class="fas fa-money-bill-wave"></i>
+                <h3>Fair pricing</h3>
+                <p>Clear pricing and transparent agreements help avoid misunderstandings.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="about-section">
+        <div class="about-section__head">
+            <span class="hub-eyebrow hub-eyebrow--dark">How it works</span>
+            <h2>From discovery to delivery</h2>
+        </div>
+        <div class="about-steps">
+            <article>
+                <span>01</span>
+                <h3>Discover</h3>
+                <p>Browse trusted services and compare local professionals in your area.</p>
+            </article>
+            <article>
+                <span>02</span>
+                <h3>Book</h3>
+                <p>Confirm your details and communicate directly about timing and price.</p>
+            </article>
+            <article>
+                <span>03</span>
+                <h3>Get it done</h3>
+                <p>Track updates, complete the job, and leave feedback when the work is finished.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="about-cta">
+        <div>
+            <span class="hub-eyebrow">Ready to begin?</span>
+            <h2>Find the right service for your next task</h2>
+        </div>
+        <div>
+            <a href="{% url 'service_list' %}" class="hub-btn hub-btn--primary"><i class="fas fa-magnifying-glass"></i> Browse Services</a>
+            <a href="{% url 'register' %}" class="hub-btn hub-btn--soft"><i class="fas fa-user-plus"></i> Join MJMS</a>
         </div>
     </section>
 </div>
-
 {% endblock %}

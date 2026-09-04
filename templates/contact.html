@@ -1,77 +1,76 @@
 {% extends 'base.html' %}
 
 {% block content %}
-
-<div class="container">
-    <!-- Page Header -->
-    <section class="hero contact-hero">
-        <h1>Contact Us</h1>
-        <p>We're here to help and answer any questions you might have</p>
-    </section>
-
-    <!-- Contact Information -->
-    <section class="section">
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 1rem;">📧</div>
-                <h3>Email</h3>
-                <p><a href="mailto:support@mjms.com">support@mjms.com</a></p>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 1rem;">📱</div>
-                <h3>Phone</h3>
-                <p><a href="tel:+8801700000000">+880 1700-000000</a></p>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 2.5rem; margin-bottom: 1rem;">📍</div>
-                <h3>Address</h3>
-                <p>Dhaka, Bangladesh</p>
-            </div>
+<div class="contact-page">
+    <section class="contact-hero">
+        <div>
+            <span class="hub-eyebrow"><i class="fas fa-headset"></i> Support center</span>
+            <h1>Contact Us</h1>
+            <p>We're here to help and answer any questions you might have.</p>
         </div>
     </section>
 
-    <!-- Support action -->
-    <section class="section contact-support-panel" style="max-width: 700px; margin-left: auto; margin-right: auto;">
-        <h2>Need help?</h2>
-        <p>Customers and workers can send a complaint or support message directly to the admin team.</p>
-        {% if user.is_authenticated %}
-            {% if user.role == 'customer' or user.role == 'worker' %}
-            <a href="{% url 'contact_admin' %}" class="btn btn-primary">
-                <i class="fas fa-comments"></i> Message Us
-            </a>
-            <a href="{% url 'complaint_history' %}" class="btn btn-outline-primary">
-                <i class="fas fa-clock-rotate-left"></i> View My Messages
-            </a>
-            {% else %}
-                <p>Support messages are available from customer and worker accounts.</p>
-            {% endif %}
-        {% else %}
-            <a href="{% url 'login' %}" class="btn btn-primary">Log in to Message Support</a>
-        {% endif %}
+    <section class="contact-grid" aria-label="Contact information">
+        <article class="contact-card">
+            <div class="contact-card__icon"><i class="fas fa-envelope"></i></div>
+            <h3>Email</h3>
+            <p><a href="mailto:support@mjms.com">support@mjms.com</a></p>
+        </article>
+        <article class="contact-card">
+            <div class="contact-card__icon"><i class="fas fa-phone"></i></div>
+            <h3>Phone</h3>
+            <p><a href="tel:+8801700000000">+880 1700-000000</a></p>
+        </article>
+        <article class="contact-card">
+            <div class="contact-card__icon"><i class="fas fa-location-dot"></i></div>
+            <h3>Address</h3>
+            <p>Dhaka, Bangladesh</p>
+        </article>
     </section>
 
-    <!-- FAQ Section -->
-    <section class="section" style="margin-top: 3rem;">
-        <h2 style="text-align: center; margin-bottom: 2rem;">Frequently Asked Questions</h2>
-        <div style="max-width: 700px; margin: 0 auto;">
-            <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
-                <h3 style="margin-bottom: 0.5rem;">How do I book a service?</h3>
-                <p>Simply browse our services, select a professional, choose your preferred date and time, and make a secure payment.</p>
-            </div>
-            <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
-                <h3 style="margin-bottom: 0.5rem;">Are the workers verified?</h3>
-                <p>Yes, all professionals on our platform are thoroughly vetted and company-trained to ensure quality service.</p>
-            </div>
-            <div style="margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
-                <h3 style="margin-bottom: 0.5rem;">What if I'm not satisfied with the service?</h3>
-                <p>We have a complaint resolution system and customer support team available 24/7 to assist with any issues.</p>
-            </div>
-            <div>
-                <h3 style="margin-bottom: 0.5rem;">Do you offer warranty on services?</h3>
-                <p>Warranty terms vary by service. Please check the service details for specific information.</p>
-            </div>
+    <section class="contact-panel">
+        <div class="contact-panel__header">
+            <span class="hub-eyebrow hub-eyebrow--dark">Direct support</span>
+            <h2>Need help?</h2>
+        </div>
+        <p>Customers and workers can send a complaint or support message directly to the admin team.</p>
+        <div class="contact-panel__actions">
+            {% if user.is_authenticated %}
+                {% if user.role == 'customer' or user.role == 'worker' %}
+                    <a href="{% url 'contact_admin' %}" class="hub-btn hub-btn--primary"><i class="fas fa-comments"></i> Message Us</a>
+                    <a href="{% url 'complaint_history' %}" class="hub-btn hub-btn--soft"><i class="fas fa-clock-rotate-left"></i> View My Messages</a>
+                {% else %}
+                    <p class="contact-panel__note">Support messages are available from customer and worker accounts.</p>
+                {% endif %}
+            {% else %}
+                <a href="{% url 'login' %}" class="hub-btn hub-btn--primary"><i class="fas fa-right-to-bracket"></i> Log in to Message Support</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="faq-section">
+        <div class="faq-section__head">
+            <span class="hub-eyebrow hub-eyebrow--dark">Helpful answers</span>
+            <h2>Frequently Asked Questions</h2>
+        </div>
+        <div class="faq-list">
+            <article class="faq-item">
+                <h3>How do I book a service?</h3>
+                <p>Browse our services, select a professional, choose your preferred date and time, and make a secure payment.</p>
+            </article>
+            <article class="faq-item">
+                <h3>Are the workers verified?</h3>
+                <p>Yes, all professionals are thoroughly vetted and company-trained to ensure quality service.</p>
+            </article>
+            <article class="faq-item">
+                <h3>What if I'm not satisfied?</h3>
+                <p>Our complaint resolution system and customer support team are available to help with any issue.</p>
+            </article>
+            <article class="faq-item">
+                <h3>Do you offer service warranties?</h3>
+                <p>Warranty terms vary by service. Check the service details for specific information.</p>
+            </article>
         </div>
     </section>
 </div>
-
 {% endblock %}

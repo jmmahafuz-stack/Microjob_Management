@@ -1,5 +1,0 @@
-/* Extracted from templates/notifications/notification_list.html */
-    .list-group-item.active {
-        background-color: #f0f8ff;
-        border-left: 4px solid #0d6efd;
-    }

@@ -1,11 +1,19 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="card profile-card">
-    <h2>My Profile</h2>
+<div class="account-profile-page">
+    <section class="account-profile-hero">
+        <div>
+            <span class="hub-eyebrow"><i class="fas fa-user-circle"></i> Account profile</span>
+            <h1>My Profile</h1>
+            <p>Manage your personal information and account details.</p>
+        </div>
+        <span class="account-profile-role"><i class="fas fa-shield-halved"></i> {{ user.role|title }}</span>
+    </section>
 
-
-    <div class="profile-header">
+    <div class="account-profile-layout">
+        <section class="account-profile-card account-profile-card--identity">
+            <div class="account-profile-header">
         {% if user.profile_picture %}
             <img src="{{ user.profile_picture.url }}" alt="Profile picture" class="profile-avatar">
         {% else %}
@@ -14,27 +22,42 @@
 
         <div>
             <h3>{{ user.first_name }} {{ user.last_name }}</h3>
-            <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>Role:</strong> {{ user.role|title }}</p>
+            <p>{{ user.email }}</p>
         </div>
-    </div>
+            </div>
+            <div class="account-profile-actions">
+                <a href="{% url 'edit_profile' %}" class="hub-btn hub-btn--primary"><i class="fas fa-pen"></i> Edit Profile</a>
+                <a href="{% url 'change_password' %}" class="hub-btn hub-btn--soft"><i class="fas fa-key"></i> Change Password</a>
+            </div>
+        </section>
 
-    <div class="profile-details">
-        <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Phone:</strong> {{ user.phone }}</p>
+        <section class="account-profile-card">
+            <div class="account-profile-section-heading">
+                <span class="hub-eyebrow hub-eyebrow--dark">Personal details</span>
+                <h2>Contact information</h2>
+            </div>
+            <div class="account-profile-details">
+                <div><span>Email</span><strong>{{ user.email }}</strong></div>
+                <div><span>Phone</span><strong>{{ user.phone|default:'Not set' }}</strong></div>
+                <div><span>Address</span><strong>{{ user.address|default:'Not set' }}</strong></div>
         {% if user.role == 'worker' %}
-            <p><strong>Profession / Work category:</strong> {{ user.worker_profile.profession|default:'Not set' }}</p>
+                <div><span>Profession</span><strong>{{ user.worker_profile.profession|default:'Not set' }}</strong></div>
         {% endif %}
-        <p><strong>Address:</strong> {{ user.address }}</p>
+            </div>
+        </section>
     </div>
 
     {% if user.role == 'worker' %}
-    <div class="worker-status-card">
-        <h3>Worker Status</h3>
-        <p><strong>Verification:</strong> {{ user.worker_profile.verification_status|default:'Pending' }}</p>
-        <p><strong>Training:</strong> {{ user.worker_profile.training_status|default:'Pending' }}</p>
-        <p><strong>Profession:</strong> {{ user.worker_profile.profession|default:'Not set' }}</p>
-        <p><strong>Category:</strong>
+    <section class="account-profile-card account-worker-status">
+        <div class="account-profile-section-heading">
+            <span class="hub-eyebrow hub-eyebrow--dark">Professional account</span>
+            <h2>Worker status</h2>
+        </div>
+        <div class="account-profile-details account-worker-details">
+            <div><span>Verification</span><strong>{{ user.worker_profile.verification_status|default:'Pending' }}</strong></div>
+            <div><span>Training</span><strong>{{ user.worker_profile.training_status|default:'Pending' }}</strong></div>
+            <div><span>Profession</span><strong>{{ user.worker_profile.profession|default:'Not set' }}</strong></div>
+            <div><span>Category</span><strong>
             {% if user.worker_profile.categories.all %}
                 {% for category in user.worker_profile.categories.all %}{{ category.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
             {% elif user.worker_profile.service_category %}
@@ -44,14 +67,10 @@
             {% else %}
                 Not set
             {% endif %}
-        </p>
-        <p><strong>Service area:</strong> {{ user.worker_profile.service_area|default:'Not set' }}</p>
-    </div>
+            </strong></div>
+            <div><span>Service area</span><strong>{{ user.worker_profile.service_area|default:'Not set' }}</strong></div>
+        </div>
+    </section>
     {% endif %}
-
-    <div class="profile-actions">
-        <a href="{% url 'edit_profile' %}">Edit Profile</a>
-        <a href="{% url 'change_password' %}">Change Password</a>
-    </div>
 </div>
 {% endblock %}

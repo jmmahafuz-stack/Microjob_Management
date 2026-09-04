@@ -1,9 +1,5 @@
 {% extends 'base.html' %}
 {% load static %}
-    <link rel="stylesheet" href="{% static 'css/register.css' %}">
-
-{% block extra_css %}
-{% endblock %}
 
 {% block content %}
 <section class="auth-page auth-page--register facebook-login-container">
@@ -81,9 +77,6 @@
                     <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
                     {{ form.email }}
                     {% if form.email.errors %}<span class="error-message">{{ form.email.errors.0 }}</span>{% endif %}
-                </div>
-
-                <div class="form-group">
                 </div>
 
                 <div class="form-group">

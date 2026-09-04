@@ -1,104 +1,114 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div style="max-width:900px; margin:0 auto; padding:20px 0;">
-    <div style="background:linear-gradient(135deg,#f8fbff 0%,#eef5ff 100%); border:1px solid #cfe0ff; border-radius:16px; padding:24px; box-shadow:0 6px 20px rgba(15,23,42,0.06);">
-        <div style="display:flex; gap:18px; align-items:center; flex-wrap:wrap;">
-            {% if worker_profile.user.profile_picture %}
-                <img src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}" style="width:96px; height:96px; border-radius:50%; object-fit:cover; border:3px solid #dbeafe;">
-            {% else %}
-                <div style="width:96px; height:96px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-size:1.8rem;">👷</div>
-            {% endif %}
-            <div>
-                <h2 style="margin:0 0 6px;">{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}</h2>
-                <p style="margin:0; color:#475569;"><strong>Profession:</strong> {{ worker_profile.profession|default:'Skilled professional' }}</p>
-                <p style="margin:6px 0 0; color:#475569;">
-                    <strong>Categories:</strong>
-                    {% if categories %}
-                        {% for category in categories %}{{ category.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-                    {% elif worker_profile.service_category %}
-                        {{ worker_profile.service_category }}
-                    {% elif worker_profile.service %}
-                        {{ worker_profile.service.category }}
-                    {% else %}
-                        Not specified
-                    {% endif %}
-                </p>
-                <p style="margin:4px 0 0; color:#4f46e5; font-weight:600;">Verified: {{ worker_profile.verification_status }}</p>
-            </div>
+<div class="worker-profile-page">
+    <section class="worker-profile-hero">
+        <div class="worker-profile-hero__content">
+            <span class="hub-eyebrow"><i class="fas fa-user-tie"></i> Professional profile</span>
+            <h1>{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}</h1>
+            <p>{{ worker_profile.profession|default:'Skilled professional' }}{% if worker_profile.service_area %} · {{ worker_profile.service_area }}{% endif %}</p>
         </div>
+        <span class="status-pill status-pill--success"><i class="fas fa-circle-check"></i> {{ worker_profile.verification_status }}</span>
+    </section>
 
-        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; margin-top:18px;">
-            <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:12px;">
-                <div style="font-size:0.8rem; color:#64748b;">Skills</div>
-                <div style="font-weight:600; margin-top:2px;">{{ worker_profile.skills|default:'Not specified' }}</div>
-            </div>
-            <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:12px;">
-                <div style="font-size:0.8rem; color:#64748b;">Experience</div>
-                <div style="font-weight:600; margin-top:2px;">{{ worker_profile.experience_years|default:0 }} years</div>
-            </div>
-            <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:12px;">
-                <div style="font-size:0.8rem; color:#64748b;">Service area</div>
-                <div style="font-weight:600; margin-top:2px;">{{ worker_profile.service_area|default:'Not specified' }}</div>
-            </div>
-            <div style="background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:12px;">
-                <div style="font-size:0.8rem; color:#64748b;">Languages</div>
-                <div style="font-weight:600; margin-top:2px;">{{ worker_profile.languages|default:'Not specified' }}</div>
-            </div>
-        </div>
-
-        {% if worker_profile.bio %}
-            <div style="margin-top:18px; background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:14px;">
-                <h3 style="margin-top:0; margin-bottom:8px;">About</h3>
-                <p style="margin:0; color:#334155;">{{ worker_profile.bio }}</p>
-            </div>
-        {% endif %}
-
-        {% if worker_services %}
-            <div class="worker-hire-panel">
+    <div class="worker-profile-layout">
+        <section class="worker-profile-card worker-profile-card--main">
+            <div class="worker-profile-header">
+                {% if worker_profile.user.profile_picture %}
+                    <img class="worker-profile-avatar" src="{{ worker_profile.user.profile_picture.url }}" alt="{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}">
+                {% else %}
+                    <div class="worker-profile-avatar worker-profile-avatar--placeholder">👷</div>
+                {% endif %}
                 <div>
-                    <p class="section-kicker">HIRE THIS WORKER</p>
-                    <h3>Select a service</h3>
-                    <p>Choose a service to book this worker directly with your problem details.</p>
-                    <p class="worker-hire-note"><i class="fas fa-lock"></i> <strong>Hire Me</strong> is fixed price. Negotiation is only available through <strong>Book This Service</strong>.</p>
+                    <h2>{{ worker_profile.user.get_full_name|default:worker_profile.user.email }}</h2>
+                    <p class="worker-profile-role">{{ worker_profile.profession|default:'Skilled professional' }}</p>
                 </div>
-                <div class="worker-hire-services">
-                    {% for service in worker_services %}
-                        {% if user.is_authenticated and user.role == 'customer' %}
-                            <a href="{% url 'create_booking' %}?service={{ service.pk }}&worker={{ worker_profile.user.pk }}" class="btn btn-primary">
-                                <i class="fas fa-handshake"></i> Hire Me for {{ service.name }}
-                            </a>
-                        {% elif not user.is_authenticated %}
-                            <a href="{% url 'login' %}?next={% url 'create_booking' %}?service={{ service.pk }}&worker={{ worker_profile.user.pk }}" class="btn btn-primary">
-                                <i class="fas fa-right-to-bracket"></i> Login to Hire
-                            </a>
+            </div>
+            <div class="worker-profile-meta">
+                <div class="worker-profile-meta-item"><span>Skills</span><strong>{{ worker_profile.skills|default:'Not specified' }}</strong></div>
+                <div class="worker-profile-meta-item"><span>Experience</span><strong>{{ worker_profile.experience_years|default:0 }} years</strong></div>
+                <div class="worker-profile-meta-item"><span>Service area</span><strong>{{ worker_profile.service_area|default:'Not specified' }}</strong></div>
+                <div class="worker-profile-meta-item"><span>Languages</span><strong>{{ worker_profile.languages|default:'Not specified' }}</strong></div>
+            </div>
+        </section>
+        <aside class="worker-profile-card worker-profile-card--aside">
+            <h3>Categories</h3>
+            <div class="worker-profile-detail-list">
+                <div class="worker-profile-detail-item">
+                    <span>Specialties</span>
+                    <strong>
+                        {% if categories %}
+                            {% for category in categories %}{{ category.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+                        {% elif worker_profile.service_category %}
+                            {{ worker_profile.service_category }}
+                        {% elif worker_profile.service %}
+                            {{ worker_profile.service.category }}
                         {% else %}
-                            <span class="worker-hire-note">Customer booking only</span>
+                            Not specified
                         {% endif %}
-                    {% endfor %}
+                    </strong>
+                </div>
+                <div class="worker-profile-detail-item">
+                    <span>Verification</span>
+                    <strong>{{ worker_profile.verification_status }}</strong>
                 </div>
             </div>
-        {% else %}
-            <div class="worker-hire-panel worker-hire-panel--unavailable">
-                <h3>This worker has no active service assigned</h3>
-                <p>An administrator must assign a service category before customers can hire this worker.</p>
-            </div>
-        {% endif %}
-
-        {% if reviews %}
-            <div style="margin-top:18px; background:#fff; border:1px solid #e0e7ff; border-radius:10px; padding:14px;">
-                <h3 style="margin-top:0; margin-bottom:8px;">Recent reviews</h3>
-                {% for review in reviews %}
-                    <div style="padding:10px 0; border-top:1px solid #e2e8f0;">
-                        <strong>{{ review.customer.get_full_name|default:review.customer.email }}</strong>
-                        <div style="color:#64748b; margin-top:2px;">⭐ {{ review.rating }}/5</div>
-                        {% if review.comment %}<p style="margin:6px 0 0; color:#334155;">{{ review.comment }}</p>{% endif %}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
+        </aside>
     </div>
 
-    <a href="{% url 'service_list' %}" style="display:inline-block; margin-top:16px; font-weight:600;">← Back to services</a>
+    {% if worker_profile.bio %}
+        <section class="worker-profile-section">
+            <h3>About</h3>
+            <p>{{ worker_profile.bio }}</p>
+        </section>
+    {% endif %}
+
+    {% if worker_services %}
+        <section class="worker-hire-panel">
+            <div class="worker-hire-panel__copy">
+                <p class="section-kicker">Hire this worker</p>
+                <h3>Select a service</h3>
+                <p>Choose a service to book this worker directly with your problem details.</p>
+                <p class="worker-hire-note"><i class="fas fa-lock"></i> <strong>Hire Me</strong> is fixed price. Negotiation is available through <strong>Book This Service</strong>.</p>
+            </div>
+            <div class="worker-hire-services">
+                {% for service in worker_services %}
+                    {% if user.is_authenticated and user.role == 'customer' %}
+                        <a href="{% url 'create_booking' %}?service={{ service.pk }}&worker={{ worker_profile.user.pk }}" class="hub-btn hub-btn--primary"><i class="fas fa-handshake"></i> Hire Me for {{ service.name }}</a>
+                    {% elif not user.is_authenticated %}
+                        <a href="{% url 'login' %}?next={% url 'create_booking' %}?service={{ service.pk }}&worker={{ worker_profile.user.pk }}" class="hub-btn hub-btn--primary"><i class="fas fa-right-to-bracket"></i> Login to Hire</a>
+                    {% else %}
+                        <span class="worker-hire-note">Customer booking only</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </section>
+    {% else %}
+        <section class="worker-hire-panel worker-hire-panel--unavailable">
+            <h3>This worker has no active service assigned</h3>
+            <p>An administrator must assign a service category before customers can hire this worker.</p>
+        </section>
+    {% endif %}
+
+    {% if reviews %}
+        <section class="worker-profile-section">
+            <h3>Recent reviews</h3>
+            <div class="worker-review-list">
+                {% for review in reviews %}
+                    <article class="worker-review-item">
+                        <div class="worker-review-header">
+                            <strong>{{ review.customer.get_full_name|default:review.customer.email }}</strong>
+                            <span>★ {{ review.rating }}/5</span>
+                        </div>
+                        {% if review.comment %}<p>{{ review.comment }}</p>{% endif %}
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    {% endif %}
+
+    <div class="worker-profile-back">
+        <a href="{% url 'service_list' %}" class="hub-btn hub-btn--soft"><i class="fas fa-arrow-left"></i> Back to services</a>
+    </div>
 </div>
 {% endblock %}

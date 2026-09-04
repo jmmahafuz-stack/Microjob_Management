@@ -1,18 +1,14 @@
 {% extends 'base.html' %}
 {% load static %}
-<link rel="stylesheet" href="{% static 'css/workflow-hub.css' %}">
 
 {% block title %}My Bookings | MJMS{% endblock %}
-
-{% block extra_css %}
-{% endblock %}
 
 {% block content %}
 <div class="hub-page" data-hub="customer">
     <section class="hub-hero">
         <div>
             <span class="hub-eyebrow"><i class="fa-solid fa-calendar-check"></i> Customer workspace</span>
-            <h1 style="color: #fff !important;">My Bookings</h1>
+            <h1>My Bookings</h1>
             <p>Track every request from the moment you book a service until the work is completed and paid.</p>
         </div>
         <a href="{% url 'service_list' %}" class="hub-btn hub-btn--primary"><i class="fa-solid fa-plus"></i> Book a service</a>
@@ -28,25 +24,42 @@
     <section class="hub-toolbar">
         <div class="hub-search"><i class="fa-solid fa-magnifying-glass"></i><input id="customerHubSearch" type="search" placeholder="Search service, worker, location or request..."></div>
         <div class="hub-tabs" role="tablist" aria-label="Booking status">
-            <button class="hub-tab is-active" type="button" data-filter="all">All</button>
+                <h1>My Bookings</h1>
             <button class="hub-tab" type="button" data-filter="pending"><span>Pending</span><span class="hub-tab__count">{{ pending_count }}</span></button>
             <button class="hub-tab" type="button" data-filter="active"><span>Active</span><span class="hub-tab__count">{{ active_count }}</span></button>
             <button class="hub-tab" type="button" data-filter="completed"><span>Completed</span><span class="hub-tab__count">{{ completed_count }}</span></button>
             <button class="hub-tab" type="button" data-filter="cancelled"><span>Cancelled</span><span class="hub-tab__count">{{ cancelled_count }}</span></button>
         </div>
     </section>
-
-    <div id="customerHubEmpty" class="hub-empty hub-empty--filtered" hidden>
-        <i class="fa-solid fa-filter-circle-xmark"></i><h2>No matching bookings</h2><p>Try another search or choose a different status.</p>
-    </div>
+            <div class="hub-stat">
+                <span class="hub-stat__icon hub-stat__icon--blue"><i class="fa-solid fa-layer-group"></i></span>
+                <div><small>Total</small><strong>{{ total_booked }}</strong><span>requests &amp; services</span></div>
+            </div>
+            <div class="hub-stat">
+                <span class="hub-stat__icon hub-stat__icon--violet"><i class="fa-solid fa-user-check"></i></span>
+                <div><small>Assigned</small><strong>{{ accepted_count }}</strong><span>worker selected</span></div>
+            </div>
+            <div class="hub-stat">
+                <span class="hub-stat__icon hub-stat__icon--amber"><i class="fa-solid fa-spinner"></i></span>
+                <div><small>In progress</small><strong>{{ in_progress_count }}</strong><span>being worked on</span></div>
+            </div>
+            <div class="hub-stat">
+                <span class="hub-stat__icon hub-stat__icon--green"><i class="fa-solid fa-circle-check"></i></span>
+                <div><small>Completed</small><strong>{{ completed_count }}</strong><span>ready for review</span></div>
+            </div>
 
     {% if service_requests %}
     <section class="hub-section">
-        <div class="hub-section__head"><div><span class="hub-eyebrow">Waiting for a worker</span><h2>Open Requests</h2></div><span class="hub-count">{{ service_requests|length }}</span></div>
+            <div class="hub-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input id="customerHubSearch" type="search" placeholder="Search service, worker, location or request...">
+            </div>
         <div class="hub-list">
             {% for request in service_requests %}
             <article class="hub-card hub-item" data-filter-status="pending" data-search="{{ request.title }} {{ request.service.name }} {{ request.location }}">
-                <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon"><i class="fa-solid fa-screwdriver-wrench"></i></span><div><span class="hub-card__label">Service request #{{ request.pk }}</span><h3>{{ request.title }}</h3><p>{{ request.service.name }}</p></div></div><span class="hub-status hub-status--pending">{{ request.get_status_display }}</span></div>
+            <i class="fa-solid fa-filter-circle-xmark"></i>
+            <h2>No matching bookings</h2>
+            <p>Try another search or choose a different status.</p>
                 <div class="hub-card__grid"><div><small><i class="fa-regular fa-calendar"></i> Preferred date</small><strong>{{ request.preferred_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ request.location }}</strong></div><div><small><i class="fa-solid fa-users"></i> Applications</small><strong>{{ request.application_count }} worker{{ request.application_count|pluralize }}</strong></div><div><small><i class="fa-solid fa-clock"></i> Posted</small><strong>{{ request.created_at|date:"M d, Y" }}</strong></div></div>
                 <p class="hub-description">{{ request.description|truncatewords:28 }}</p>
                 <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'service_request_detail' request.pk %}"><i class="fa-solid fa-users"></i> Review workers</a></div>
