@@ -20,8 +20,9 @@ except ImportError:
     openpyxl = None
 
 try:
+    import reportlab
     from reportlab.lib import colors
-    from reportlab.lib.pagesizes import letter, A4
+    from reportlab.lib.pagesizes import letter, A4, landscape
     from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
     from reportlab.lib.units import inch
@@ -198,6 +199,67 @@ class ReportGenerator:
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         response.write(buffer.getvalue())
         
+        return response
+
+    def generate_sections_pdf_response(self, sections: List[Dict], filename: str) -> HttpResponse:
+        """Generate one PDF containing multiple report sections."""
+        if not reportlab:
+            raise ImportError("reportlab is required for PDF export. Install it with: pip install reportlab")
+
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=landscape(A4),
+            topMargin=0.45 * inch,
+            bottomMargin=0.45 * inch,
+            leftMargin=0.45 * inch,
+            rightMargin=0.45 * inch,
+        )
+        styles = getSampleStyleSheet()
+        elements = [
+            Paragraph(self.title, ParagraphStyle(
+                'CombinedTitle', parent=styles['Heading1'], fontSize=18,
+                textColor=colors.HexColor('#12384b'), spaceAfter=6,
+            )),
+            Paragraph(
+                f"Period: {self.start_date.date()} to {self.end_date.date()}",
+                ParagraphStyle('CombinedDate', parent=styles['Normal'], fontSize=9,
+                               textColor=colors.grey, spaceAfter=14),
+            ),
+        ]
+
+        for section in sections:
+            elements.append(Paragraph(
+                section['title'],
+                ParagraphStyle('SectionTitle', parent=styles['Heading2'], fontSize=12,
+                               textColor=colors.HexColor('#087f8c'), spaceBefore=8, spaceAfter=6),
+            ))
+            table_data = [section['headers']] + [
+                [str(value) for value in row] for row in section['rows']
+            ]
+            table = Table(table_data, repeatRows=1)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#087f8c')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, -1), 7.5),
+                ('GRID', (0, 0), (-1, -1), 0.35, colors.HexColor('#cbd5e1')),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#f1f7f8')]),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 5),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 5),
+            ]))
+            elements.extend([table, Spacer(1, 0.16 * inch)])
+
+        elements.append(Paragraph(
+            f"Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            ParagraphStyle('CombinedFooter', parent=styles['Normal'], fontSize=8, textColor=colors.grey),
+        ))
+        doc.build(elements)
+
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.write(buffer.getvalue())
         return response
 
 
@@ -402,6 +464,109 @@ class FinancialReportGenerator(ReportGenerator):
             return self.generate_excel_response(rows, headers, filename)
         else:
             raise ValueError(f"Format {format_type} not supported")
+
+
+class AllReportsGenerator(ReportGenerator):
+    """Generate one PDF containing the platform's main report sections."""
+
+    def generate(self, format_type: str = 'pdf') -> HttpResponse:
+        if format_type != 'pdf':
+            raise ValueError('The combined report is available as PDF only.')
+
+        from accounts.models import CustomUser
+        from bookings.models import Job
+        from payments.models import Payment
+
+        payments = Payment.objects.filter(
+            payment_date__range=[self.start_date, self.end_date]
+        ).select_related(
+            'job__customer', 'job__worker',
+            'booking__customer', 'booking__worker',
+        ).order_by('-payment_date')
+
+        payment_rows = []
+        for payment in payments:
+            customer = payment.job.customer if payment.job else payment.booking.customer if payment.booking else None
+            worker = payment.job.worker if payment.job else payment.booking.worker if payment.booking else None
+            payment_rows.append([
+                payment.payment_date.strftime('%Y-%m-%d'),
+                payment.transaction_id or 'N/A',
+                customer.get_full_name() if customer else 'N/A',
+                f'BDT {payment.customer_amount}',
+                f'BDT {payment.platform_commission}',
+                payment.payment_status,
+                worker.get_full_name() if worker else 'Unassigned',
+            ])
+
+        workers = CustomUser.objects.filter(
+            role='worker'
+        ).select_related('worker_profile').annotate(
+            jobs_completed=Count('jobs_as_worker', filter=Q(jobs_as_worker__status='COMPLETED')),
+        ).order_by('-worker_profile__total_earnings')
+        worker_rows = []
+        for worker in workers:
+            profile = worker.worker_profile
+            worker_rows.append([
+                worker.get_full_name() or worker.email,
+                profile.verification_status,
+                worker.jobs_completed or 0,
+                f'BDT {profile.total_earnings}',
+                f'BDT {profile.available_earnings}',
+            ])
+
+        jobs = Job.objects.filter(
+            created_at__range=[self.start_date, self.end_date]
+        ).select_related('customer', 'worker').order_by('-created_at')
+        job_rows = []
+        for job in jobs:
+            job_rows.append([
+                job.pk,
+                job.title,
+                job.status,
+                job.customer.get_full_name() or job.customer.email,
+                job.worker.get_full_name() if job.worker else 'Unassigned',
+                f'BDT {job.proposed_price}',
+                job.created_at.strftime('%Y-%m-%d'),
+            ])
+
+        verified_totals = payments.filter(payment_status='Verified').aggregate(
+            revenue=Sum('customer_amount'),
+            commission=Sum('platform_commission'),
+            worker_earnings=Sum('worker_amount'),
+            transactions=Count('pk'),
+        )
+        financial_rows = [
+            ['Total verified revenue', f"BDT {verified_totals['revenue'] or 0}"],
+            ['Platform commission', f"BDT {verified_totals['commission'] or 0}"],
+            ['Worker earnings', f"BDT {verified_totals['worker_earnings'] or 0}"],
+            ['Verified transactions', verified_totals['transactions'] or 0],
+        ]
+
+        sections = [
+            {
+                'title': 'Financial Summary',
+                'headers': ['Metric', 'Value'],
+                'rows': financial_rows,
+            },
+            {
+                'title': 'Payments',
+                'headers': ['Date', 'Transaction', 'Customer', 'Amount', 'Commission', 'Status', 'Worker'],
+                'rows': payment_rows or [['No payment records found'] + [''] * 6],
+            },
+            {
+                'title': 'Workers',
+                'headers': ['Worker', 'Verification', 'Completed Jobs', 'Total Earnings', 'Available Earnings'],
+                'rows': worker_rows or [['No workers found'] + [''] * 4],
+            },
+            {
+                'title': 'Jobs',
+                'headers': ['ID', 'Title', 'Status', 'Customer', 'Worker', 'Price', 'Created'],
+                'rows': job_rows or [['No jobs found'] + [''] * 6],
+            },
+        ]
+
+        filename = f"All_Reports_{self.end_date.strftime('%Y%m%d')}.pdf"
+        return self.generate_sections_pdf_response(sections, filename)
     
     def generate_financial_summary(self, format_type: str = 'excel') -> HttpResponse:
         """Generate comprehensive financial summary."""

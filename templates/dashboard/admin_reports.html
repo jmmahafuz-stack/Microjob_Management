@@ -1,36 +1,108 @@
 {% extends 'base.html' %}
 
-{% block content %}
-<div class="card">
-    <div class="booking-page__header">
-        <div>
-            <p class="section-kicker">Reports</p>
-            <h2>Generate Reports</h2>
-        </div>
-        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
-    </div>
+{% block extra_css %}
+<style>
+    .reports-page{max-width:1280px!important;background:transparent!important;border:0!important;box-shadow:none!important;padding-top:2.5rem!important;}
+    .reports-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;padding:2.3rem 2.5rem;margin-bottom:1.25rem;border-radius:24px;background:linear-gradient(120deg,#12384b 0%,#087f8c 62%,#16a394 100%);color:#fff;box-shadow:0 20px 40px rgba(8,75,88,.18);}
+    .reports-eyebrow{margin:0 0 .55rem;color:#a7f3d0;font-size:.72rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;}
+    .reports-hero h1{margin:0;color:#fff;font-size:clamp(2rem,4vw,3rem);letter-spacing:-.04em;}
+    .reports-hero p:last-child{max-width:620px;margin:.8rem 0 0;color:rgba(255,255,255,.78);line-height:1.6;}
+    .reports-hero .btn{background:#fff;color:#12384b;border:0;}
+    .reports-hero-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.65rem;position:relative;z-index:1;}
+    .reports-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin-bottom:1.25rem;}
+    .reports-stat{padding:1.15rem 1.25rem;border:1px solid #dfeaf4;border-radius:16px;background:#fff;box-shadow:0 10px 24px rgba(22,42,61,.05);}
+    .reports-stat span{display:block;color:#718494;font-size:.7rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+    .reports-stat strong{display:block;margin-top:.4rem;color:#162a3d;font-size:1.65rem;letter-spacing:-.04em;}
+    .reports-stat small{color:#7b8d9c;}
+    .reports-chart-grid{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(280px,.8fr);gap:1rem;margin-bottom:1rem;}
+    .reports-chart-card{min-width:0;padding:1.35rem;border:1px solid #dfeaf4;border-radius:18px;background:#fff;box-shadow:0 10px 24px rgba(22,42,61,.05);}
+    .reports-chart-card--wide{grid-row:span 2;}
+    .reports-card-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1rem;padding-bottom:.8rem;border-bottom:1px solid #e7eff5;}
+    .reports-card-heading h2{margin:0;color:#162a3d;font-size:1.05rem;letter-spacing:-.02em;}
+    .reports-card-heading p{margin:.3rem 0 0;color:#7b8d9c;font-size:.8rem;}
+    .reports-chart-wrap{height:300px;position:relative;}
+    .reports-chart-card:not(.reports-chart-card--wide) .reports-chart-wrap{height:220px;}
+    .reports-downloads{padding:1.35rem;border:1px solid #dfeaf4;border-radius:18px;background:#fff;box-shadow:0 10px 24px rgba(22,42,61,.05);}
+    .reports-download-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem;}
+    .reports-download{display:flex;align-items:center;gap:.75rem;padding:1rem;border:1px solid #e3edf3;border-radius:13px;background:#f8fbfd;color:#162a3d;text-decoration:none;transition:transform .2s ease,background .2s ease,border-color .2s ease;}
+    .reports-download:hover{transform:translateY(-2px);background:#edf9f7;border-color:#a7dcd5;color:#087f8c;}
+    .reports-download i{color:#087f8c;font-size:1.1rem;}
+    .reports-download strong{display:block;font-size:.82rem;}
+    .reports-download small{display:block;margin-top:.15rem;color:#7b8d9c;font-size:.7rem;}
+    @media (max-width:900px){.reports-chart-grid{grid-template-columns:1fr;}.reports-chart-card--wide{grid-row:auto;}.reports-download-grid{grid-template-columns:repeat(2,minmax(0,1fr));}}
+    @media (max-width:620px){.reports-page{padding:1.25rem .75rem 2.5rem!important;}.reports-hero{align-items:flex-start;flex-direction:column;padding:1.7rem 1.25rem;border-radius:20px;}.reports-hero-actions{justify-content:flex-start;width:100%;}.reports-hero-actions .btn{flex:1;}.reports-stat-grid{grid-template-columns:1fr;}.reports-download-grid{grid-template-columns:1fr;}.reports-chart-wrap,.reports-chart-card:not(.reports-chart-card--wide) .reports-chart-wrap{height:240px;}}
+</style>
+{% endblock %}
 
-    <div class="dashboard-grid admin-grid" style="margin-top:20px;">
-        <div class="dashboard-card">
-            <h3>Payments Report</h3>
-            <p class="dashboard-number">CSV / Excel</p>
-            <a href="{% url 'admin_report_download' 'payment' %}?format=excel" class="btn btn-primary btn-sm">Download</a>
+{% block content %}
+<div class="card reports-page">
+    <header class="reports-hero">
+        <div>
+            <p class="reports-eyebrow"><i class="fa-solid fa-chart-line"></i> Business intelligence</p>
+            <h1>Reports &amp; analytics</h1>
+            <p>Understand marketplace performance, payment health, and platform revenue at a glance.</p>
         </div>
-        <div class="dashboard-card">
-            <h3>Worker Report</h3>
-            <p class="dashboard-number">Performance</p>
-            <a href="{% url 'admin_report_download' 'worker' %}?format=excel" class="btn btn-primary btn-sm">Download</a>
+        <div class="reports-hero-actions">
+            <a href="{% url 'admin_report_download' 'all' %}?format=pdf" class="btn btn-outline-secondary"><i class="fa-solid fa-file-pdf"></i> Download all as PDF</a>
+            <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
         </div>
-        <div class="dashboard-card">
-            <h3>Job Report</h3>
-            <p class="dashboard-number">Operations</p>
-            <a href="{% url 'admin_report_download' 'job' %}?format=excel" class="btn btn-primary btn-sm">Download</a>
+    </header>
+
+    <section class="reports-stat-grid" aria-label="Report highlights">
+        <div class="reports-stat"><span>Verified revenue</span><strong>৳{{ report_verified_revenue|default:'0.00' }}</strong><small>Across all verified payments</small></div>
+        <div class="reports-stat"><span>Platform commission</span><strong>৳{{ report_platform_commission|default:'0.00' }}</strong><small>Current collected revenue</small></div>
+        <div class="reports-stat"><span>Transactions</span><strong>{{ report_transaction_count|default:'0' }}</strong><small>Verified payment records</small></div>
+    </section>
+
+    <section class="reports-chart-grid" aria-label="Performance charts">
+        <article class="reports-chart-card reports-chart-card--wide">
+            <div class="reports-card-heading"><div><h2>Revenue trend</h2><p>Verified revenue and transaction volume over the last six months.</p></div><i class="fa-solid fa-arrow-trend-up" aria-hidden="true"></i></div>
+            <div class="reports-chart-wrap"><canvas id="revenueTrendChart" aria-label="Revenue and transactions trend chart"></canvas></div>
+        </article>
+        <article class="reports-chart-card">
+            <div class="reports-card-heading"><div><h2>Payment status</h2><p>Current distribution across all payment records.</p></div><i class="fa-solid fa-circle-half-stroke" aria-hidden="true"></i></div>
+            <div class="reports-chart-wrap"><canvas id="paymentStatusChart" aria-label="Payment status doughnut chart"></canvas></div>
+        </article>
+        <article class="reports-chart-card">
+            <div class="reports-card-heading"><div><h2>Revenue split</h2><p>Verified payment value by beneficiary.</p></div><i class="fa-solid fa-chart-pie" aria-hidden="true"></i></div>
+            <div class="reports-chart-wrap"><canvas id="financialSplitChart" aria-label="Platform and worker revenue pie chart"></canvas></div>
+        </article>
+    </section>
+
+    <section class="reports-downloads">
+        <div class="reports-card-heading"><div><h2>Export reports</h2><p>Download detailed records for offline analysis.</p></div><i class="fa-solid fa-download" aria-hidden="true"></i></div>
+        <div class="reports-download-grid">
+            <a class="reports-download" href="{% url 'admin_report_download' 'payment' %}?format=excel"><i class="fa-solid fa-credit-card"></i><span><strong>Payments</strong><small>Transactions &amp; status</small></span></a>
+            <a class="reports-download" href="{% url 'admin_report_download' 'worker' %}?format=excel"><i class="fa-solid fa-user-tie"></i><span><strong>Workers</strong><small>Performance overview</small></span></a>
+            <a class="reports-download" href="{% url 'admin_report_download' 'job' %}?format=excel"><i class="fa-solid fa-briefcase"></i><span><strong>Jobs</strong><small>Operations activity</small></span></a>
+            <a class="reports-download" href="{% url 'admin_report_download' 'financial' %}?format=excel"><i class="fa-solid fa-coins"></i><span><strong>Financials</strong><small>Commission summary</small></span></a>
         </div>
-        <div class="dashboard-card">
-            <h3>Financial Report</h3>
-            <p class="dashboard-number">Commission</p>
-            <a href="{% url 'admin_report_download' 'financial' %}?format=excel" class="btn btn-primary btn-sm">Download</a>
-        </div>
-    </div>
+    </section>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+{{ report_chart_data|json_script:"report-chart-data" }}
+<script>
+    (() => {
+        const data = JSON.parse(document.getElementById('report-chart-data').textContent);
+        const colors = ['#087f8c', '#2563eb', '#f59e0b', '#ef4444', '#8b5cf6', '#14b8a6'];
+        const baseOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { usePointStyle: true, padding: 18 } } } };
+
+        new Chart(document.getElementById('revenueTrendChart'), {
+            type: 'line',
+            data: { labels: data.monthly_labels, datasets: [
+                { label: 'Revenue (৳)', data: data.monthly_revenue, borderColor: '#087f8c', backgroundColor: 'rgba(8,127,140,.12)', fill: true, tension: .35, yAxisID: 'revenue' },
+                { label: 'Transactions', data: data.monthly_transactions, borderColor: '#2563eb', backgroundColor: 'transparent', tension: .35, borderDash: [5, 4], yAxisID: 'transactions' }
+            ] },
+            options: { ...baseOptions, scales: { revenue: { beginAtZero: true, grid: { color: '#edf3f7' } }, transactions: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } } } }
+        });
+
+        const statusLabels = data.status_labels.length ? data.status_labels : ['No data'];
+        const statusTotals = data.status_totals.length ? data.status_totals : [1];
+        new Chart(document.getElementById('paymentStatusChart'), { type: 'doughnut', data: { labels: statusLabels, datasets: [{ data: statusTotals, backgroundColor: colors, borderWidth: 3, borderColor: '#fff' }] }, options: { ...baseOptions, cutout: '64%' } });
+        new Chart(document.getElementById('financialSplitChart'), { type: 'pie', data: { labels: ['Platform commission', 'Worker earnings'], datasets: [{ data: data.financial_split, backgroundColor: ['#087f8c', '#2563eb'], borderWidth: 3, borderColor: '#fff' }] }, options: { ...baseOptions } });
+    })();
+</script>
 {% endblock %}

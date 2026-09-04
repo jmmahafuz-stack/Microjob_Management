@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Payment
+from .models import Payment, CommissionSetting
 
 
 class PaymentForm(forms.ModelForm):
@@ -59,3 +59,32 @@ class CustomerPaymentForm(forms.ModelForm):
             )
 
         return cleaned_data
+    
+class CommissionSettingForm(forms.ModelForm):
+ 
+     class Meta:
+         model = CommissionSetting
+         fields = ['rate']
+ 
+         widgets = {
+             'rate': forms.NumberInput(
+                 attrs={
+                     'class': 'form-control',
+                     'type': 'number',
+                     'step': '0.01',
+                     'min': '0',
+                     'max': '100',
+                     'placeholder': 'Enter commission percentage'
+                 }
+             )
+         }
+ 
+     def clean_rate(self):
+         rate = self.cleaned_data['rate']
+ 
+         if rate < 0 or rate > 100:
+             raise forms.ValidationError(
+                 'Commission must be between 0% and 100%.'
+             )
+ 
+         return rate   

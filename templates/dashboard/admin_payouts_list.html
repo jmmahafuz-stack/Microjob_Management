@@ -10,6 +10,38 @@
         <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">Back to Dashboard</a>
     </div>
 
+    <div class="panel-card" style="margin-bottom: 1.5rem;">
+        <div class="booking-page__header">
+            <div>
+                <p class="section-kicker">Platform Revenue</p>
+                <h3>Commission Rate</h3>
+                <span>Set the percentage the platform keeps from each payment.</span>
+            </div>
+            <strong>
+                {% if commission_setting %}
+                    Current: {{ commission_setting.rate }}%
+                {% else %}
+                    Not set
+                {% endif %}
+            </strong>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ commission_form.rate.id_for_label }}">Commission Percentage</label>
+                {{ commission_form.rate }}
+                {% if commission_form.rate.errors %}
+                    <div class="form-error">{{ commission_form.rate.errors }}</div>
+                {% endif %}
+                <small>Enter a value between 0 and 100. For example, 10 means 10% commission.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                {% if commission_setting %}Update Commission{% else %}Save Commission{% endif %}
+            </button>
+        </form>
+    </div>
+
     <div class="table-responsive">
         <table class="table">
             <thead>

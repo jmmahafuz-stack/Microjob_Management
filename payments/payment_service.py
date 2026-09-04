@@ -5,6 +5,7 @@ This service handles payment verification through APIs or manual verification.
 
 import re
 import json
+from .models import CommissionSetting
 from decimal import Decimal
 from typing import Dict, Tuple, Optional
 from datetime import datetime
@@ -18,15 +19,14 @@ class PaymentGatewayService:
     NAGAD_API_URL = "https://api.nagad.co.bd/verify"
     ROCKET_API_URL = "https://rocket.com.bd/api/verify"
     
-    # Commission configuration
-    DEFAULT_COMMISSION_RATE = 10  # 10% commission
+
     
     # Bangladesh phone number pattern (10-11 digits starting with 0)
     BD_PHONE_PATTERN = r'^01[0-9]{9}$'
     
     def __init__(self):
-        """Initialize the payment gateway service."""
-        self.commission_rate = self.DEFAULT_COMMISSION_RATE
+     """Initialize the payment gateway service."""
+     self.commission_rate = CommissionSetting.get_rate()
     
     def verify_transaction(
         self, 
@@ -280,7 +280,7 @@ class PaymentGatewayService:
             }
         """
         if commission_rate is None:
-            commission_rate = self.DEFAULT_COMMISSION_RATE
+         commission_rate = CommissionSetting.get_rate()
         
         customer_amt = Decimal(str(customer_amount))
         commission_pct = Decimal(str(commission_rate))

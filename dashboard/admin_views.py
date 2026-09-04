@@ -9,12 +9,14 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.http import JsonResponse
 from django.db.models import Sum, Count, Avg, Q
+from django.db.models.functions import TruncMonth
 from django.utils import timezone
 from datetime import timedelta, datetime
 
 from accounts.models import CustomUser
 from workers.models import WorkerProfile
-from payments.models import Payment, PayoutRequest
+from payments.models import Payment, PayoutRequest, CommissionSetting
+from payments.forms import CommissionSettingForm
 from bookings.models import Job
 from reviews.models import Review
 from complaints.models import Complaint
@@ -22,14 +24,42 @@ from payments.report_generator import (
     PaymentReportGenerator, 
     WorkerReportGenerator, 
     JobReportGenerator, 
-    FinancialReportGenerator
+    FinancialReportGenerator,
+    AllReportsGenerator,
 )
 
 
 @staff_member_required
 def admin_dashboard(request):
     """Main admin dashboard with key metrics and analytics."""
-    
+        # -------------------------------
+    # Commission Settings
+    # -------------------------------
+    commission_setting = CommissionSetting.objects.first()
+
+    if request.method == 'POST':
+
+        commission_form = CommissionSettingForm(
+            request.POST,
+            instance=commission_setting
+        )
+
+        if commission_form.is_valid():
+
+            commission_setting = commission_form.save()
+
+            messages.success(
+                request,
+                f'Commission rate updated to {commission_setting.rate}%.'
+            )
+
+            return redirect('admin_dashboard')
+
+    else:
+
+        commission_form = CommissionSettingForm(
+            instance=commission_setting
+        )
     # Date range filter (default 30 days)
     days_param = int(request.GET.get('days', 30))
     end_date = timezone.now()
@@ -108,17 +138,21 @@ def admin_dashboard(request):
     ).select_related('worker').order_by('-created_at')[:10]
     
     context = {
-        'payment_stats': payment_stats,
-        'job_stats': job_stats,
-        'user_stats': user_stats,
-        'payout_stats': payout_stats,
-        'quality_stats': quality_stats,
-        'top_workers': top_workers,
-        'recent_payments': recent_payments,
-        'recent_payouts': recent_payouts,
-        'date_range': f"{start_date.date()} to {end_date.date()}",
-        'days': days_param,
-    }
+    'payment_stats': payment_stats,
+    'job_stats': job_stats,
+    'user_stats': user_stats,
+    'payout_stats': payout_stats,
+    'quality_stats': quality_stats,
+    'top_workers': top_workers,
+    'recent_payments': recent_payments,
+    'recent_payouts': recent_payouts,
+    'date_range': f"{start_date.date()} to {end_date.date()}",
+    'days': days_param,
+
+    # Commission settings
+    'commission_setting': commission_setting,
+    'commission_form': commission_form,
+}
     
     return render(request, 'dashboard/admin_dashboard.html', context)
 
@@ -260,7 +294,10 @@ def admin_payments_list(request):
     page = int(request.GET.get('page', 1))
     
     payments = Payment.objects.select_related(
-        'job__customer', 'job__worker'
+        'job__customer',
+        'job__worker',
+        'booking__customer',
+        'booking__worker',
     ).order_by('-payment_date')
     
     if status != 'all':
@@ -363,6 +400,23 @@ def admin_workers_earnings(request):
 @staff_member_required
 def admin_payouts_list(request):
     """View and manage payout requests."""
+
+    commission_setting = CommissionSetting.objects.first()
+    if request.method == 'POST':
+        commission_form = CommissionSettingForm(
+            request.POST,
+            instance=commission_setting,
+        )
+
+        if commission_form.is_valid():
+            commission_setting = commission_form.save()
+            messages.success(
+                request,
+                f'Commission rate updated to {commission_setting.rate}%.',
+            )
+            return redirect('admin_payouts_list')
+    else:
+        commission_form = CommissionSettingForm(instance=commission_setting)
     
     status = request.GET.get('status', 'all')
     page = int(request.GET.get('page', 1))
@@ -385,6 +439,8 @@ def admin_payouts_list(request):
         'status_selected': status,
         'page': page,
         'total_pages': total_pages,
+        'commission_setting': commission_setting,
+        'commission_form': commission_form,
     }
     
     return render(request, 'dashboard/admin_payouts_list.html', context)
@@ -393,8 +449,65 @@ def admin_payouts_list(request):
 @staff_member_required
 def admin_reports(request):
     """Reports page for downloading various reports."""
-    
-    context = {}
+
+    six_months_ago = timezone.now() - timedelta(days=180)
+    monthly_rows = (
+        Payment.objects
+        .filter(
+            payment_date__gte=six_months_ago,
+            payment_status='Verified',
+        )
+        .annotate(month=TruncMonth('payment_date'))
+        .values('month')
+        .annotate(
+            revenue=Sum('customer_amount'),
+            transactions=Count('pk'),
+        )
+        .order_by('month')
+    )
+
+    monthly_labels = []
+    monthly_revenue = []
+    monthly_transactions = []
+    for row in monthly_rows:
+        monthly_labels.append(row['month'].strftime('%b %Y'))
+        monthly_revenue.append(float(row['revenue'] or 0))
+        monthly_transactions.append(row['transactions'])
+
+    status_rows = (
+        Payment.objects
+        .values('payment_status')
+        .annotate(total=Count('pk'))
+        .order_by('payment_status')
+    )
+    status_labels = [row['payment_status'] for row in status_rows]
+    status_totals = [row['total'] for row in status_rows]
+
+    financial_totals = Payment.objects.filter(
+        payment_status='Verified'
+    ).aggregate(
+        verified_revenue=Sum('customer_amount'),
+        commission=Sum('platform_commission'),
+        worker_earnings=Sum('worker_amount'),
+        transaction_count=Count('pk'),
+    )
+
+    context = {
+        'report_verified_revenue': financial_totals['verified_revenue'] or 0,
+        'report_platform_commission': financial_totals['commission'] or 0,
+        'report_transaction_count': financial_totals['transaction_count'] or 0,
+        'report_chart_data': {
+            'monthly_labels': monthly_labels,
+            'monthly_revenue': monthly_revenue,
+            'monthly_transactions': monthly_transactions,
+            'status_labels': status_labels,
+            'status_totals': status_totals,
+            'financial_split': [
+                float(financial_totals['commission'] or 0),
+                float(financial_totals['worker_earnings'] or 0),
+            ],
+        },
+    }
     return render(request, 'dashboard/admin_reports.html', context)
 
 
@@ -424,7 +537,10 @@ def admin_report_download(request, report_type):
         end_date = None
     
     try:
-        if report_type == 'payment':
+        if report_type == 'all':
+            gen = AllReportsGenerator('MJMS Complete Platform Report', start_date, end_date)
+            return gen.generate('pdf')
+        elif report_type == 'payment':
             gen = PaymentReportGenerator('Payment Report', start_date, end_date)
             return gen.generate(format_type)
         

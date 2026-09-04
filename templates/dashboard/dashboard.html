@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="dashboard-shell">
+<div class="dashboard-shell{% if user.role == 'admin' %} admin-dashboard{% endif %}">
     {% if user.role == 'admin' %}
         <header class="admin-header">
             <div>

@@ -73,7 +73,64 @@
         </div>
     </section>
     {% endif %}
+    <section id="commission-settings" class="admin-panel-grid">
 
+    <div class="panel-card">
+
+        <div class="panel-header">
+            <div>
+                <h3>Platform Commission</h3>
+                <span>Set the commission percentage taken by the platform.</span>
+            </div>
+
+            {% if commission_setting %}
+                <strong>
+                    Current: {{ commission_setting.rate }}%
+                </strong>
+            {% else %}
+                <strong>
+                    Not Set
+                </strong>
+            {% endif %}
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+
+                <label for="{{ commission_form.rate.id_for_label }}">
+                    Commission Percentage
+                </label>
+
+                {{ commission_form.rate }}
+
+                {% if commission_form.rate.errors %}
+                    <div class="form-error">
+                        {{ commission_form.rate.errors }}
+                    </div>
+                {% endif %}
+
+                <small>
+                    Enter a percentage between 0 and 100.
+                    Example: 10 means 10% commission.
+                </small>
+
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                {% if commission_setting %}
+                    Update Commission
+                {% else %}
+                    Save Commission
+                {% endif %}
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
     <section class="admin-panel-grid">
         <div class="panel-card analytics-card">
             <div class="panel-header">
@@ -84,7 +141,9 @@
                 <a href="{% url 'admin_users_list' %}"><i class="fa-solid fa-user-gear"></i> Manage Users</a>
                 <a href="{% url 'service_list' %}"><i class="fa-solid fa-list"></i> Manage Services</a>
                 <a href="{% url 'admin_jobs_list' %}"><i class="fa-solid fa-clipboard-list"></i> Monitor Jobs</a>
-                <a href="{% url 'admin_payouts_list' %}"><i class="fa-solid fa-percent"></i> Manage Commission</a>
+                <a href="{% url 'admin_payouts_list' %}">
+    <i class="fa-solid fa-percent"></i> Manage Commission
+</a>
                 <a href="{% url 'admin_payments_list' %}"><i class="fa-solid fa-sack-dollar"></i> Monitor Payments</a>
                 <a href="{% url 'admin_reports' %}"><i class="fa-solid fa-file-lines"></i> Generate Reports</a>
             </div>

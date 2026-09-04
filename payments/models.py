@@ -1,7 +1,25 @@
 from django.db import models
 from django.conf import settings
 from decimal import Decimal
+class CommissionSetting(models.Model):
+    rate = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        default=Decimal('0.00'),
+    )
+    updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return f"Platform Commission: {self.rate}%"
+
+    @classmethod
+    def get_rate(cls):
+        setting = cls.objects.first()
+
+        if setting is None:
+            return Decimal('0.00')
+
+        return setting.rate
 
 class Payment(models.Model):
     """Payment model with automatic commission calculation for platform revenue."""
@@ -98,12 +116,12 @@ class Payment(models.Model):
 
     # Commission settings
     commission_rate = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=10,
-        help_text="Commission percentage (e.g., 10 for 10%)"
-    )
-    
+    max_digits=5,
+    decimal_places=2,
+    null=True,
+    blank=True,
+    help_text="Commission percentage used for this payment"
+)
     # Payment verification (Gateway integration)
     verification_method = models.CharField(
         max_length=20,
@@ -166,6 +184,9 @@ class Payment(models.Model):
 
         if rate is None:
             rate = self.commission_rate
+
+        if rate is None:
+            rate = CommissionSetting.get_rate()
 
         self.commission_rate = rate
 
@@ -233,12 +254,16 @@ class Payment(models.Model):
         return True
 
     def save(self, *args, **kwargs):
-        # Auto-calculate commission if customer amount is set and values are still unset.
-        if self.customer_amount is not None and self.customer_amount != Decimal('0.00'):
+
+        if self._state.adding and self.commission_rate is None:
+            self.commission_rate = CommissionSetting.get_rate()
+
+        if self.customer_amount is None:
+            self.customer_amount = Decimal('0.00')
+
+        if self.customer_amount != Decimal('0.00'):
             if self.platform_commission == 0 or self.worker_amount == 0:
                 self.calculate_commission()
-        elif self.customer_amount is None:
-            self.customer_amount = Decimal('0.00')
 
         super().save(*args, **kwargs)
 
