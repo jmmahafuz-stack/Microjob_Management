@@ -93,6 +93,13 @@
                         <p class="info-value">{{ booking.problem_description }}</p>
                     </div>
 
+                    {% if booking.problem_photo %}
+                    <div class="info-row full-width">
+                        <label><i class="fas fa-image"></i> Problem Photo</label>
+                        <p class="info-value"><a href="{{ booking.problem_photo.url }}" target="_blank" rel="noopener"><img src="{{ booking.problem_photo.url }}" alt="Customer problem" style="max-width: 100%; max-height: 360px; border-radius: 8px; object-fit: contain;"></a></p>
+                    </div>
+                    {% endif %}
+
                     <!-- Customer Info -->
                     <div class="info-row full-width">
                         <label><i class="fas fa-user"></i> Customer</label>
@@ -185,6 +192,12 @@
                     {% endif %}
 
                     {% if user.role == 'worker' and booking.worker == user %}
+                        {% if booking.status not in 'Completed|Cancelled' %}
+                        <form method="post" action="{% url 'worker_cancel_booking' booking.pk %}" class="mb-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger"><i class="fas fa-times"></i> Cancel</button>
+                        </form>
+                        {% endif %}
                         {% if booking.status in 'Pending|Assigned' %}
                         <div class="worker-response-section">
                             <h4>Respond to Booking</h4>
@@ -212,6 +225,15 @@
                                 </button>
                             </form>
                         </div>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if user.role == 'worker' and booking.status == 'Pending' %}
+                        {% if not booking.worker or booking.worker == user %}
+                        <form method="post" action="{% url 'respond_to_booking' booking.pk 'accept' %}" class="mb-3">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Accept</button>
+                        </form>
                         {% endif %}
                     {% endif %}
 

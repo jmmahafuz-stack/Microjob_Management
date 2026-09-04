@@ -146,8 +146,10 @@ def booking_detail(request, pk):
 
     if request.user.role == 'admin':
         pass
-    elif request.user.role == 'worker' and booking.worker != request.user:
-        messages.error(request, 'You can only view bookings assigned to you.')
+    elif request.user.role == 'worker' and booking.worker != request.user and not (
+        booking.status == 'Pending' and booking.worker is None
+    ):
+        messages.error(request, 'You can only view open or assigned bookings.')
         return redirect('booking_list')
     elif request.user.role == 'customer' and booking.customer != request.user:
         messages.error(request, 'You can only view your own bookings.')
@@ -448,13 +450,6 @@ def respond_to_booking(request, pk, action):
             messages.error(request, 'Booking not found.')
             return redirect('worker_available_jobs')
 
-        profile = getattr(request.user, 'worker_profile', None)
-        category_match = bool(profile and (
-            profile.categories.filter(pk=booking.service.category_id).exists()
-            or (profile.service_id and profile.service.category_id == booking.service.category_id)
-            or (profile.service_category and profile.service_category.strip().lower() == booking.service.category.name.strip().lower())
-        ))
-
         if booking.status != 'Pending':
             messages.info(request, 'This request has already been accepted or is no longer available.')
             return redirect('worker_available_jobs')
@@ -462,10 +457,6 @@ def respond_to_booking(request, pk, action):
         if booking.worker_id and booking.worker_id != request.user.id:
             messages.error(request, 'This request was sent to another specific worker.')
             return redirect('worker_available_jobs')
-        if not booking.worker_id and not category_match:
-            messages.error(request, 'You are not eligible for this service category.')
-            return redirect('worker_available_jobs')
-
         if action == 'accept':
             if Booking.objects.filter(worker=request.user, booking_date=booking.booking_date, booking_time=booking.booking_time).exclude(status__in=['Cancelled', 'Completed']).exclude(pk=booking.pk).exists():
                 messages.error(request, 'You already have a booking at this date and time.')
@@ -519,6 +510,23 @@ def cancel_booking(request, pk):
         'bookings/booking_detail.html',
         {'booking': booking}
     )
+
+
+@login_required
+@worker_required
+def worker_cancel_booking(request, pk):
+    """Return an accepted legacy booking to the open worker pool."""
+    if request.method != 'POST':
+        return redirect('worker_available_jobs')
+    booking = get_object_or_404(Booking, pk=pk, worker=request.user)
+    if booking.status in ['Completed', 'Cancelled']:
+        messages.error(request, 'This booking cannot be cancelled.')
+        return redirect('booking_detail', pk=booking.pk)
+    booking.worker = None
+    booking.status = 'Pending'
+    booking.save(update_fields=['worker', 'status', 'updated_at'])
+    messages.success(request, 'Booking cancelled. It is available to other workers again.')
+    return redirect('worker_available_jobs')
 
 
 @admin_required
@@ -1180,18 +1188,11 @@ def worker_available_jobs(request):
         'customer', 'service_request'
     ).annotate(has_unread_customer_message=Exists(unread_customer_message)).order_by('-created_at')
     
-    # Category-wide open requests plus private requests for this worker.
-    profile = getattr(request.user, 'worker_profile', None)
-    category_ids = profile.categories.values_list('id', flat=True) if profile else []
-    category_name = profile.service_category.strip() if profile and profile.service_category else ''
+    # Show every new public booking, plus private bookings sent to this worker.
     rejected = WorkerResponse.objects.filter(booking=OuterRef('pk'), worker=request.user, status='REJECTED')
     open_requests = Booking.objects.filter(status='Pending').filter(
         Q(worker=request.user) | (
-            Q(worker__isnull=True) & (
-                Q(service__category_id__in=category_ids) |
-                Q(service__category__name__iexact=category_name) |
-                Q(service__workers__user=request.user)
-            )
+            Q(worker__isnull=True)
         )
     ).annotate(worker_declined=Exists(rejected)).filter(worker_declined=False).select_related('customer', 'service', 'service__category').distinct().order_by('-created_at')
 
@@ -1201,8 +1202,97 @@ def worker_available_jobs(request):
         status__in=['Cancelled', 'Pending']
     ).select_related('customer', 'service', 'service__category').order_by('-created_at')
 
-    context = {'jobs': available_jobs, 'bookings': assigned_bookings, 'open_requests': open_requests}
-    return render(request, 'bookings/worker_available_jobs.html', context)
+    return render(request, 'bookings/worker_available_jobs.html', {'open_requests': open_requests})
+
+
+@login_required
+@worker_required
+def worker_take_service(request, pk):
+    """Claim an open customer service so only one worker can take it."""
+    if request.method != 'POST':
+        return redirect('worker_available_jobs')
+    if request.user.worker_status != 'APPROVED':
+        messages.error(request, 'Admin approval is required before accepting services.')
+        return redirect('worker_available_jobs')
+
+    with transaction.atomic():
+        service_request = get_object_or_404(
+            ServiceRequest.objects.select_for_update().select_related('service', 'customer'),
+            pk=pk,
+        )
+        if service_request.status != 'OPEN':
+            messages.info(request, 'This service has already been taken by another worker.')
+            return redirect('worker_available_jobs')
+
+        profile = getattr(request.user, 'worker_profile', None)
+        category_ids = set(profile.categories.values_list('id', flat=True)) if profile else set()
+        category_name = (service_request.service.category.name if service_request.service.category else '').lower()
+        matches = profile and (
+            profile.service_id == service_request.service_id
+            or service_request.service.category_id in category_ids
+            or (profile.service_category and profile.service_category.lower() in category_name)
+            or (profile.profession and profile.profession.lower() in category_name)
+        )
+        if not matches:
+            messages.error(request, 'This service is not in your profession or category.')
+            return redirect('worker_available_jobs')
+
+        old_job = getattr(service_request, 'job', None)
+        if old_job and old_job.status == 'CANCELLED':
+            old_application = old_job.job_application
+            old_job.delete()
+            old_application.delete()
+
+        application = JobApplication.objects.create(
+            service_request=service_request,
+            worker=request.user,
+            proposed_price=service_request.budget_max or service_request.budget_min or service_request.service.price,
+            estimated_duration=timedelta(hours=1),
+            can_start_date=service_request.preferred_date,
+            agreed_to_schedule=True,
+            status='ACCEPTED',
+        )
+        job = Job.objects.create(
+            service_request=service_request,
+            job_application=application,
+            customer=service_request.customer,
+            worker=request.user,
+            title=service_request.title,
+            description=service_request.description,
+            proposed_price=application.proposed_price,
+            estimated_duration=application.estimated_duration,
+            scheduled_date=service_request.preferred_date,
+            scheduled_time_start=service_request.preferred_time_start,
+            scheduled_time_end=service_request.preferred_time_end,
+            location=service_request.location,
+            address=service_request.address,
+            status='CONFIRMED',
+        )
+        service_request.status = 'ASSIGNED'
+        service_request.save(update_fields=['status', 'updated_at'])
+        JobApplication.objects.filter(service_request=service_request).exclude(pk=application.pk).update(status='REJECTED')
+
+    messages.success(request, 'Service accepted successfully.')
+    return redirect('job_detail', pk=job.pk)
+
+
+@login_required
+@worker_required
+def worker_cancel_job(request, pk):
+    """Cancel assigned work and return the customer request to the worker pool."""
+    if request.method != 'POST':
+        return redirect('worker_available_jobs')
+    job = get_object_or_404(Job, pk=pk, worker=request.user)
+    if job.status in ['COMPLETED', 'CANCELLED']:
+        messages.error(request, 'This job cannot be cancelled.')
+        return redirect('job_detail', pk=job.pk)
+    job.status = 'CANCELLED'
+    job.save(update_fields=['status', 'updated_at'])
+    service_request = job.service_request
+    service_request.status = 'OPEN'
+    service_request.save(update_fields=['status', 'updated_at'])
+    messages.success(request, 'Job cancelled. The service is available to other workers again.')
+    return redirect('worker_available_jobs')
 
 
 @login_required

@@ -51,12 +51,20 @@
                                 <i class="fas fa-play"></i> Start Work
                             </button>
                         </form>
+                        <form method="post" action="{% url 'worker_cancel_job' job.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger"><i class="fas fa-times-circle"></i> Cancel</button>
+                        </form>
                     {% elif request.user == job.worker and job.status == 'IN_PROGRESS' %}
                         <form method="post" action="{% url 'job_complete' job.id %}" class="d-inline">
                             {% csrf_token %}
                             <button type="submit" name="complete_job" class="btn btn-success">
                                 <i class="fas fa-check-circle"></i> Mark Complete
                             </button>
+                        </form>
+                        <form method="post" action="{% url 'worker_cancel_job' job.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger"><i class="fas fa-times-circle"></i> Cancel</button>
                         </form>
                     {% endif %}
                     {% if request.user == job.worker and job.status in 'CONFIRMED,IN_PROGRESS' and not price_agreed %}
@@ -101,6 +109,12 @@
                         <strong>Description</strong>
                         <p class="mb-0">{{ job.description }}</p>
                     </div>
+                    {% if job.service_request.problem_photo %}
+                        <div class="mt-4">
+                            <strong>Problem photo</strong>
+                            <div><img src="{{ job.service_request.problem_photo.url }}" alt="Customer problem" class="img-fluid rounded mt-2" style="max-height: 360px;"></div>
+                        </div>
+                    {% endif %}
                     <div class="row g-4 service-facts">
                         <div class="col-md-6"><strong>Location</strong><p class="mb-0">{{ job.location }}</p></div>
                         <div class="col-md-6"><strong>Address</strong><p class="mb-0">{{ job.address }}</p></div>

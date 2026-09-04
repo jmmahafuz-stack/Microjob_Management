@@ -18,6 +18,34 @@
 
     {% if open_requests %}
     <div style="margin-bottom: 2rem;">
+        <h3 style="margin-bottom: 1rem; color: #0c63e4;">New Customer Services</h3>
+        <div class="service-list">
+            {% for booking in open_requests %}
+            <article class="service-list-item" style="border-left: 4px solid #0c63e4;">
+                <div class="service-list-item__body">
+                    <h4>{{ booking.service.name }}</h4>
+                    <p class="service-category">Customer: {{ booking.customer.get_full_name|default:booking.customer.email }}</p>
+                    <p><strong>Problem:</strong> {{ booking.problem_description|truncatewords:25 }}</p>
+                    <p><strong>Location:</strong> {{ booking.address }}</p>
+                    <p><strong>Requested:</strong> {{ booking.booking_date }} at {{ booking.booking_time }}</p>
+                    <span class="hub-status hub-status--pending">New · Open</span>
+                </div>
+                <div class="service-list-item__price">
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                        <a href="{% url 'booking_detail' booking.pk %}" class="btn btn-outline-secondary">View</a>
+                        <form method="post" action="{% url 'respond_to_booking' booking.pk 'accept' %}">{% csrf_token %}<button type="submit" class="btn btn-success" data-booking-action>Accept</button></form>
+                    </div>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% comment %}Legacy booking and accepted-job sections are kept on their own workflow pages.{% endcomment %}
+    {% comment %}
+    {% if open_requests %}
+    <div style="margin-bottom: 2rem;">
         <h3 style="margin-bottom: 1rem; color: #0c63e4;">📬 Open Requests</h3>
         <div class="service-list">
             {% for booking in open_requests %}
@@ -44,7 +72,7 @@
     </div>
     {% endif %}
 
-    {% if jobs or bookings or open_requests %}
+    {% if open_requests %}
         <!-- BOOKINGS SECTION -->
         {% if bookings %}
         <div style="margin-bottom: 2rem;">
@@ -156,13 +184,24 @@
                                         {% csrf_token %}
                                         <button type="submit" name="accept_job" class="btn btn-outline-secondary">Start Work</button>
                                     </form>
+                                    <form method="post" action="{% url 'worker_cancel_job' job.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger">Cancel</button>
+                                    </form>
                                 {% elif job.status == 'IN_PROGRESS' %}
                                     <form method="post" action="{% url 'job_complete' job.pk %}" class="d-inline">
                                         {% csrf_token %}
                                         <button type="submit" name="complete_job" class="btn btn-success">Mark Complete</button>
                                     </form>
-                                {% elif job.status != 'COMPLETED' %}
-                                    <a href="{% url 'cancel_job' job.pk %}" class="btn btn-outline-danger">Cancel</a>
+                                    <form method="post" action="{% url 'worker_cancel_job' job.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger">Cancel</button>
+                                    </form>
+                                {% elif job.status != 'COMPLETED' and job.status != 'CANCELLED' %}
+                                    <form method="post" action="{% url 'worker_cancel_job' job.pk %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-outline-danger">Cancel</button>
+                                    </form>
                                 {% endif %}
                                 
                                 <a href="{% url 'job_messages' job.pk %}" class="btn btn-outline-secondary">💬 Message Customer{% if job.has_unread_customer_message %}<i class="fas fa-bell message-unread-bell" title="New message"></i>{% endif %}</a>
@@ -174,6 +213,8 @@
         </div>
         {% endif %}
 
+    {% endcomment %}
+    {% if open_requests %}
     {% else %}
         <div style="text-align: center; padding: 3rem 1rem; background: #f8fbff; border-radius: 8px;">
             <p style="font-size: 1.2rem; color: #64748b; margin-bottom: 1rem;">📭 No jobs or bookings assigned yet</p>
@@ -184,7 +225,8 @@
 </div>
 
 <!-- Job Statistics -->
-{% if jobs or bookings or open_requests %}
+{% comment %}
+{% if jobs or bookings or open_requests or service_requests %}
     <div class="card" style="margin-top: 2rem;">
         <h3>Your Statistics</h3>
         <div class="dashboard-grid">
@@ -221,6 +263,7 @@
         </div>
     </div>
 {% endif %}
+{% endcomment %}
 {% endblock %}
 
 {% block extra_js %}
