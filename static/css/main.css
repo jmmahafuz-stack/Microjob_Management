@@ -966,7 +966,7 @@ button:hover,input[type="submit"]:hover{background:#163a56;}
 .action-buttons{flex-direction:column;width:100%;}
 .btn-action-primary,.btn-action-secondary{width:100%!important;text-align:center;}
 .request-card{padding:1rem;}
-}
+  
 .message-unread-bell{margin-left:7px;color:#facc15;filter:drop-shadow(0 0 2px rgba(120,53,15,.45));}
 .earnings-page-header{margin-bottom:2.5rem;padding-bottom:1.5rem;border-bottom:2px solid #e5e7eb;}
 .earnings-summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-top:1.5rem;}
@@ -2463,6 +2463,7 @@ h4{font-size:1.12rem;}
 .worker-hire-services,.worker-hire-services .hub-btn,.worker-profile-back .hub-btn{width:100%;}
 .worker-hire-services .hub-btn,.worker-profile-back .hub-btn{justify-content:center;}
 }
+.worker-hire-services .hub-btn--primary{color:#fff!important;}
 /* One header background for every page. */
 nav.top-nav,
 .admin-header,

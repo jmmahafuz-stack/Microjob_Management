@@ -24,42 +24,18 @@
     <section class="hub-toolbar">
         <div class="hub-search"><i class="fa-solid fa-magnifying-glass"></i><input id="customerHubSearch" type="search" placeholder="Search service, worker, location or request..."></div>
         <div class="hub-tabs" role="tablist" aria-label="Booking status">
-                <h1>My Bookings</h1>
             <button class="hub-tab" type="button" data-filter="pending"><span>Pending</span><span class="hub-tab__count">{{ pending_count }}</span></button>
             <button class="hub-tab" type="button" data-filter="active"><span>Active</span><span class="hub-tab__count">{{ active_count }}</span></button>
             <button class="hub-tab" type="button" data-filter="completed"><span>Completed</span><span class="hub-tab__count">{{ completed_count }}</span></button>
             <button class="hub-tab" type="button" data-filter="cancelled"><span>Cancelled</span><span class="hub-tab__count">{{ cancelled_count }}</span></button>
         </div>
     </section>
-            <div class="hub-stat">
-                <span class="hub-stat__icon hub-stat__icon--blue"><i class="fa-solid fa-layer-group"></i></span>
-                <div><small>Total</small><strong>{{ total_booked }}</strong><span>requests &amp; services</span></div>
-            </div>
-            <div class="hub-stat">
-                <span class="hub-stat__icon hub-stat__icon--violet"><i class="fa-solid fa-user-check"></i></span>
-                <div><small>Assigned</small><strong>{{ accepted_count }}</strong><span>worker selected</span></div>
-            </div>
-            <div class="hub-stat">
-                <span class="hub-stat__icon hub-stat__icon--amber"><i class="fa-solid fa-spinner"></i></span>
-                <div><small>In progress</small><strong>{{ in_progress_count }}</strong><span>being worked on</span></div>
-            </div>
-            <div class="hub-stat">
-                <span class="hub-stat__icon hub-stat__icon--green"><i class="fa-solid fa-circle-check"></i></span>
-                <div><small>Completed</small><strong>{{ completed_count }}</strong><span>ready for review</span></div>
-            </div>
 
     {% if service_requests %}
     <section class="hub-section">
-            <div class="hub-search">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input id="customerHubSearch" type="search" placeholder="Search service, worker, location or request...">
-            </div>
         <div class="hub-list">
             {% for request in service_requests %}
             <article class="hub-card hub-item" data-filter-status="pending" data-search="{{ request.title }} {{ request.service.name }} {{ request.location }}">
-            <i class="fa-solid fa-filter-circle-xmark"></i>
-            <h2>No matching bookings</h2>
-            <p>Try another search or choose a different status.</p>
                 <div class="hub-card__grid"><div><small><i class="fa-regular fa-calendar"></i> Preferred date</small><strong>{{ request.preferred_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ request.location }}</strong></div><div><small><i class="fa-solid fa-users"></i> Applications</small><strong>{{ request.application_count }} worker{{ request.application_count|pluralize }}</strong></div><div><small><i class="fa-solid fa-clock"></i> Posted</small><strong>{{ request.created_at|date:"M d, Y" }}</strong></div></div>
                 <p class="hub-description">{{ request.description|truncatewords:28 }}</p>
                 <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'service_request_detail' request.pk %}"><i class="fa-solid fa-users"></i> Review workers</a></div>
@@ -68,6 +44,12 @@
         </div>
     </section>
     {% endif %}
+
+    <section class="hub-empty hub-empty--filtered" hidden aria-live="polite">
+        <span class="hub-empty__icon"><i class="fa-solid fa-filter-circle-xmark"></i></span>
+        <h2>No matching bookings</h2>
+        <p>Try another search or choose a different status.</p>
+    </section>
 
     {% if accepted_jobs %}
     <section class="hub-section">
@@ -78,9 +60,9 @@
                 <div class="hub-card__top"><div class="hub-card__identity"><span class="hub-service-icon hub-service-icon--job"><i class="fa-solid fa-briefcase"></i></span><div><span class="hub-card__label">Job #{{ job.pk }}</span><h3>{{ job.title }}</h3><p>with {% if job.worker %}{{ job.worker.get_full_name|default:job.worker.email }}{% else %}Unassigned{% endif %}</p></div></div><span class="hub-status hub-status--{{ job.status|lower|cut:'_' }}">{{ job.get_status_display }}</span></div>
                 <div class="hub-card__grid"><div><small><i class="fa-regular fa-calendar"></i> Schedule</small><strong>{{ job.scheduled_date|date:"M d, Y" }}{% if job.scheduled_time_start %} · {{ job.scheduled_time_start|time:"g:i A" }}{% endif %}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Location</small><strong>{{ job.location|default:"Not specified" }}</strong></div><div><small><i class="fa-solid fa-user-tie"></i> Worker</small><strong>{% if job.worker %}{{ job.worker.get_full_name|default:job.worker.email }}{% else %}Not assigned{% endif %}</strong></div><div><small><i class="fa-solid fa-bangladeshi-taka-sign"></i> Price</small><strong>৳{{ job.final_price }}</strong></div></div>
                 {% if job.price_agreed %}
-                    <p class="hub-description"><strong>Price agreed</strong></p>
+                    <p class="hub-description"><strong>Negotiable price: agreed with worker</strong></p>
                 {% else %}
-                    <p class="hub-description"><strong>Price can be negotiated</strong></p>
+                    <p class="hub-description"><strong>Negotiable price: agreement not reached yet</strong></p>
                 {% endif %}
                 <div class="hub-card__actions">
                     <a class="hub-btn hub-btn--primary" href="{% url 'job_detail' job.pk %}"><i class="fa-solid fa-eye"></i> Details</a>
@@ -110,12 +92,12 @@
                 <div class="hub-card__grid"><div><small><i class="fa-solid fa-layer-group"></i> Category</small><strong>{{ booking.service.category.name }}</strong></div><div><small><i class="fa-regular fa-calendar"></i> Date</small><strong>{{ booking.booking_date|date:"M d, Y" }}</strong></div><div><small><i class="fa-regular fa-clock"></i> Time</small><strong>{{ booking.booking_time|time:"g:i A" }}</strong></div><div><small><i class="fa-solid fa-location-dot"></i> Address</small><strong>{{ booking.address|truncatewords:8 }}</strong></div><div><small><i class="fa-regular fa-clock"></i> Created</small><strong>{{ booking.created_at|date:"M d, Y" }}</strong></div></div>
                 <p class="hub-description">{{ booking.problem_description|truncatewords:28 }}</p>
                 {% if booking.booking_type == 'HIRE_ME' %}
-                    <p class="hub-description"><strong>Price status:</strong> Fixed price (Hire Me)</p>
+                    <p class="hub-description"><strong>Price status: Not negotiable</strong> · fixed Hire Me price</p>
                 {% else %}
                     {% if booking.price_agreed %}
-                        <p class="hub-description"><strong>Price status:</strong> Negotiable price (Book This Service), then agreed · ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
+                        <p class="hub-description"><strong>Price status: Negotiable</strong> · Book This Service price agreed · ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
                     {% else %}
-                        <p class="hub-description"><strong>Price status:</strong> Negotiable price (Book This Service) · Current offer: ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
+                        <p class="hub-description"><strong>Price status: Negotiable</strong> · Book This Service price · current offer: ৳{{ booking.actual_price|default:booking.proposed_price|default:booking.service.price }}</p>
                     {% endif %}
                 {% endif %}
                 <div class="hub-card__actions"><a class="hub-btn hub-btn--primary" href="{% url 'booking_detail' booking.pk %}"><i class="fa-solid fa-eye"></i> View booking</a>{% if booking.status == 'Completed' and not booking.payment_completed %}<a class="hub-btn hub-btn--success" href="{% url 'make_booking_payment' booking.pk %}"><i class="fa-solid fa-credit-card"></i> Pay now</a>{% endif %}{% if booking.status != 'Completed' and booking.status != 'Cancelled' %}<a class="hub-btn hub-btn--danger" href="{% url 'cancel_booking' booking.pk %}"><i class="fa-solid fa-ban"></i> Cancel</a>{% endif %}</div>

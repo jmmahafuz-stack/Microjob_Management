@@ -35,9 +35,9 @@
                     <div><span>Location</span><strong>{{ selected_service.location|default:'Any location' }}</strong></div>
                 </div>
                 {% if selected_worker %}
-                    <p class="booking-direct-selection-note"><i class="fas fa-lock"></i> <strong>Hire Me</strong> is fixed price. Negotiation is not available for this direct worker booking.</p>
+                    <p class="booking-direct-selection-note"><i class="fas fa-lock"></i> <strong>Hire Me: FIXED PRICE - NO NEGOTIATION.</strong> This direct worker booking cannot be negotiated.</p>
                 {% else %}
-                    <p class="booking-direct-selection-note"><i class="fas fa-comments"></i> <strong>Book This Service</strong> allows price negotiation before work starts.</p>
+                    <p class="booking-direct-selection-note"><i class="fas fa-comments"></i> <strong>Book This Service: NEGOTIABLE PRICE.</strong> You can negotiate before work starts.</p>
                 {% endif %}
             </article>
 

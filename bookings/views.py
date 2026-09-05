@@ -1188,12 +1188,24 @@ def worker_available_jobs(request):
         'customer', 'service_request'
     ).annotate(has_unread_customer_message=Exists(unread_customer_message)).order_by('-created_at')
     
-    # Show every new public booking, plus private bookings sent to this worker.
+    worker_profile = WorkerProfile.objects.filter(user=request.user).prefetch_related(
+        'categories', 'service__category'
+    ).first()
+    category_filter = Q(pk__in=[])
+    if worker_profile:
+        category_filter = Q(service__category__in=worker_profile.categories.all())
+        if worker_profile.service_id:
+            category_filter |= Q(service__category_id=worker_profile.service.category_id)
+        if worker_profile.service_category:
+            category_filter |= Q(service__category__name__icontains=worker_profile.service_category)
+        if worker_profile.profession:
+            category_filter |= Q(service__category__name__icontains=worker_profile.profession)
+
+    # Public bookings are visible only when their service matches this worker's category.
+    # A booking assigned directly to this worker remains visible regardless of category.
     rejected = WorkerResponse.objects.filter(booking=OuterRef('pk'), worker=request.user, status='REJECTED')
     open_requests = Booking.objects.filter(status='Pending').filter(
-        Q(worker=request.user) | (
-            Q(worker__isnull=True)
-        )
+        Q(worker=request.user) | (Q(worker__isnull=True) & category_filter)
     ).annotate(worker_declined=Exists(rejected)).filter(worker_declined=False).select_related('customer', 'service', 'service__category').distinct().order_by('-created_at')
 
     # Exclude 'Pending' bookings here since those are already shown above in the
